@@ -33,10 +33,11 @@ class Keyboard{
         this.rotate_index = speed_index;
         var old_rotate = this.time_rotate;
         this.time_rotate = config.period_li[this.rotate_index];
+        this.bc.time_rotate = this.time_rotate;
         this.bc.clock_inf.clock_util.change_period(this.time_rotate);
 
         // # update the histogram
-        // this.draw_histogram()
+        this.histogram.update(this.bc.clock_inf.kde.dens_li);
     }
     on_press(){
         this.bc.select();

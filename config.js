@@ -24,6 +24,6 @@ export var undo_index = 5;
 export var learn_delay = 0;
 
 export var mu0 = 0.05 ;
-export var sigma0 = 0.14;
+export var sigma0 = 0.12;
 export var sigma0_sq = sigma0 * sigma0;
 export var range0 = 2;

@@ -93,7 +93,10 @@ export class KernelDensityEstimation{
     calc_ksigma(eff_num_points, yLenEff){
         var ave_sigma_sq = this.ave_sigma_sq(eff_num_points, yLenEff);
 
-        this.ksigma = this.ns_factor * Math.sqrt(Math.max(0.0001, ave_sigma_sq));
+        this.ksigma = this.ns_factor * Math.sqrt(Math.max(0.001, ave_sigma_sq));
+        this.ksigma = this.ksigma0;
+        // console.log(this.ksigma);
+        // console.log(this.ksigma0);
         return this.ksigma;
     }
     increment_dens(yin, ksigma){
@@ -167,11 +170,11 @@ export class ClockInference{
             this.kde.y_li.pop();
             this.kde.y_ksigma.pop();
         }
-        this.kde.y_li.splice(yin, 0, 0);
-        this.kde.y_li.splice(this.kde.ksigma, 0, 0);
+        this.kde.y_li.splice(0, 0, yin);
+        this.kde.y_ksigma.splice(0, 0, this.kde.ksigma);
 
         this.kde.increment_dens(yin, this.kde.ksigma);
-        // this.kde.calc_ksigma(this.n_hist, Math.min(this.kde.n_ksigma, this.kde.y_li.length));
+        this.kde.calc_ksigma(this.n_hist, Math.min(this.kde.n_ksigma, this.kde.y_li.length));
         this.parent.histogram.update(this.kde.dens_li);
     }
     update_scores(time_diff_in) {
@@ -268,6 +271,7 @@ export class ClockInference{
             var n_press = this.clock_history[-selection_index].length;
             var win_index = this.win_history[-selection_index];
             for (var press = 0; press < n_press; press++) {
+                var value = this.clock_history[-selection_index][press][win_index];
                 this.inc_score_inc(this.clock_history[-selection_index][press][win_index]);
             }
 

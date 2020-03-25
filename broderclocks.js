@@ -58,8 +58,8 @@ export class BroderClocks{
         if (config.is_learning) {
             this.clock_inf.learn_scores(this.is_undo);
         }
-        this.parent.histogram.y_li = this.clock_inf.kde.y_li;
-        this.parent.histogram.draw_histogram();
+        // this.parent.histogram.dens_li = this.clock_inf.kde.dens_li;
+        // this.parent.histogram.upd();
 
         this.init_round(true, false, clock_score_prior);
     }
