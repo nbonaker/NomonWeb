@@ -1,10 +1,14 @@
 export class KeyboardCanvas{
     constructor(canvas_id, layer_index) {
+        this.canvas = document.getElementById(canvas_id);
+        this.canvas.style.zIndex = layer_index;
+
+        this.calculate_size();
+    }
+    calculate_size(){
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
-        this.canvas = document.getElementById(canvas_id);
-        this.canvas.style.zIndex = layer_index;
         this.canvas.style.position = "absolute";
         this.canvas.style.top = "50px";
         this.canvas.style.left = "0px";
@@ -29,14 +33,16 @@ export class KeyboardCanvas{
 
 export class OutputCanvas{
     constructor(canvas_id, y_offset) {
-        this.window_width = window.innerWidth;
-        this.window_height = window.innerHeight;
-
         this.canvas = document.getElementById(canvas_id);
         this.canvas.style.position = "absolute";
         this.canvas.style.left = "0px";
-        this.canvas.style.top = y_offset.toString().concat("px");
         this.ctx = this.canvas.getContext("2d");
+        this.calculate_size(y_offset);
+    }
+    calculate_size(y_offset){
+        this.canvas.style.top = y_offset.toString().concat("px");
+        this.window_width = window.innerWidth;
+        this.window_height = window.innerHeight;
 
         this.resolution_factor = 2;
         this.screen_fill_factor = 0.989;
@@ -57,6 +63,7 @@ export class KeyGrid {
         this.keygrid_canvas = keygrid_canvas;
         this.target_layout = target_layout;
 
+        this.in_pause = false;
         this.generate_layout();
         this.draw_layout();
     }
@@ -92,7 +99,12 @@ export class KeyGrid {
 
     draw_layout() {
         this.keygrid_canvas.ctx.beginPath();
-        this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
+        if (this.in_pause) {
+            this.keygrid_canvas.ctx.fillStyle = "#bfeec2";
+        }
+        else{
+            this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
+        }
         this.keygrid_canvas.ctx.rect(0, 0, this.keygrid_canvas.screen_width, this.keygrid_canvas.screen_height);
         this.keygrid_canvas.ctx.fill();
 
@@ -105,7 +117,12 @@ export class KeyGrid {
                 var x_end = this.x_positions[row][col][1];
 
                 this.keygrid_canvas.ctx.beginPath();
-                this.keygrid_canvas.ctx.fillStyle = "#ffffff";
+                if (this.in_pause) {
+                    this.keygrid_canvas.ctx.fillStyle = "#ecfff0";
+                }
+                else{
+                    this.keygrid_canvas.ctx.fillStyle = "#ffffff";
+                }
                 this.keygrid_canvas.ctx.strokeStyle = "#000000";
                 this.keygrid_canvas.ctx.rect(x_start, y_start, x_end - x_start, y_end - y_start);
                 this.keygrid_canvas.ctx.fill();
@@ -311,8 +328,6 @@ export class ClockGrid{
             }
         }
     }
-
-
 }
 
 export class Clock{
@@ -326,6 +341,7 @@ export class Clock{
         this.text = text;
         this.filler = false;
         this.highlighted=true;
+        this.winner = false;
     }
     draw_face(){
         if (!this.filler) {
@@ -333,7 +349,10 @@ export class Clock{
             this.face_canvas.ctx.arc(this.x_pos, this.y_pos, this.radius, 0, 2 * Math.PI);
             this.face_canvas.ctx.fillStyle = "#ffffff";
             this.face_canvas.ctx.fill();
-            if (this.highlighted) {
+            if (this.winner){
+                this.face_canvas.ctx.strokeStyle = "#00ff00";
+            }
+            else if (this.highlighted) {
                 this.face_canvas.ctx.strokeStyle = "#0056ff";
             }else{
                 this.face_canvas.ctx.strokeStyle = "#000000";
@@ -363,7 +382,10 @@ export class Clock{
             this.hand_canvas.ctx.lineTo(this.x_pos - Math.cos(this.angle - angle_correction) * this.radius * 0.1,
                 this.y_pos - Math.sin(this.angle - angle_correction) * this.radius * 0.1);
 
-            if (this.highlighted) {
+            if (this.winner){
+                this.hand_canvas.ctx.strokeStyle = "#00ff00";
+            }
+            else if (this.highlighted) {
                 this.hand_canvas.ctx.strokeStyle = "#0056ff";
             }else{
                 this.hand_canvas.ctx.strokeStyle = "#000000";
@@ -385,14 +407,16 @@ export class Histogram{
     constructor(output_canvas) {
         this.output_canvas = output_canvas;
         this.text = "";
-        this.box_x_offset = this.output_canvas.screen_width * 3 / 5;
-        this.box_width = this.output_canvas.screen_width * 2 / 5;
-        this.box_height = this.output_canvas.screen_height;
-
+        this.calculate_size();
         this.num_bins = 80;
 
         this.generate_normal_values();
         this.update(this.dens_li);
+    }
+    calculate_size(){
+        this.box_x_offset = this.output_canvas.screen_width * 3 / 5;
+        this.box_width = this.output_canvas.screen_width * 2 / 5;
+        this.box_height = this.output_canvas.screen_height;
     }
     update(dens_li){
         this.dens_li = [];
@@ -448,10 +472,13 @@ export class Textbox{
     constructor(output_canvas) {
         this.output_canvas = output_canvas;
         this.text = "";
-        this.box_width = this.output_canvas.screen_width * 3 / 5;
-        this.box_height = this.output_canvas.screen_height;
+        this.calculate_size();
         this.draw_box();
         this.draw_text();
+    }
+    calculate_size(){
+        this.box_width = this.output_canvas.screen_width * 3 / 5;
+        this.box_height = this.output_canvas.screen_height;
     }
     draw_box(){
         this.output_canvas.ctx.beginPath();
@@ -467,8 +494,11 @@ export class Textbox{
         this.output_canvas.ctx.fill();
         this.output_canvas.ctx.stroke();
     }
-    draw_text(text=""){
-        this.text = text;
+    draw_text(text=null){
+        if (text != null){
+            this.text = text;
+        }
+
         this.output_canvas.ctx.beginPath();
         this.output_canvas.ctx.fillStyle = "#ffffff";
         this.output_canvas.ctx.strokeStyle = "#000000";

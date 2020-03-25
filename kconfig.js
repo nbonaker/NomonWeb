@@ -15,6 +15,8 @@ export var alpha_target_layout = [['a', 'b', 'c', 'd', 'e'],
                  ['p', 'q', 'r', 's', 't'],
                  ['u', 'v', 'w', 'x', 'y'],
                  ['z', 'BREAKUNIT', "SPACEUNIT", 'BACKUNIT', 'UNDOUNIT']];
+export var pause_length = 1000;
+
 export var n_pred = 3;
 export var num_words = 17;
 
