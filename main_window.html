@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+.slidecontainer {
+    display: inline;
+    width: 100%;
+}
+label {
+    font-family: Helvetica, sans-serif;
+    font-size: 120%;
+    vertical-align: 30%;
+}
+.slider {
+  -webkit-appearance: none;
+  width: 50%;
+  height: 10%;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #0056ff;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #0056ff;
+  cursor: pointer;
+}
+</style>
+
+<body>
+
+<div class="slidecontainer">
+    <form>
+        <label for="speed_slider"><b>Clock Rotation Speed: </b></label>
+        <input type="range" min="1" max="20" value="10" class="slider" id="speed_slider">
+        <label for="speed_slider"><b><span id="speed_slider_value"></span></b></label>
+
+<!--        <label class="checkbox-inline" style="color:white">____________________</label>-->
+
+        <label class="checkbox-inline">
+          <input type="checkbox" value="" id="checkbox_learn"><b>Learn</b>
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" value="" id="checkbox_pause"><b>Pause</b>
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" value="" id="checkbox_sound"><b>Sound</b>
+        </label>
+    </form>
+</div>
+
+
+<canvas id="key_grid">
+Your browser does not support the canvas element.
+</canvas>
+
+<canvas id="clock_face">
+Your browser does not support the canvas element.
+</canvas>
+
+<canvas id="clock_hand">
+Your browser does not support the canvas element.
+</canvas>
+
+<canvas id="output">
+Your browser does not support the canvas element.
+</canvas>
+
+<script type="module" src="keyboard.js"></script>
+
+</body>
+</html>
