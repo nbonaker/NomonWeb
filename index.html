@@ -44,6 +44,9 @@ label {
 </style>
 
 <body>
+<!--<audio preload="none">-->
+<!--    <source id="wav" src="audio/bell.wav"/>-->
+<!--</audio>-->
 
 <div class="slidecontainer">
     <form>
@@ -53,14 +56,71 @@ label {
 
 <!--        <label class="checkbox-inline" style="color:white">____________________</label>-->
 
-        <label class="checkbox-inline">
-          <input type="checkbox" value="" id="checkbox_learn"><b>Learn</b>
+<!--        <label class="checkbox-inline">-->
+<!--          <input type="checkbox" value="" id="checkbox_learn"><b>Learn</b>-->
+<!--        </label>-->
+        <label for="checkbox"
+          onmousedown="event.preventDefault()"
+          onclick="
+            console.log('label:click');
+            if (this === event.target) {
+              console.log('label === event.target');
+              console.log('label:click preventDefault()');
+              // prevent focus and click
+              event.preventDefault();
+              // call click on the labeled control
+              this.control && this.control.click();
+            }
+          ">
+          <input id="checkbox_learn" type="checkbox"
+            onmousedown="event.preventDefault()"
+            onclick="
+              console.log('checkbox:click', `checked = ${this.checked}`);
+            "
+          />
+        <b>Learn</b>
         </label>
-        <label class="checkbox-inline">
-          <input type="checkbox" value="" id="checkbox_pause"><b>Pause</b>
+        <label for="checkbox"
+          onmousedown="event.preventDefault()"
+          onclick="
+            console.log('label:click');
+            if (this === event.target) {
+              console.log('label === event.target');
+              console.log('label:click preventDefault()');
+              // prevent focus and click
+              event.preventDefault();
+              // call click on the labeled control
+              this.control && this.control.click();
+            }
+          ">
+          <input id="checkbox_pause" type="checkbox"
+            onmousedown="event.preventDefault()"
+            onclick="
+              console.log('checkbox:click', `checked = ${this.checked}`);
+            "
+          />
+        <b>Pause</b>
         </label>
-        <label class="checkbox-inline">
-          <input type="checkbox" value="" id="checkbox_sound"><b>Sound</b>
+        <label for="checkbox"
+          onmousedown="event.preventDefault()"
+          onclick="
+            console.log('label:click');
+            if (this === event.target) {
+              console.log('label === event.target');
+              console.log('label:click preventDefault()');
+              // prevent focus and click
+              event.preventDefault();
+              // call click on the labeled control
+              this.control && this.control.click();
+            }
+          ">
+          <input id="checkbox_sound" type="checkbox"
+            onmousedown="event.preventDefault()"
+            onclick="
+              console.log('checkbox:click', `checked = ${this.checked}`);
+            "
+          />
+        <b>Sound</b>
         </label>
     </form>
 </div>

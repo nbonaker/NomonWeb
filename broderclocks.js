@@ -55,7 +55,7 @@ export class BroderClocks{
         this.is_undo = results[3];
         this.is_equalize = results[4];
 
-        if (config.is_learning) {
+        if (this.parent.learn_checkbox.checked) {
             this.clock_inf.learn_scores(this.is_undo);
         }
         // this.parent.histogram.dens_li = this.clock_inf.kde.dens_li;
