@@ -159,7 +159,13 @@ class Keyboard{
         this.fetched_words = false;
 
         const request = async () => {
-            const response = await fetch(proxyUrl + lm_url);
+            const response = await fetch(lm_url, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'API-Key': 'secret'
+              }
+            });
             const json = await response.json();
             this.words = json.words;
             this.foramt_words();
