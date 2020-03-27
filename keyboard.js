@@ -2,6 +2,7 @@ import * as widgets from './widgets.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
+import * as webswitch from "./webcam_switch/webcam_switch.js";
 
 class Keyboard{
     constructor(){
@@ -9,6 +10,13 @@ class Keyboard{
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + 50);
+        this.webcam_canvas = document.getElementById("webcam_canvas");
+        this.webcam_enabled = false;
+        this.ws = null;
+        this.init_webcam_switch();
+
+        document.onkeypress = function() {this.on_press();}.bind(this);
+        window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
         this.lm_prefix = "";
@@ -29,43 +37,29 @@ class Keyboard{
         this.fetch_words();
         this.init_ui();
     }
-    change_speed(index){
-        var speed_index = Math.floor(index);
-        // # period (as stored in config.py)
-        this.rotate_index = speed_index;
-        var old_rotate = this.time_rotate;
-        this.time_rotate = config.period_li[this.rotate_index];
-        this.bc.time_rotate = this.time_rotate;
-        this.bc.clock_inf.clock_util.change_period(this.time_rotate);
+    init_webcam_switch(){
+        this.webcam_enabled = document.getElementById("checkbox_webcam").checked;
+        if (!this.webcam_enabled){
+            var ctx = this.webcam_canvas.getContext("2d");
+            ctx.beginPath();
+            ctx.fillStyle = "#ededed";
+            ctx.rect(0, 0, this.webcam_canvas.width, this.webcam_canvas.height);
+            ctx.fill();
+            if (this.ws != null) {
+                var stream = this.ws.face_finder.mycamvas.video.srcObject;
+                stream.getTracks().forEach(function(track) {
+                  track.stop();
+                });
+                this.ws.face_finder.mycamvas = null;
+                this.ws.face_finder = null;
+                this.ws = null;
+            }
+        }else {
+            this.ws = new webswitch.WebcamSwitch(this);
 
-        // # update the histogram
-        this.histogram.update(this.bc.clock_inf.kde.dens_li);
-    }
-    on_press(){
-        if (this.fetched_words) {
-            this.bc.select();
         }
     }
-    start_pause(){
-        this.keygrid.in_pause = true;
-        this.keygrid.draw_layout();
-        setTimeout(this.end_pause.bind(this), kconfig.pause_length);
-    }
-    end_pause(){
-        this.keygrid.in_pause = false;
-        this.keygrid.draw_layout();
-    }
-    highlight_winner(clock_index){
-        this.winner_clock = this.clockgrid.clocks[clock_index];
-        this.winner_clock.winner = true;
-        this.winner_clock.draw_face();
-        setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
-    }
-    unhighlight_winner(){
-        this.winner_clock.winner = false;
-        this.winner_clock.draw_face();
-    }
-    continue_init(){
+        continue_init(){
         this.init_words();
 
         this.bc_init = false;
@@ -86,9 +80,10 @@ class Keyboard{
         this.speed_slider_output = document.getElementById("speed_slider_value");
         this.speed_slider_output.innerHTML = this.speed_slider.value;
 
-        this.speed_slider.oninput = function () {
-            this.speed_slider_output.innerHTML = this.value;
-        }
+        this.speed_slider.oninput = function() {
+            this.speed_slider_output.innerHTML = this.speed_slider.value;
+            this.change_speed(this.speed_slider.value);
+        }.bind(this);
 
         this.learn_checkbox = document.getElementById("checkbox_learn");
         this.learn_checkbox.checked = true;
@@ -96,11 +91,59 @@ class Keyboard{
         this.pause_checkbox = document.getElementById("checkbox_pause");
         this.pause_checkbox.checked = true;
 
+        this.audio = new Audio('audio/bell.wav');
+        this.audio_checkbox = document.getElementById("checkbox_sound");
+        this.audio_checkbox.checked = true;
+
+        this.checkbox_webcam = document.getElementById("checkbox_webcam");
+        this.checkbox_webcam.onchange = function () {
+            this.init_webcam_switch();
+        }.bind(this);
+
         this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.alpha_target_layout);
         this.clockgrid = new widgets.ClockGrid(this.clockface_canvas, this.clockhand_canvas, this.keygrid,
             kconfig.alpha_target_layout, kconfig.key_chars, kconfig.main_chars, kconfig.n_pred);
         this.textbox = new widgets.Textbox(this.output_canvas);
         this.histogram = new widgets.Histogram(this.output_canvas);
+    }
+    change_speed(index){
+        var speed_index = Math.floor(index);
+        // # period (as stored in config.py)
+        this.rotate_index = speed_index;
+        var old_rotate = this.time_rotate;
+        this.time_rotate = config.period_li[this.rotate_index];
+        this.bc.time_rotate = this.time_rotate;
+        this.bc.clock_inf.clock_util.change_period(this.time_rotate);
+
+        // # update the histogram
+        this.histogram.update(this.bc.clock_inf.kde.dens_li);
+    }
+    on_press(){
+        if (this.fetched_words) {
+            this.play_audio();
+            this.bc.select();
+        }
+    }
+    start_pause(){
+        this.keygrid.in_pause = true;
+        this.keygrid.draw_layout();
+        setTimeout(this.end_pause.bind(this), kconfig.pause_length);
+        this.clockgrid.undo_label.draw_text();
+    }
+    end_pause(){
+        this.keygrid.in_pause = false;
+        this.keygrid.draw_layout();
+        this.clockgrid.undo_label.draw_text();
+    }
+    highlight_winner(clock_index){
+        this.winner_clock = this.clockgrid.clocks[clock_index];
+        this.winner_clock.winner = true;
+        this.winner_clock.draw_face();
+        setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
+    }
+    unhighlight_winner(){
+        this.winner_clock.winner = false;
+        this.winner_clock.draw_face();
     }
     foramt_words() {
         this.word_predictions = [];
@@ -170,6 +213,7 @@ class Keyboard{
             else{
                 this.draw_words();
                 this.clockface_canvas.clear();
+                this.clockgrid.undo_label.draw_text();
                 this.gen_word_prior(false);
                 var results = [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
                 this.bc.continue_select(results);
@@ -542,7 +586,8 @@ class Keyboard{
         }
 
         this.previous_undo_text = undo_text;
-        // self.mainWidget.undo_label.setText("<font color='green'>" + undo_text + "</font>")
+        this.clockgrid.undo_label.text = undo_text;
+        this.clockgrid.undo_label.draw_text();
     }
     make_choice(index){
         var is_undo = false;
@@ -647,14 +692,16 @@ class Keyboard{
             else if (kconfig.break_chars.includes(new_char)) {
                 this.old_context_li.push(this.context);
                 this.context = "";
-                this.last_add_li.push(1)
+                this.last_add_li.push(1);
                 this.typed = this.typed.concat(new_char);
                 // if " " + new_char in self.typed:
                 //     self.last_add_li.concat(2);
                 //     self.typed = self.typed.replace(" " + new_char, new_char + " ");
             }
             else{
+                this.old_context_li.push(this.context);
                 this.typed = this.typed.concat(new_char);
+                this.last_add_li.push(1);
             }
         }
         else{
@@ -709,69 +756,58 @@ class Keyboard{
         this.lm_prefix = this.typed.slice(context_index+1, this.typed.length);
         this.left_context = this.left_context.replace("_", " ");
     }
-}
-
-function animate(){
-    if (keyboard.full_init) {
-        keyboard.bc.clock_inf.clock_util.increment(keyboard.words_on);
+    animate(){
+        if (this.full_init) {
+            this.bc.clock_inf.clock_util.increment(this.words_on);
+            if (this.webcam_enabled) {
+                if (this.ws.skip_update == 0) {
+                    this.ws.face_finder.mycamvas.update();
+                    this.ws.skip_update = true;
+                }
+                this.ws.skip_update = (this.ws.skip_update + 1) % 4;
+            }
+        }
+    }
+    play_audio() {
+        if (this.audio_checkbox.checked){
+            this.audio.play();
+        }
+    }
+    displayWindowSize(){
+        this.keygrid_canvas.calculate_size();
+        this.keygrid.generate_layout();
+        this.keygrid.draw_layout();
+    
+        this.clockface_canvas.calculate_size();
+        this.clockhand_canvas.calculate_size();
+        this.clockgrid.clocks = [];
+        this.clockgrid.generate_layout();
+        this.clockgrid.update_word_clocks(this.words_li);
+        for (var clock_ind in this.clockgrid.clocks){
+            var clock = this.clockgrid.clocks[clock_ind];
+            if (clock != null){
+                clock.draw_face();
+            }
+        }
+    
+        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + 50);
+        this.histogram.calculate_size();
+        this.histogram.draw_box();
+        this.histogram.draw_histogram();
+        this.textbox.calculate_size();
+        this.textbox.draw_box();
+        this.textbox.draw_text();
     }
 }
 
-var audio = new Audio('audio/bell.wav');
-var audio_checkbox = document.getElementById("checkbox_sound");
-audio_checkbox.checked = true;
 
 let keyboard = new Keyboard();
 
-var speed_slider = document.getElementById("speed_slider");
-var speed_slider_output = document.getElementById("speed_slider_value");
-speed_slider_output.innerHTML = speed_slider.value;
-
-speed_slider.oninput = function() {
-    speed_slider_output.innerHTML = this.value;
-    keyboard.change_speed(this.value);
-}
-
-document.onkeypress = function() {myFunction()};
-
-function myFunction() {
-    keyboard.on_press();
-    if (audio_checkbox.checked){
-        audio.play();
-    }
-}
-
-function displayWindowSize(){
-    keyboard.keygrid_canvas.calculate_size();
-    keyboard.keygrid.generate_layout();
-    keyboard.keygrid.draw_layout();
-
-    keyboard.clockface_canvas.calculate_size();
-    keyboard.clockhand_canvas.calculate_size();
-    keyboard.clockgrid.clocks = [];
-    keyboard.clockgrid.generate_layout();
-    keyboard.clockgrid.update_word_clocks(keyboard.words_li);
-    for (var clock_ind in keyboard.clockgrid.clocks){
-        var clock = keyboard.clockgrid.clocks[clock_ind];
-        if (clock != null){
-            clock.draw_face();
-        }
-    }
-
-    keyboard.output_canvas.calculate_size(keyboard.keygrid_canvas.screen_height / 2 + 50);
-    keyboard.histogram.calculate_size();
-    keyboard.histogram.draw_box();
-    keyboard.histogram.draw_histogram();
-    keyboard.textbox.calculate_size();
-    keyboard.textbox.draw_box();
-    keyboard.textbox.draw_text();
-}
 
 
 // Attaching the event listener function to window's resize event
-window.addEventListener("resize", displayWindowSize);
 
     // Calling the function for the first time
 // displayWindowSize();
 
-setInterval(animate, config.ideal_wait_s*1000);
+setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);

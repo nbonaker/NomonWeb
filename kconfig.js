@@ -20,7 +20,6 @@ export var pause_length = 1000;
 export var n_pred = 3;
 export var num_words = 17;
 
-export var frame_rate = 20;
 
 // ### Language model ###
 // # probability threshold for inclusion of word in the display

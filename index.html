@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
-
+<head>
+    <script src="webcam_switch/camvas.js"></script>
+    <script src="webcam_switch/pico.js"></script>
+    <script src="webcam_switch/lploc.js"></script>
+</head>
 <style>
 .slidecontainer {
     display: inline;
@@ -8,12 +12,12 @@
 }
 label {
     font-family: Helvetica, sans-serif;
-    font-size: 120%;
+    font-size: 100%;
     vertical-align: 30%;
 }
 .slider {
   -webkit-appearance: none;
-  width: 50%;
+  width: 35%;
   height: 10%;
   background: #d3d3d3;
   outline: none;
@@ -44,6 +48,7 @@ label {
 </style>
 
 <body>
+
 <!--<audio preload="none">-->
 <!--    <source id="wav" src="audio/bell.wav"/>-->
 <!--</audio>-->
@@ -122,8 +127,38 @@ label {
           />
         <b>Sound</b>
         </label>
+
+        <canvas id="webcam_canvas" height="35px">
+        Your browser does not support the canvas element.
+        </canvas>
+
+        <label for="checkbox"
+            onmousedown="event.preventDefault()"
+            onclick="
+                console.log('label:click');
+                if (this === event.target) {
+                    console.log('label === event.target');
+                    console.log('label:click preventDefault()');
+                    // prevent focus and click
+                    event.preventDefault();
+                    // call click on the labeled control
+                    this.control && this.control.click();
+                }
+            ">
+            <input id="checkbox_webcam" type="checkbox"
+                onmousedown="event.preventDefault()"
+                onclick="
+                    console.log('checkbox:click', `checked = ${this.checked}`);
+                "
+            />
+        <b>Webcam Switch</b>
+        </label>
     </form>
 </div>
+
+<canvas width=640 height=480 id="video_canvas"></canvas>
+
+<!--<script type="module" src="webcam_switch/webcam_switch.js"></script>-->
 
 
 <canvas id="key_grid">
