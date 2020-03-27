@@ -78,6 +78,7 @@ export class FaceFinder{
 
             var rgba = ctx.getImageData(0, 0, 640, 480).data;
             // prepare input to `run_cascade`
+            var test = rgba_to_grayscale(rgba, 480, 640)
             var image = {
                 "pixels": rgba_to_grayscale(rgba, 480, 640),
                 "nrows": 480,
@@ -85,9 +86,9 @@ export class FaceFinder{
                 "ldim": 640
             }
             var params = {
-                "shiftfactor": 0.1, // move the detection window by 10% of its size
+                "shiftfactor": 0.15, // move the detection window by 10% of its size
                 "minsize": 100,     // minimum size of a face
-                "maxsize": 1000,    // maximum size of a face
+                "maxsize": 800,    // maximum size of a face
                 "scalefactor": 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
             }
             // run the cascade over the frame and cluster the obtained detections

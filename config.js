@@ -6,7 +6,7 @@ for (var i=0; i < 21; i++){
 export var default_rotate_ind = 6;
 
 export var num_divs_click = 80;
-export var ideal_wait_s = 0.02;
+export var ideal_wait_s = 0.04;
 
 export var frac_period = 4.0 / 8.0;
 export var theta0 = frac_period * 2.0 * Math.PI;

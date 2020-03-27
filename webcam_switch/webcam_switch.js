@@ -5,6 +5,7 @@ export class WebcamCanvas{
         this.canvas = document.getElementById(canvas_id);
         this.canvas.style.zIndex = layer_index;
 
+
         this.calculate_size();
     }
     calculate_size(){
@@ -44,6 +45,7 @@ export class WebcamSwitch{
         this.control_switch = false;
         this.trigger_switch = false;
         this.highlight_trigger = false;
+        this.face_sizes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         this.control_lock = false;
 
@@ -53,7 +55,14 @@ export class WebcamSwitch{
     }
     draw_switch(){
         var face_x = 1 - this.face_finder.face_coords[0];
-        var face_size = this.face_finder.face_coords[2];
+        var cur_face_size = this.face_finder.face_coords[2];
+
+        this.face_sizes = this.face_sizes.slice(1);
+        this.face_sizes.push(cur_face_size);
+        var face_size = 0;
+        for (var i in this.face_sizes){
+            face_size += this.face_sizes[i]/10;
+        }
 
         var facebar_x = this.webcam_canvas.screen_width*(face_x-face_size);
         var trigger_bar_x = this.webcam_canvas.screen_width*(0.5+face_size*2);
@@ -65,6 +74,10 @@ export class WebcamSwitch{
             this.highlight_trigger = true;
         }else{
             this.control_switch = false;
+        }
+
+        if (this.face_sizes.includes(0)){
+            this.control_lock=false;
         }
 
         if (facebar_x + this.webcam_canvas.screen_width*face_size*2 > trigger_bar_x){
