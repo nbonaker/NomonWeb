@@ -13,10 +13,13 @@ class Keyboard{
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + 50);
         this.webcam_canvas = document.getElementById("webcam_canvas");
         this.webcam_enabled = false;
+        this.webcam_info_complete=false;
+        this.in_webcam_info_screen = false;
         this.ws = null;
         this.init_webcam_switch();
 
         document.onkeypress = function() {this.on_press();}.bind(this);
+        document.onmousedown = function() {this.destroy_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
@@ -36,6 +39,8 @@ class Keyboard{
         this.full_init=false;
         this.fetched_words = false;
         this.fetch_words();
+
+        this.in_info_screen = true;
         this.init_ui();
     }
     init_webcam_switch(){
@@ -57,10 +62,14 @@ class Keyboard{
             }
         }else {
             this.ws = new webswitch.WebcamSwitch(this);
-
+            if (!this.webcam_info_complete) {
+                this.in_webcam_info_screen = true;
+                this.webcam_info_complete = true;
+                this.init_webcam_info_screen();
+            }
         }
     }
-        continue_init(){
+    continue_init(){
         this.init_words();
 
         this.bc_init = false;
@@ -106,6 +115,29 @@ class Keyboard{
             kconfig.alpha_target_layout, kconfig.key_chars, kconfig.main_chars, kconfig.n_pred);
         this.textbox = new widgets.Textbox(this.output_canvas);
         this.histogram = new widgets.Histogram(this.output_canvas);
+
+        if (this.in_info_screen){
+            this.init_info_screen();
+        }
+    }
+    init_webcam_info_screen(){
+        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.info_canvas.calculate_size(0);
+        this.info_canvas.canvas.style.top = "50px";
+        this.info_screen = new widgets.WebcamInfoScreen(this.info_canvas);
+    }
+    init_info_screen(){
+        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.info_canvas.calculate_size(0);
+        this.info_canvas.canvas.style.top = "50px";
+        this.info_screen = new widgets.InfoScreen(this.info_canvas);
+    }
+    destroy_info_screen(){
+        if (this.in_info_screen || this.in_webcam_info_screen) {
+            this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
+            this.in_info_screen = false;
+            this.in_webcam_info_screen = false;
+        }
     }
     change_speed(index){
         var speed_index = Math.floor(index);
@@ -120,8 +152,8 @@ class Keyboard{
         this.histogram.update(this.bc.clock_inf.kde.dens_li);
     }
     on_press(){
-        if (this.fetched_words) {
-            this.play_audio();
+        this.play_audio();
+        if (this.fetched_words && !this.in_info_screen && !this.in_webcam_info_screen) {
             this.bc.select();
         }
     }
