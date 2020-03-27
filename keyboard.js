@@ -3,6 +3,7 @@ import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
 import * as webswitch from "./webcam_switch/webcam_switch.js";
+import {makeCorsRequest} from "./cors_request.js";
 
 class Keyboard{
     constructor(){
@@ -201,10 +202,8 @@ class Keyboard{
         var proxyUrl = 'https://cors-anywhere.herokuapp.com/';
         this.fetched_words = false;
 
-        const request = async () => {
-            const response = await fetch(proxyUrl+lm_url);
-            const json = await response.json();
-            this.words = json.words;
+        this.on_cor_load_function = function(output){
+            this.words = output.words;
             this.foramt_words();
             this.fetched_words = true;
             if (!this.full_init) {
@@ -218,8 +217,28 @@ class Keyboard{
                 var results = [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
                 this.bc.continue_select(results);
             }
-        }
-        request();
+        };
+
+        makeCorsRequest(lm_url, this.on_cor_load_function.bind(this));
+        // const request = async () => {
+        //     const response = await fetch(proxyUrl+lm_url);
+        //     const json = await response.json();
+        //     this.words = json.words;
+        //     this.foramt_words();
+        //     this.fetched_words = true;
+        //     if (!this.full_init) {
+        //         this.continue_init();
+        //     }
+        //     else{
+        //         this.draw_words();
+        //         this.clockface_canvas.clear();
+        //         this.clockgrid.undo_label.draw_text();
+        //         this.gen_word_prior(false);
+        //         var results = [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
+        //         this.bc.continue_select(results);
+        //     }
+        // }
+        // request();
     }
     init_locs(){
         var key_chars = kconfig.key_chars;
@@ -758,14 +777,16 @@ class Keyboard{
     }
     animate(){
         if (this.full_init) {
+            var time_in = Date.now()/1000;
             this.bc.clock_inf.clock_util.increment(this.words_on);
             if (this.webcam_enabled) {
                 if (this.ws.skip_update == 0) {
                     this.ws.face_finder.mycamvas.update();
                     this.ws.skip_update = true;
                 }
-                this.ws.skip_update = (this.ws.skip_update + 1) % 4;
+                this.ws.skip_update = (this.ws.skip_update + 1) % 2;
             }
+            console.log(Date.now()/1000 - time_in);
         }
     }
     play_audio() {
