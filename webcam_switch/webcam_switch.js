@@ -76,7 +76,7 @@ export class WebcamSwitch{
             this.control_switch = false;
         }
 
-        if (this.face_sizes.includes(0)){
+        if (this.face_sizes.includes(0) || this.face_sizes.includes(-1)){
             this.control_lock=false;
         }
 
