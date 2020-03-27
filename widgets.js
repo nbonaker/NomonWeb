@@ -271,6 +271,11 @@ export class ClockGrid{
             this.clocks.push(null);
             this.clocks.push(cur_undo_clock);
 
+            var undo_label_x = x_start + this.clock_radius * 3;
+            var undo_label_y = y_start + (y_end - y_start) * 2 / 3;
+
+            this.undo_label = new Label(this.face_canvas, undo_label_x, undo_label_y, this.clock_radius*2,"");
+
         }
         var help;
 
@@ -327,6 +332,25 @@ export class ClockGrid{
                 clock.draw_hand();
             }
         }
+        this.undo_label.draw_text();
+    }
+}
+
+export class Label {
+    constructor(face_canvas, x_pos, y_pos, height, text = "") {
+        this.face_canvas = face_canvas;
+        this.x_pos = x_pos;
+        this.y_pos = y_pos;
+        this.height = height;
+        this.text = text;
+    }
+
+    draw_text() {
+        this.face_canvas.ctx.clearRect(this.x_pos, this.y_pos+this.height, this.height*10, -this.height*2);
+        this.face_canvas.ctx.fillStyle = "#000000";
+        var font_height = this.height;
+        this.face_canvas.ctx.font = font_height.toString().concat("px Helvetica");
+        this.face_canvas.ctx.fillText(this.text, this.x_pos, this.y_pos + font_height / 3);
     }
 }
 
