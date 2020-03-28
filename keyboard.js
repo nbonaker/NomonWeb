@@ -5,6 +5,12 @@ import * as bc from './broderclocks.js';
 import * as webswitch from "./webcam_switch/webcam_switch.js";
 import {makeCorsRequest} from "./cors_request.js";
 
+function log_add_exp(a_1, a_2){
+    var b = Math.max(a_1, a_2);
+    var sum =  b + Math.log(Math.exp(a_1 - b)+Math.exp(a_2-b));
+    return sum;
+}
+
 class Keyboard{
     constructor(){
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
@@ -185,24 +191,25 @@ class Keyboard{
         var char;
         var char_words;
         var char_word_probs;
-        var normalizer = 0;
+        var normalizer = -Infinity;
         var word_index;
         for (char_index in kconfig.main_chars) {
             char = kconfig.main_chars[char_index];
             char_words = [];
             char_word_probs = [];
             for (word_index in this.words) {
-                var word = this.words[word_index];
+                var word = this.words[word_index].token;
+                var log_prob = this.words[word_index].logProb;
                 if (word.charAt(this.lm_prefix.length) == char && char_words.length < kconfig.n_pred) {
                     char_words.push(word);
-                    char_word_probs.push(1);
-                    normalizer++;
+                    char_word_probs.push(log_prob);
+                    normalizer = log_add_exp(normalizer, log_prob);
                 }
             }
 
             for (var i = char_words.length; i < kconfig.n_pred; i++) {
                 char_words.push("");
-                char_word_probs.push(0);
+                char_word_probs.push(-Infinity);
 
             }
             this.word_predictions.push(char_words);
@@ -213,16 +220,18 @@ class Keyboard{
             char_word_probs = [];
             for (var index = 0; index < kconfig.n_pred; index++) {
                 char_words.push("");
-                char_word_probs.push(0);
+                char_word_probs.push(-Infinity);
             }
             this.word_predictions.push(char_words);
             this.word_prediction_probs.push(char_word_probs);
         }
 
+        var sanity_check = -Infinity;
         for (var key_index=0; key_index < this.word_prediction_probs.length; key_index++){
             for (word_index = 0; word_index < kconfig.n_pred; word_index++){
                 this.word_prediction_probs[key_index][word_index] =
-                    Math.log(this.word_prediction_probs[key_index][word_index] / normalizer);
+                    this.word_prediction_probs[key_index][word_index] - normalizer;
+                sanity_check = log_add_exp(sanity_check, this.word_prediction_probs[key_index][word_index]);
             }
         }
 
@@ -235,7 +244,7 @@ class Keyboard{
         this.fetched_words = false;
 
         this.on_cor_load_function = function(output){
-            this.words = output.words;
+            this.words = output.results;
             this.foramt_words();
             this.fetched_words = true;
             if (!this.full_init) {
