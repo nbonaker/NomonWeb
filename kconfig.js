@@ -5,7 +5,7 @@ export var back_char = '#';
 export var clear_char = '$';
 
 export var key_chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                   'u', 'v', 'w', 'x', 'y', 'z', '\'', '_', '.', ',', '!', '?', '#', '$', '@'];
+                   'u', 'v', 'w', 'x', 'y', 'z', '.', ',', '!', '?', '\'', '_', '#', '$', '@'];
 export var main_chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
                    'u', 'v', 'w', 'x', 'y', 'z'];
 
@@ -15,6 +15,7 @@ export var alpha_target_layout = [['a', 'b', 'c', 'd', 'e'],
                  ['p', 'q', 'r', 's', 't'],
                  ['u', 'v', 'w', 'x', 'y'],
                  ['z', 'BREAKUNIT', "SPACEUNIT", 'BACKUNIT', 'UNDOUNIT']];
+
 export var pause_length = 1000;
 
 export var n_pred = 3;

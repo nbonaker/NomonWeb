@@ -18,12 +18,12 @@ function createCORSRequest(method, url) {
 }
 
 // Make the actual CORS request.
-export function makeCorsRequest(url, on_load_function=null) {
+export function makeCorsRequest(url, on_load_function=null, cache_type=null) {
     // This is a sample server that supports CORS.
 
     var xhr = createCORSRequest('GET', url);
         if (!xhr) {
-        console.log('CORS not supported');
+        // console.log('CORS not supported');
         return;
     }
 
@@ -32,15 +32,15 @@ export function makeCorsRequest(url, on_load_function=null) {
         var text = xhr.responseText;
         // var title = getTitle(text);
         var data = JSON.parse(text);
-        console.log('Response from CORS request to ' + url);
+        // console.log('Response from CORS request to ' + url);
         // console.log('Recieved: ' + text);
         if (on_load_function != null){
-            on_load_function(data);
+            on_load_function(data, cache_type);
         }
     };
 
     xhr.onerror = function() {
-        console.log('Woops, there was an error making the request.');
+        // console.log('Woops, there was an error making the request.');
     };
     xhr.send();
 }
