@@ -119,7 +119,12 @@ export class BroderClocks{
         this.clock_inf.handicap_cscores(is_win, is_start);
         top_score = this.clock_inf.cscores[this.clock_inf.sorted_inds[0]];
 
-        var bound_score = top_score - this.parent.win_diffs[this.clock_inf.sorted_inds[0]];
+        var bound_score;
+        if (this.clock_inf.clock_history[0].length == 0){
+            bound_score = top_score - config.max_init_diff;
+        }else {
+            bound_score = top_score - this.parent.win_diffs[this.clock_inf.sorted_inds[0]];
+        }
 
         for (var i in this.clock_inf.clocks_on){
             clock_ind = this.clock_inf.clocks_on[i];

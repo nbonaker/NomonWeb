@@ -2,6 +2,7 @@ import * as widgets from './widgets.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
+import * as lm from './lm.js';
 import * as webswitch from "./webcam_switch/webcam_switch.js";
 import {makeCorsRequest} from "./cors_request.js";
 
@@ -44,7 +45,7 @@ class Keyboard{
 
         this.full_init=false;
         this.fetched_words = false;
-        this.fetch_words();
+        this.lm = new lm.LanguageModel(this);
 
         this.in_info_screen = true;
         this.init_ui();
@@ -184,102 +185,21 @@ class Keyboard{
         this.winner_clock.winner = false;
         this.winner_clock.draw_face();
     }
-    foramt_words() {
-        this.word_predictions = [];
-        this.word_prediction_probs = [];
-        var char_index;
-        var char;
-        var char_words;
-        var char_word_probs;
-        var normalizer = -Infinity;
-        var word_index;
-        for (char_index in kconfig.main_chars) {
-            char = kconfig.main_chars[char_index];
-            char_words = [];
-            char_word_probs = [];
-            for (word_index in this.words) {
-                var word = this.words[word_index].token;
-                var log_prob = this.words[word_index].logProb;
-                if (word.charAt(this.lm_prefix.length) == char && char_words.length < kconfig.n_pred) {
-                    char_words.push(word);
-                    char_word_probs.push(log_prob);
-                    normalizer = log_add_exp(normalizer, log_prob);
-                }
-            }
+    on_word_load(){
+        this.fetched_words = true;
+        this.clockgrid.update_word_clocks(this.lm.word_predictions);
 
-            for (var i = char_words.length; i < kconfig.n_pred; i++) {
-                char_words.push("");
-                char_word_probs.push(-Infinity);
-
-            }
-            this.word_predictions.push(char_words);
-            this.word_prediction_probs.push(char_word_probs);
+        if (!this.full_init) {
+            this.continue_init();
         }
-        for (char_index = kconfig.main_chars.length; char_index < kconfig.key_chars.length; char_index++){
-            char_words = [];
-            char_word_probs = [];
-            for (var index = 0; index < kconfig.n_pred; index++) {
-                char_words.push("");
-                char_word_probs.push(-Infinity);
-            }
-            this.word_predictions.push(char_words);
-            this.word_prediction_probs.push(char_word_probs);
+        else{
+            this.draw_words();
+            this.clockface_canvas.clear();
+            this.clockgrid.undo_label.draw_text();
+            this.gen_word_prior(false);
+            var results = [this.words_on, this.words_off, this.word_score_prior, this.is_undo, this.is_equalize];
+            this.bc.continue_select(results);
         }
-
-        var sanity_check = -Infinity;
-        for (var key_index=0; key_index < this.word_prediction_probs.length; key_index++){
-            for (word_index = 0; word_index < kconfig.n_pred; word_index++){
-                this.word_prediction_probs[key_index][word_index] =
-                    this.word_prediction_probs[key_index][word_index] - normalizer;
-                sanity_check = log_add_exp(sanity_check, this.word_prediction_probs[key_index][word_index]);
-            }
-        }
-
-        this.clockgrid.update_word_clocks(this.word_predictions);
-    }
-    fetch_words(is_undo=null, is_equalize=null){
-        var lm_url = "https://api.imagineville.org/word/predict?left=".concat(this.left_context, "&prefix=", this.lm_prefix,
-            "&right=&num=", kconfig.num_words.toString());
-        var proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        this.fetched_words = false;
-
-        this.on_cor_load_function = function(output){
-            this.words = output.results;
-            this.foramt_words();
-            this.fetched_words = true;
-            if (!this.full_init) {
-                this.continue_init();
-            }
-            else{
-                this.draw_words();
-                this.clockface_canvas.clear();
-                this.clockgrid.undo_label.draw_text();
-                this.gen_word_prior(false);
-                var results = [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
-                this.bc.continue_select(results);
-            }
-        };
-
-        makeCorsRequest(lm_url, this.on_cor_load_function.bind(this));
-        // const request = async () => {
-        //     const response = await fetch(proxyUrl+lm_url);
-        //     const json = await response.json();
-        //     this.words = json.words;
-        //     this.foramt_words();
-        //     this.fetched_words = true;
-        //     if (!this.full_init) {
-        //         this.continue_init();
-        //     }
-        //     else{
-        //         this.draw_words();
-        //         this.clockface_canvas.clear();
-        //         this.clockgrid.undo_label.draw_text();
-        //         this.gen_word_prior(false);
-        //         var results = [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
-        //         this.bc.continue_select(results);
-        //     }
-        // }
-        // request();
     }
     init_locs(){
         var key_chars = kconfig.key_chars;
@@ -374,12 +294,9 @@ class Keyboard{
         }
     }
     init_words(){
-        this.words_li = this.word_predictions;
-        this.word_freq_li = this.word_prediction_probs;
-        this.key_freq_li = [];
-        for (var i in this.keys_li){
-            this.key_freq_li.push(Math.log(1/this.keys_li.length));
-        }
+        this.words_li = this.lm.word_predictions;
+        this.word_freq_li = this.lm.word_prediction_probs;
+        this.key_freq_li = this.lm.key_probs;
 
         this.word_id = [];
         this.word_pair = [];
@@ -430,12 +347,9 @@ class Keyboard{
         this.typed_versions = [''];
     }
     draw_words() {
-        this.words_li = this.word_predictions;
-        this.word_freq_li = this.word_prediction_probs;
-        this.key_freq_li = [];
-        for (var i in this.keys_li) {
-            this.key_freq_li.push(Math.log(1 / this.keys_li.length));
-        }
+        this.words_li = this.lm.word_predictions;
+        this.word_freq_li = this.lm.word_prediction_probs;
+        this.key_freq_li = this.lm.key_probs;
 
         this.word_id = [];
         this.word_pair = [];
@@ -506,16 +420,17 @@ class Keyboard{
                 } else {
                     key = pair[0];
                     prob = this.key_freq_li[key];
-                    prob = prob + Math.log(kconfig.rem_prob);
-                    if (this.keys_li[key] == kconfig.mybad_char) {
-                        prob = Math.log(kconfig.undo_prob);
-                    }
-                    if (this.keys_li[key] == kconfig.back_char) {
-                        prob = Math.log(kconfig.back_prob);
-                    }
-                    if (this.keys_li[key] == kconfig.clear_char) {
-                        prob = Math.log(kconfig.undo_prob);
-                    }
+
+                    // prob = prob + Math.log(kconfig.rem_prob);
+                    // if (this.keys_li[key] == kconfig.mybad_char) {
+                    //     prob = Math.log(kconfig.undo_prob);
+                    // }
+                    // if (this.keys_li[key] == kconfig.back_char) {
+                    //     prob = Math.log(kconfig.back_prob);
+                    // }
+                    // if (this.keys_li[key] == kconfig.clear_char) {
+                    //     prob = Math.log(kconfig.undo_prob);
+                    // }
 
                     this.word_score_prior.push(prob);
                 }
@@ -654,6 +569,10 @@ class Keyboard{
         var is_equalize = false;
         var is_backspace = false;
 
+        var new_char = null;
+        var new_word = null;
+        var selection = null;
+
         // // # now pause (if desired)
         // if self.pause_set == 1:
         //     self.on_pause()
@@ -666,10 +585,12 @@ class Keyboard{
         var i;
         // # if selected a key
         if ((index - kconfig.n_pred) % (kconfig.n_pred + 1) == 0){
-            var new_char = this.clockgrid.clocks[index].text;
+            new_char = this.clockgrid.clocks[index].text;
             new_char = new_char.replace("Undo", kconfig.mybad_char);
             new_char = new_char.replace("Backspace", kconfig.back_char);
             new_char = new_char.replace("Clear", kconfig.clear_char);
+            selection = new_char;
+
 
             // # special characters
             if (new_char == kconfig.space_char || new_char == ' '){
@@ -767,8 +688,8 @@ class Keyboard{
         else{
             var key = this.index_to_wk[index];
             var pred = this.index_to_wk[index] % kconfig.n_pred;
-            var new_word = this.clockgrid.clocks[index].text.concat("_");
-            var new_selection = new_word;
+            new_word = this.clockgrid.clocks[index].text.concat("_");
+            selection = new_word;
             var context_length = this.lm_prefix.length;
 
             // if (context_length > 0){
@@ -798,9 +719,13 @@ class Keyboard{
         }
         this.highlight_winner(index);
 
-        this.fetch_words(is_undo, is_equalize);
+        this.is_undo = is_undo;
+        this.is_equalize = is_equalize;
         // # update the word prior
-        console.log(this.typed);
+
+        this.fetched_words = false;
+        this.lm.update_cache(this.left_context, this.lm_prefix, selection);
+
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
@@ -827,7 +752,7 @@ class Keyboard{
                 }
                 this.ws.skip_update = (this.ws.skip_update + 1) % 2;
             }
-            console.log(Date.now()/1000 - time_in);
+            // console.log(Date.now()/1000 - time_in);
         }
     }
     play_audio() {
