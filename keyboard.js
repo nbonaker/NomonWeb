@@ -68,6 +68,8 @@ class Keyboard{
                 this.ws = null;
             }
         }else {
+            document.getElementById("checkbox_webcam").disabled = true;
+            setTimeout(function(){document.getElementById("checkbox_webcam").disabled = false}, 1500);
             this.ws = new webswitch.WebcamSwitch(this);
             if (!this.webcam_info_complete) {
                 this.in_webcam_info_screen = true;
@@ -121,6 +123,7 @@ class Keyboard{
         this.clockgrid = new widgets.ClockGrid(this.clockface_canvas, this.clockhand_canvas, this.keygrid,
             kconfig.alpha_target_layout, kconfig.key_chars, kconfig.main_chars, kconfig.n_pred);
         this.textbox = new widgets.Textbox(this.output_canvas);
+
         this.histogram = new widgets.Histogram(this.output_canvas);
 
         if (this.in_info_screen){
@@ -461,6 +464,7 @@ class Keyboard{
         var is_undo = false;
 
         var previous_text = this.textbox.text;
+        previous_text = previous_text.replace("|", "");
 
         if (previous_text.length > 0 && previous_text.charAt(previous_text.length - 1) == "_") {
             previous_text = previous_text.slice(0, previous_text.length - 1).concat(" ");
@@ -748,6 +752,7 @@ class Keyboard{
             if (this.webcam_enabled) {
                 if (this.ws.skip_update == 0) {
                     this.ws.face_finder.mycamvas.update();
+                    this.ws.draw_switch();
                     this.ws.skip_update = true;
                 }
                 this.ws.skip_update = (this.ws.skip_update + 1) % 2;
@@ -782,8 +787,6 @@ class Keyboard{
         this.histogram.draw_box();
         this.histogram.draw_histogram();
         this.textbox.calculate_size();
-        this.textbox.draw_box();
-        this.textbox.draw_text();
     }
 }
 

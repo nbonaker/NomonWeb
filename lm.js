@@ -28,6 +28,7 @@ export class LanguageModel{
         this.word_cache[kconfig.mybad_char] = [];
         this.word_update_complete = false;
         this.char_update_complete = false;
+        this.num_caches_compelte = 0;
 
         this.update_cache("", "");
     }
@@ -78,7 +79,8 @@ export class LanguageModel{
                 this.word_cache[kconfig.mybad_char] = undo_cache_list;
                 this.parent.on_word_load();
             }
-            else if (selection in this.word_cache && selection != kconfig.mybad_char){
+            else if (selection in this.word_cache && selection != kconfig.mybad_char &&
+                    "words" in this.word_cache[selection] && "keys" in this.word_cache[selection]){
                 this.word_predictions = this.word_cache[selection].words.words;
                 this.word_prediction_probs = this.word_cache[selection].words.probs;
                 this.key_probs = this.word_cache[selection].keys;
@@ -167,6 +169,7 @@ export class LanguageModel{
                     this.word_cache[future_char] = {'words': formatted_words};
                 }
             }
+            this.num_caches_compelte += 1;
         }
         else if (cache_type == 'word_future_word'){
             future_words = output.futures;
@@ -181,6 +184,7 @@ export class LanguageModel{
                     this.word_cache[future_word] = {'words': formatted_words};
                 }
             }
+            this.num_caches_compelte += 1;
         }
         else if (cache_type == 'char_future_char'){
             future_chars = output.futures;
@@ -195,6 +199,7 @@ export class LanguageModel{
                     this.word_cache[future_char] = {'keys': formatted_chars};
                 }
             }
+            this.num_caches_compelte += 1;
         }
         else if (cache_type == 'char_future_word'){
             future_words = output.futures;
@@ -209,10 +214,13 @@ export class LanguageModel{
                     this.word_cache[future_word] = {'keys': formatted_chars};
                 }
             }
+            this.num_caches_compelte += 1;
         }
 
         if (this.word_update_complete && this.char_update_complete){
             this.parent.on_word_load();
+            this.word_update_complete = false;
+            this.char_update_complete = false;
         }
     }
     format_chars(chars_li){
@@ -220,7 +228,7 @@ export class LanguageModel{
         var normalizer = -Infinity;
         for (var index in chars_li){
             char_prob_dict[chars_li[index].token] = Math.max(chars_li[index].logProb, Math.log(0.01));
-            normalizer = log_add_exp(normalizer, chars_li[index].logProb);
+            normalizer = log_add_exp(normalizer, Math.max(chars_li[index].logProb, Math.log(0.01)));
         }
 
         var key_probs = [];

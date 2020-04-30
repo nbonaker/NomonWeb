@@ -74,11 +74,11 @@ export class FaceFinder{
         var processfn = function (video, dt) {
             // render the video frame to the canvas element and extract RGBA pixel data
             ctx.drawImage(video, 0, 0);
-            console.log(dt);
+
 
             var rgba = ctx.getImageData(0, 0, 640, 480).data;
             // prepare input to `run_cascade`
-            var test = rgba_to_grayscale(rgba, 480, 640)
+            var test = rgba_to_grayscale(rgba, 480, 640);
             var image = {
                 "pixels": rgba_to_grayscale(rgba, 480, 640),
                 "nrows": 480,
@@ -88,7 +88,7 @@ export class FaceFinder{
             var params = {
                 "shiftfactor": 0.15, // move the detection window by 10% of its size
                 "minsize": 100,     // minimum size of a face
-                "maxsize": 800,    // maximum size of a face
+                "maxsize": 600,    // maximum size of a face
                 "scalefactor": 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
             }
             // run the cascade over the frame and cluster the obtained detections
@@ -100,7 +100,7 @@ export class FaceFinder{
             // draw detections
             for (var i = 0; i < dets.length; ++i) {
                 if (dets[i][3] > 50.0) {
-                    this.face_coords = [dets[i][1] / 640, dets[i][0] / 480, dets[i][2] / 2 / 640];
+                    this.face_coords = [dets[i][1] / (640), dets[i][0] / (480), dets[i][2] / 2 / (640)];
                 }
             }
         }.bind(this);

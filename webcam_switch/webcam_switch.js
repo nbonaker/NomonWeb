@@ -12,21 +12,8 @@ export class WebcamCanvas{
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
-        // this.canvas.style.position = "absolute";
-        // this.canvas.style.top = "0px";
-        // this.canvas.style.left = "0px";
         this.ctx = this.canvas.getContext("2d");
 
-        this.resolution_factor = 2;
-        this.screen_fill_factor = 0.4;
-
-        // this.canvas.width = this.window_width * this.resolution_factor;
-        // this.canvas.height = this.canvas.width * 0.1;
-        // this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("px");
-        // this.canvas.style.height = ((this.window_width * 0.1)  * this.screen_fill_factor).toString().concat("px");
-        //
-        // this.screen_width = this.window_width * this.resolution_factor;
-        // this.screen_height = (this.window_height - 50) * this.resolution_factor;
         this.screen_width = this.canvas.width;
         this.screen_height = this.canvas.height;
     }
@@ -51,7 +38,7 @@ export class WebcamSwitch{
 
         this.face_finder = new fd.FaceFinder(this.video_canvas);
         // this.face_coords = this.face_finder.face_coords;
-        setInterval(this.draw_switch.bind(this), 20);
+        // setInterval(this.draw_switch.bind(this), 20);
     }
     draw_switch(){
         var face_x = 1 - this.face_finder.face_coords[0];

@@ -1,3 +1,4 @@
+
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -545,45 +546,35 @@ export class Textbox{
     constructor(output_canvas) {
         this.output_canvas = output_canvas;
         this.text = "";
+        this.cursor_on = false;
+        setInterval(this.toggle_cursor.bind(this), 530);
+
+        this.box = document.getElementById("output_textbox");
+        this.box.style.position = 'absolute';  // position it
+        this.box.style.left = '5px';
+
         this.calculate_size();
-        this.draw_box();
-        this.draw_text();
+        this.draw_text("");
+
+
+    }
+    toggle_cursor(){
+        this.cursor_on = this.cursor_on == false;
+        if (this.cursor_on) {
+            this.box.value = this.text.concat("|");
+        }else{
+            this.box.value = this.text;
+        }
     }
     calculate_size(){
-        this.box_width = this.output_canvas.screen_width * 3 / 5;
-        this.box_height = this.output_canvas.screen_height;
+        this.box.style['top'] = this.output_canvas.canvas.style.top;
+        this.box.style['width'] = ((this.output_canvas.screen_width/2)*3/5-20).toString().concat("px");
+        this.box.style['height'] = ((this.output_canvas.screen_height/2)*0.9).toString().concat("px");
+
     }
-    draw_box(){
-        this.output_canvas.ctx.beginPath();
-        this.output_canvas.ctx.fillStyle = "#eeeeee";
-        this.output_canvas.ctx.rect(0, 0, this.box_width, this.box_height);
-        this.output_canvas.ctx.fill();
-
-        this.output_canvas.ctx.beginPath();
-        this.output_canvas.ctx.fillStyle = "#ffffff";
-        this.output_canvas.ctx.strokeStyle = "#000000";
-        this.output_canvas.ctx.rect(this.box_height * 0.025, this.box_height * 0.025,
-            this.box_width - this.box_height*0.0375, this.box_height * 0.95);
-        this.output_canvas.ctx.fill();
-        this.output_canvas.ctx.stroke();
-    }
-    draw_text(text=null){
-        if (text != null){
-            this.text = text;
-        }
-
-        this.output_canvas.ctx.beginPath();
-        this.output_canvas.ctx.fillStyle = "#ffffff";
-        this.output_canvas.ctx.strokeStyle = "#000000";
-        this.output_canvas.ctx.rect(this.box_height * 0.025, this.box_height * 0.025,
-            this.box_width - this.box_height*0.0375, this.box_height * 0.95);
-        this.output_canvas.ctx.fill();
-        this.output_canvas.ctx.stroke();
-
-        var font_height = 50;
-        this.output_canvas.ctx.fillStyle = "#000000";
-        this.output_canvas.ctx.font = font_height.toString().concat("px Helvetica");
-        this.output_canvas.ctx.fillText(this.text, this.box_height * 0.07, this.box_height * 0.03+font_height);
+    draw_text(text){
+        this.text = text;
+        this.box.value = text;
     }
 }
 
