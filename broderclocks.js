@@ -73,7 +73,7 @@ export class BroderClocks{
         this.num_selects = 0;
     }
     init_follow_up(clock_score_prior){
-        this.init_round(false, true, clock_score_prior);
+        this.init_round(false, false, clock_score_prior);
 
         this.clock_inf.clock_history = [[]];
         this.clock_inf.win_history = [-1];
