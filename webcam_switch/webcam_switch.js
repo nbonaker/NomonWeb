@@ -33,6 +33,8 @@ export class WebcamSwitch{
         this.trigger_switch = false;
         this.highlight_trigger = false;
         this.face_sizes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.initial_face_xs = [];
+        this.face_x_calibration = 0;
 
         this.control_lock = false;
 
@@ -50,8 +52,14 @@ export class WebcamSwitch{
         for (var i in this.face_sizes){
             face_size += this.face_sizes[i]/10;
         }
+        if (this.face_finder.face_coords[0] != -1 && this.initial_face_xs.length < 10){
+            this.initial_face_xs.push(face_x-0.45);
+            this.face_x_calibration = this.initial_face_xs.reduce(function(a, b){return a + b;}, 0) /
+                this.initial_face_xs.length;
+        }
+        console.log(this.face_x_calibration);
 
-        var facebar_x = this.webcam_canvas.screen_width*(face_x-face_size);
+        var facebar_x = this.webcam_canvas.screen_width*(face_x-face_size - this.face_x_calibration);
         var trigger_bar_x = this.webcam_canvas.screen_width*(0.5+face_size*2);
         var control_bar_x = this.webcam_canvas.screen_width*(0.5-face_size*1);
 
