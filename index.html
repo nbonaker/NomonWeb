@@ -54,59 +54,54 @@
 </style>
 </head>
 <body>
- <div id = "container" >
-   <h1>Welcome to the Nomon Keybaord!</h1>
-   <p><strong>If you are a returning user, please enter your user ID below.<br>
-   Otherwise, leave the field blank and press "Continue".</strong></p>
-   <div id="message"></div>
+    <div id = "container" >
+    <h1>Welcome to the Nomon Keybaord!</h1>
+    <p><strong>If you are a returning user, please enter your user ID below.<br>
+    Otherwise, leave the field blank and press "Continue".</strong></p>
+    <div id="message"></div>
     <form name='form1'>
-      <table align = "">
+        <table align = "">
         <tr><td></td></tr>
-         <tr>
+            <tr>
             <td>
-              <label>User ID:</label>
+                <label>User ID:</label>
             </td>
 
             <td>
-              <input type='text' placeholder='User ID' name='user_id' id= 'user_id' required ><br />
+                <input type='text' placeholder='User ID' name='user_id' id= 'user_id' required ><br />
             </td>
             <td>
-              <input class='btn' type="button" id = "saveusers" value = "Continue" formaction="html/keyboard.html"/>
+                <input class='btn' type="button" id = "saveusers" value = "Continue" formaction="html/keyboard.html"/>
             </td>
-          </tr>
+            </tr>
         </table>
     </form>
-  </div>
-  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-  <script type="text/javascript">
-    $(function(){
-        $("#saveusers").on('click', function(){
-            var user_id  = $("#user_id").val();
-            $.ajax({
-              method: "POST",
-              url:    "send_login.php",
-              data: { "user_id": user_id},
-             }).done(function( data ) {
-                var result = $.parseJSON(data);
-                var str = '';
-                var cls = '';
-                if(result == 1) {
-                  str = 'User record saved successfully.';
-                  cls = 'success';
-                }else if( result == 2) {
-                  str = 'All fields are required.';
-                  cls = 'error';
-                }else if( result == 3) {
-                  str = 'Enter a valid user ID.';
-                  cls = 'error';
-                }else{
-                  str = 'User data could not be saved. Please try again';
-                  cls = 'error';
-                }
-              $("#message").show(3000).html(str).addClass('success').hide(5000);
-          });
-       });
-     });
-  </script>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <script type="text/javascript">
+            $(function(){
+                $("#getusers").on('click', function(){
+                $.ajax({
+                method: "GET",
+
+                url: "send_login.php",
+                }).done(function( data ) {
+                    console.log(data);
+                    var result= $.parseJSON(data);
+                    var string='<table width="100%"><tr> <th>#</th><th>Name</th> <th>Email</th><tr>';
+
+                    /* from result create a string of data and append to the div */
+
+                    $.each( result, function( key, value ) {
+
+                    string += "<tr> <td>"+value['id'] + "</td><td>"+value['first_name']+' '+value['last_name']+'</td>  \
+                            <td>'+value['email']+"</td> </tr>";
+                    });
+                    string += '</table>';
+                    $("#records").html(string);
+                });
+            });
+    });
+    </script>
 </body>
 </html>
