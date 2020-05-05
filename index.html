@@ -1,192 +1,112 @@
-<!DOCTYPE html>
 <html>
 <head>
-    <script src="webcam_switch/camvas.js"></script>
-    <script src="webcam_switch/pico.js"></script>
-    <script src="webcam_switch/lploc.js"></script>
-</head>
-<style>
-textarea {
-    font-family: Helvetica, sans-serif;
-    font-size: 20pt ;
+   <title>Nomon Keyboard Login</title>
+   <style>
+    body{
+       font-family: "Helvetica", Gadget, sans-serif;
+    }
+     #container{
+       text-align: center;
+     }
+    #container table{
+      margin: 0 auto;
+      text-align: left;
+    }
+    .btn {
+      background-color: #0056ff;
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    input[type='text'] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+  .success, .error{
+    width: 20%;
+    border: 1px solid;
+    margin: 10px 0px;
+    padding:15px 10px 15px 50px;
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    display: inline-block;
+  }
+.success {
+  color: #4F8A10;
+  background-color: #DFF2BF;
 }
-.slidecontainer {
-    display: inline;
-    width: 100%;
-}
-label {
-    font-family: Helvetica, sans-serif;
-    font-size: 1.2vw ;
-    vertical-align: 30%;
-}
-.slider {
-  -webkit-appearance: none;
-  width: 35vw ;
-  height: 10%;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
-
-.slider:hover {
-  opacity: 1;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  background: #0056ff;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  background: #0056ff;
-  cursor: pointer;
-}
+.error {
+  color: #D8000C;
+  background-color: #FFBABA;
+  }
 </style>
-
+</head>
 <body>
+ <div id = "container" >
+   <h1>Welcome to the Nomon Keybaord!</h1>
+   <p><strong>If you are a returning user, please enter your user ID below.<br>
+   Otherwise, leave the field blank and press "Continue".</strong></p>
+   <div id="message"></div>
+    <form name='form1'>
+      <table align = "">
+        <tr><td></td></tr>
+         <tr>
+            <td>
+              <label>User ID:</label>
+            </td>
 
-<!--<audio preload="none">-->
-<!--    <source id="wav" src="audio/bell.wav"/>-->
-<!--</audio>-->
-
-<div class="slidecontainer">
-    <form>
-        <label for="speed_slider"><b>Clock Rotation Speed: </b></label>
-        <input type="range" min="1" max="20" value="10" class="slider" id="speed_slider">
-        <label for="speed_slider"><b><span id="speed_slider_value"></span></b></label>
-
-<!--        <label class="checkbox-inline" style="color:white">____________________</label>-->
-
-<!--        <label class="checkbox-inline">-->
-<!--          <input type="checkbox" value="" id="checkbox_learn"><b>Learn</b>-->
-<!--        </label>-->
-        <label for="checkbox"
-          onmousedown="event.preventDefault()"
-          onclick="
-            console.log('label:click');
-            if (this === event.target) {
-              console.log('label === event.target');
-              console.log('label:click preventDefault()');
-              // prevent focus and click
-              event.preventDefault();
-              // call click on the labeled control
-              this.control && this.control.click();
-            }
-          ">
-          <input id="checkbox_learn" type="checkbox"
-            onmousedown="event.preventDefault()"
-            onclick="
-              console.log('checkbox:click', `checked = ${this.checked}`);
-            "
-          />
-        <b>Learn</b>
-        </label>
-        <label for="checkbox"
-          onmousedown="event.preventDefault()"
-          onclick="
-            console.log('label:click');
-            if (this === event.target) {
-              console.log('label === event.target');
-              console.log('label:click preventDefault()');
-              // prevent focus and click
-              event.preventDefault();
-              // call click on the labeled control
-              this.control && this.control.click();
-            }
-          ">
-          <input id="checkbox_pause" type="checkbox"
-            onmousedown="event.preventDefault()"
-            onclick="
-              console.log('checkbox:click', `checked = ${this.checked}`);
-            "
-          />
-        <b>Pause</b>
-        </label>
-        <label for="checkbox"
-          onmousedown="event.preventDefault()"
-          onclick="
-            console.log('label:click');
-            if (this === event.target) {
-              console.log('label === event.target');
-              console.log('label:click preventDefault()');
-              // prevent focus and click
-              event.preventDefault();
-              // call click on the labeled control
-              this.control && this.control.click();
-            }
-          ">
-          <input id="checkbox_sound" type="checkbox"
-            onmousedown="event.preventDefault()"
-            onclick="
-              console.log('checkbox:click', `checked = ${this.checked}`);
-            "
-          />
-        <b>Sound</b>
-        </label>
-
-        <canvas id="webcam_canvas" height="35%" width="250%">
-        Your browser does not support the canvas element.
-        </canvas>
-
-        <label for="checkbox"
-            onmousedown="event.preventDefault()"
-            onclick="
-                console.log('label:click');
-                if (this === event.target) {
-                    console.log('label === event.target');
-                    console.log('label:click preventDefault()');
-                    // prevent focus and click
-                    event.preventDefault();
-                    // call click on the labeled control
-                    this.control && this.control.click();
-                }
-            ">
-            <input id="checkbox_webcam" type="checkbox"
-                onmousedown="event.preventDefault()"
-                onclick="
-                    console.log('checkbox:click', `checked = ${this.checked}`);
-                "
-            />
-        <b>Webcam Switch</b>
-        </label>
+            <td>
+              <input type='text' placeholder='User ID' name='user_id' id= 'user_id' required ><br />
+            </td>
+            <td>
+              <input class='btn' type="button" id = "saveusers" value = "Continue" formaction="html/keyboard.html"/>
+            </td>
+          </tr>
+        </table>
     </form>
-    <textarea id="output_textbox"></textarea>
-</div>
-
-<canvas width=640 height=480 id="video_canvas"></canvas>
-
-<!--<script type="module" src="webcam_switch/webcam_switch.js"></script>-->
-
-
-<canvas id="key_grid">
-Your browser does not support the canvas element.
-</canvas>
-
-<canvas id="clock_face">
-Your browser does not support the canvas element.
-</canvas>
-
-<canvas id="clock_hand">
-Your browser does not support the canvas element.
-</canvas>
-
-<canvas id="output">
-Your browser does not support the canvas element.
-</canvas>
-
-<canvas id="info">
-Your browser does not support the canvas element.
-</canvas>
-
-<script type="module" src="keyboard.js"></script>
-
+  </div>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script type="text/javascript">
+    $(function(){
+        $("#saveusers").on('click', function(){
+            var user_id  = $("#user_id").val();
+            $.ajax({
+              method: "POST",
+              url:    "send_login.php",
+              data: { "user_id": user_id},
+             }).done(function( data ) {
+                var result = $.parseJSON(data);
+                var str = '';
+                var cls = '';
+                if(result == 1) {
+                  str = 'User record saved successfully.';
+                  cls = 'success';
+                }else if( result == 2) {
+                  str = 'All fields are required.';
+                  cls = 'error';
+                }else if( result == 3) {
+                  str = 'Enter a valid user ID.';
+                  cls = 'error';
+                }else{
+                  str = 'User data could not be saved. Please try again';
+                  cls = 'error';
+                }
+              $("#message").show(3000).html(str).addClass('success').hide(5000);
+          });
+       });
+     });
+  </script>
 </body>
 </html>
