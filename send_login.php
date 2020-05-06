@@ -4,33 +4,27 @@ $host         = "localhost";
 $username     = "root";
 $password     = "";
 $dbname       = "userDB";
-$result = 0;
+$exit_code = 0;
+$connection = mysqli_connect($host, $username, $password, $dbname);
 
-/* Create connection */
-$conn = new mysqli($host, $username, $password, $dbname);
+$user_id = $_GET['user_id'];
 
-/* Check connection */
-if ($conn->connect_error) {
-    die("Connection to database failed: " . $conn->connect_error);
+if ($user_id || !is_numeric($user_id)){
+    $exit_code = 2;
+    $query = "SELECT MAX(id) FROM user_info";
+}else{
+    $exit_code = 1;
+    $query = "SELECT * FROM user_info WHERE id = '$user_id'";
 }
-
-/* Get data from Client side using $_POST array */
-$uname  = $_POST['user_id'];
-$id_result_array = array();
-
-$uname = (int)$num;
-$sql_id_query = "SELECT count(*) FROM user_info WHERE id = (?)  ";
-$stmt_id_query   = $conn->prepare($sql_id_query);
-$result = $conn->query($stmt_id_query);
+$result_array = array();
 
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
-        array_push($id_result_array, $row);
+        array_push($result_array, $row);
     }
 }
+/* send a JSON encded array to client */
 
 echo json_encode($result_array);
-
-$conn->close();
-
 ?>
+

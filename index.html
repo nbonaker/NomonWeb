@@ -78,30 +78,22 @@
     </form>
     </div>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-        <script type="text/javascript">
-            $(function(){
-                $("#getusers").on('click', function(){
-                $.ajax({
-                method: "GET",
+    <script type="text/javascript">
+        $(function(){
+        $("#saveusers").on('click', function(){
+        var user_id = $("#user_id").val();
+        $.ajax({
+            method: "GET",
 
-                url: "send_login.php",
-                }).done(function( data ) {
-                    console.log(data);
-                    var result= $.parseJSON(data);
-                    var string='<table width="100%"><tr> <th>#</th><th>Name</th> <th>Email</th><tr>';
-
-                    /* from result create a string of data and append to the div */
-
-                    $.each( result, function( key, value ) {
-
-                    string += "<tr> <td>"+value['id'] + "</td><td>"+value['first_name']+' '+value['last_name']+'</td>  \
-                            <td>'+value['email']+"</td> </tr>";
-                    });
-                    string += '</table>';
-                    $("#records").html(string);
-                });
-            });
-    });
+            url: "send_login.php",
+            data: { "user_id": user_id}
+        }).done(function( data ) {
+            var result= $.parseJSON(data)[0];
+            console.log(result);
+        });
+        });
+        });
     </script>
+
 </body>
 </html>
