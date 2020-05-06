@@ -56,6 +56,20 @@ label {
 .container.space-between {
   justify-content: space-between;
 }
+.btn {
+  background-color: #0056ff;
+  border: none;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: Helvetica, sans-serif;
+  font-size: 1.1vw ;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 4px;
+}
 
 </style>
 
@@ -143,6 +157,7 @@ label {
     <div class="container space-between">
         <div>
             <label id="user_num_label"><b>Welcome User!</b></label>
+            <input class='btn' type="button" id = "send_button" value = "Change User"/>
         </div>
         <div>
             <canvas id="webcam_canvas" height="35%" width="250%">
@@ -203,6 +218,12 @@ Your browser does not support the canvas element.
     const params = new URLSearchParams(document.location.search);
     const user_id = params.get("user_id");
     document.getElementById("user_num_label").innerHTML =`<b>Welcome User ${user_id}!</b>`
+
+    document.getElementById("send_button").onclick = function(){
+        var login_url = "../index.php";
+        // keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true');
+        window.open(login_url,'_self');
+    };
 </script>
 
 <script type="module" src="../js/keyboard.js"></script>
