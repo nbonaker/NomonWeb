@@ -9,7 +9,7 @@ $connection = mysqli_connect($host, $username, $password, $dbname);
 
 $user_id = $_GET['user_id'];
 
-if ($user_id || !is_numeric($user_id)){
+if (!is_numeric($user_id)){
     $exit_code = 2;
     $query = "SELECT MAX(id) FROM user_info";
 }else{

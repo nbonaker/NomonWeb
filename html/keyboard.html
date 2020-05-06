@@ -214,10 +214,13 @@ Your browser does not support the canvas element.
 Your browser does not support the canvas element.
 </canvas>
 
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script type="text/javascript">
+
+
     const params = new URLSearchParams(document.location.search);
     const user_id = params.get("user_id");
-    document.getElementById("user_num_label").innerHTML =`<b>Welcome User ${user_id}!</b>`
+    document.getElementById("user_num_label").innerHTML =`<b>Welcome User ${user_id}!</b>`;
 
     document.getElementById("send_button").onclick = function(){
         var login_url = "../index.php";

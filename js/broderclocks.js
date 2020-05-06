@@ -5,8 +5,7 @@ export class BroderClocks{
     constructor(parent){
         this.parent = parent;
         this.parent.bc_init = true;
-        this.clock_inf = new cie.ClockInference(this.parent, this);
-
+        this.clock_inf = new cie.ClockInference(this.parent, this, this.parent.prev_data);
         this.is_undo = false;
         this.is_equalize = false;
         this.is_win = this.clock_inf.is_winner();
