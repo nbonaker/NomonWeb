@@ -91,7 +91,9 @@
                 document.getElementById("info_text").innerHTML =
                             `<strong>Created user with ID ${user_id}! Click to launch Nomon.</strong>`;
                 document.getElementById("send_button").onclick = function(){
-                    window.open("html/keyboard.html",'_self');
+                    var keyboard_url = "html/keyboard.html";
+                    keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true');
+                    window.open(keyboard_url,'_self');
                 };
             });
         }
@@ -141,7 +143,9 @@
                     document.getElementById("send_button").value = "Launch Nomon";
                     document.getElementById("user_id").style.display = "none";
                     document.getElementById("send_button").onclick = function(){
-                        window.open("html/keyboard.html",'_self');
+                        var keyboard_url = "html/keyboard.html";
+                        keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=false');
+                        window.open(keyboard_url,'_self');
                     };
                 }
             });
