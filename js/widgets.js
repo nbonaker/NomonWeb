@@ -57,21 +57,22 @@ export class KeyboardCanvas{
         this.window_height = window.innerHeight;
 
         this.canvas.style.position = "absolute";
-        this.canvas.style.top = "50px";
+        this.canvas.style.top = "75px";
         this.canvas.style.left = "0px";
         this.ctx = this.canvas.getContext("2d");
 
         this.resolution_factor = 2;
         this.screen_fill_factor = 0.989;
         this.bottom_height_factor = bottom_height_factor;
+        this.top_offest = 75;
 
         this.canvas.width = this.window_width * this.resolution_factor;
-        this.canvas.height = (this.window_height - 50) * (1 - this.bottom_height_factor) * this.resolution_factor;
+        this.canvas.height = (this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.resolution_factor;
         this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("px");
-        this.canvas.style.height = ((this.window_height - 50) * (1 - this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
+        this.canvas.style.height = ((this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
 
         this.screen_width = this.window_width * this.resolution_factor;
-        this.screen_height = (this.window_height - 50) * (1 - this.bottom_height_factor) * this.resolution_factor;
+        this.screen_height = (this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.resolution_factor;
     }
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);

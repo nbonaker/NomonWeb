@@ -49,6 +49,14 @@ label {
   background: #0056ff;
   cursor: pointer;
 }
+
+.container {
+  display: flex;
+}
+.container.space-between {
+  justify-content: space-between;
+}
+
 </style>
 
 <body>
@@ -59,7 +67,6 @@ label {
 
 <div class="slidecontainer">
     <form>
-        <label id="user_num_label"><b>Welcome User!</b></label>
         <label for="speed_slider"><b>Clock Rotation Speed: </b></label>
         <input type="range" min="1" max="20" value="10" class="slider" id="speed_slider">
         <label for="speed_slider"><b><span id="speed_slider_value"></span></b></label>
@@ -132,33 +139,38 @@ label {
           />
         <b>Sound</b>
         </label>
-
-        <canvas id="webcam_canvas" height="35%" width="250%">
-        Your browser does not support the canvas element.
-        </canvas>
-
-        <label for="checkbox"
-            onmousedown="event.preventDefault()"
-            onclick="
-                console.log('label:click');
-                if (this === event.target) {
-                    console.log('label === event.target');
-                    console.log('label:click preventDefault()');
-                    // prevent focus and click
-                    event.preventDefault();
-                    // call click on the labeled control
-                    this.control && this.control.click();
-                }
-            ">
-            <input id="checkbox_webcam" type="checkbox"
+    </form>
+    <div class="container space-between">
+        <div>
+            <label id="user_num_label"><b>Welcome User!</b></label>
+        </div>
+        <div>
+            <canvas id="webcam_canvas" height="35%" width="250%">
+            Your browser does not support the canvas element.
+            </canvas>
+            <label for="checkbox"
                 onmousedown="event.preventDefault()"
                 onclick="
-                    console.log('checkbox:click', `checked = ${this.checked}`);
-                "
-            />
-        <b>Webcam Switch</b>
-        </label>
-    </form>
+                    console.log('label:click');
+                    if (this === event.target) {
+                        console.log('label === event.target');
+                        console.log('label:click preventDefault()');
+                        // prevent focus and click
+                        event.preventDefault();
+                        // call click on the labeled control
+                        this.control && this.control.click();
+                    }
+                ">
+                <input id="checkbox_webcam" type="checkbox"
+                    onmousedown="event.preventDefault()"
+                    onclick="
+                        console.log('checkbox:click', `checked = ${this.checked}`);
+                    "
+                />
+            <b>Webcam Switch</b>
+            </label>
+        </div>
+    </div>
     <textarea id="output_textbox"></textarea>
 </div>
 

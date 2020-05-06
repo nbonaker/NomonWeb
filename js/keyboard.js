@@ -13,11 +13,11 @@ function log_add_exp(a_1, a_2){
 }
 
 class Keyboard{
-    constructor(){
+    constructor(first_load=true){
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
-        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + 50);
+        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + 70);
         this.webcam_canvas = document.getElementById("webcam_canvas");
         this.webcam_enabled = false;
         this.webcam_info_complete=false;
@@ -47,7 +47,7 @@ class Keyboard{
         this.fetched_words = false;
         this.lm = new lm.LanguageModel(this);
 
-        this.in_info_screen = true;
+        this.in_info_screen = first_load;
         this.init_ui();
     }
     init_webcam_switch(){
@@ -133,13 +133,13 @@ class Keyboard{
     init_webcam_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_canvas.canvas.style.top = "50px";
+        this.info_canvas.canvas.style.top = "75px";
         this.info_screen = new widgets.WebcamInfoScreen(this.info_canvas);
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_canvas.canvas.style.top = "50px";
+        this.info_canvas.canvas.style.top = "75px";
         this.info_screen = new widgets.InfoScreen(this.info_canvas);
     }
     destroy_info_screen(){
@@ -782,7 +782,7 @@ class Keyboard{
             }
         }
     
-        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + 50);
+        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + 70);
         this.histogram.calculate_size();
         this.histogram.draw_box();
         this.histogram.draw_histogram();
@@ -790,8 +790,11 @@ class Keyboard{
     }
 }
 
+const params = new URLSearchParams(document.location.search);
+const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
+console.log(first_load);
 
-let keyboard = new Keyboard();
+let keyboard = new Keyboard(first_load);
 
 
 
