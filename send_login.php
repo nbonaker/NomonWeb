@@ -17,6 +17,7 @@ if ($user_id || !is_numeric($user_id)){
     $query = "SELECT * FROM user_info WHERE id = '$user_id'";
 }
 $result_array = array();
+$ result = mysqli_query($connection, $query);
 
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
@@ -26,5 +27,6 @@ if ($result->num_rows > 0) {
 /* send a JSON encded array to client */
 
 echo json_encode($result_array);
+$connection->close();
 ?>
 
