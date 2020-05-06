@@ -124,10 +124,6 @@
                             create_user(user_id);
                         };
 
-                    } else {
-                        document.getElementById("info_text").innerHTML =
-                            `<strong>We could not find a user with ID ${requested_user_id}. Please try again.</strong>`;
-                        document.getElementById("send_button").value = "Enter";
                     }
                 } else if ("id" in result) {
                     user_id = requested_user_id;
@@ -147,6 +143,11 @@
                         keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=false');
                         window.open(keyboard_url,'_self');
                     };
+                }
+                else {
+                    document.getElementById("info_text").innerHTML =
+                        `<strong>We could not find a user with ID ${requested_user_id}. Please try again.</strong>`;
+                    document.getElementById("send_button").value = "Enter";
                 }
             });
         }

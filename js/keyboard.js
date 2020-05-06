@@ -13,7 +13,11 @@ function log_add_exp(a_1, a_2){
 }
 
 class Keyboard{
-    constructor(first_load=true){
+    constructor(user_id, first_load, prev_data){
+        console.log(prev_data);
+        this.user_id = user_id;
+        this.prev_data = prev_data;
+
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
@@ -791,10 +795,46 @@ class Keyboard{
 }
 
 const params = new URLSearchParams(document.location.search);
+const user_id = params.get("user_id");
 const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
-console.log(first_load);
+console.log(user_id);
 
-let keyboard = new Keyboard(first_load);
+function send_login() {
+    $.ajax({
+        method: "GET",
+        url: "../send_login.php",
+        data: {"user_id": user_id}
+    }).done(function (data) {
+        var result = $.parseJSON(data);
+        var click_dist;
+        var prev_data;
+        if (result.length > 0) {
+            var prev_data = {};
+            result = result[0];
+            var click_dist = JSON.parse(result.click_dist);
+            console.log("Retrieved Click Dist!");
+            prev_data["click_dist"]= click_dist;
+
+            var Z = JSON.parse(result.Z);
+            console.log("Retrieved Z!");
+            prev_data["Z"]= Z;
+
+            var ksigma = JSON.parse(result.ksigma);
+            console.log("Retrieved ksigma!");
+            prev_data["ksigma"]= ksigma;
+
+            var ksigma0 = JSON.parse(result.ksigma0);
+            console.log("Retrieved ksigma0!");
+            prev_data["ksigma0"]= ksigma0;
+        }
+
+        let keyboard = new Keyboard(user_id, first_load, prev_data);
+        setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
+    });
+}
+
+send_login();
+
 
 
 
@@ -802,5 +842,3 @@ let keyboard = new Keyboard(first_load);
 
     // Calling the function for the first time
 // displayWindowSize();
-
-setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);

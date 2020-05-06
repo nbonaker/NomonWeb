@@ -51,20 +51,29 @@ export class KernelDensityEstimation{
     }
     initialize_dens(){
         this.Z = 0;
-        this.dens_li = [];
 
-        for (var i in this.x_li) {
-            var x = this.x_li[i];
-            var diff = x - config.mu0;
+        if (this.past_data !== null && this.past_data.click_dist !== null && this.past_data.Z !== null &&
+            this.past_data.ksigma !== null && this.past_data.ksigma0 !== null){
+            this.dens_li = this.past_data.click_dist;
+            this.Z = this.past_data.Z;
+            this.ksigma = this.past_data.ksigma;
+            this.ksigma0 = this.past_data.ksigma0;
+        }else {
+            this.dens_li = [];
 
-            var dens = Math.exp(-1 / (2 * config.sigma0_sq) * diff * diff);
-            dens /= Math.sqrt(2 * Math.PI * config.sigma0_sq);
-            dens *= this.n_ksigma;
-            this.dens_li.push(dens);
-            this.Z += dens;
+            for (var i in this.x_li) {
+                var x = this.x_li[i];
+                var diff = x - config.mu0;
+
+                var dens = Math.exp(-1 / (2 * config.sigma0_sq) * diff * diff);
+                dens /= Math.sqrt(2 * Math.PI * config.sigma0_sq);
+                dens *= this.n_ksigma;
+                this.dens_li.push(dens);
+                this.Z += dens;
+            }
+            this.ksigma0 = 1.06 * config.sigma0 / (this.n_ksigma ** 0.2);
+            this.ksigma = this.ksigma0;
         }
-        this.ksigma0 = 1.06*config.sigma0 / (this.n_ksigma**0.2);
-        this.ksigma = this.ksigma0;
     }
     normal(x, mu, sig_sq){
         return Math.exp(-((x - mu) ** 2) / (2 * sig_sq)) / Math.sqrt(2 * Math.PI * sig_sq);
@@ -141,7 +150,7 @@ export class ClockInference{
         this.time_rotate = this.parent.time_rotate;
 
         this.entropy = new Entropy(this);
-        this.kde = new KernelDensityEstimation(this.time_rotate);
+        this.kde = new KernelDensityEstimation(this.time_rotate, past_data);
 
         this.n_hist = Math.min(200, Math.floor(Math.log(0.02) / Math.log(this.kde.damp)));
 
@@ -274,6 +283,26 @@ export class ClockInference{
                 var value = this.clock_history[-selection_index][press][win_index];
                 this.inc_score_inc(this.clock_history[-selection_index][press][win_index]);
             }
+            var click_data_json = JSON.stringify(this.kde.dens_li);
+            var user_id = this.parent.user_id;
+            console.log(this.parent.user_id);
+            var Z = this.kde.Z;
+            var ksigma = this.kde.ksigma;
+            var ksigma0 = this.kde.ksigma0;
+
+            // noinspection JSAnnotator
+            function send_data() { // jshint ignore:line
+                console.log({"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma, "ksigma0": ksigma0});
+                $.ajax({
+                    method: "POST",
+                    url: "../update_click_dist.php",
+                    data: {"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma, "ksigma0": ksigma0}
+                }).done(function (data) {
+                    console.log("SENT DATA");
+                });
+            }
+
+            send_data();
 
             for (var index = n_hist - 1; index < config.learn_delay - 1; index--) {
                 this.clock_history.splice(index, 1);
