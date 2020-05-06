@@ -56,8 +56,8 @@
 <body>
     <div id = "container" >
     <h1>Welcome to the Nomon Keybaord!</h1>
-    <p><strong>If you are a returning user, please enter your user ID below.<br>
-    Otherwise, leave the field blank and press "Continue".</strong></p>
+    <p id="info_text"><strong>If you are a returning user, please enter your user ID below.<br>
+    Otherwise, leave the field blank and press "Enter".</strong></p>
     <div id="message"></div>
     <form name='form1'>
         <table align = "">
@@ -71,7 +71,7 @@
                 <input type='text' placeholder='User ID' name='user_id' id= 'user_id' required ><br />
             </td>
             <td>
-                <input class='btn' type="button" id = "saveusers" value = "Continue" formaction="html/keyboard.html"/>
+                <input class='btn' type="button" id = "send_button" value = "Enter" formaction="html/keyboard.html"/>
             </td>
             </tr>
         </table>
@@ -79,20 +79,77 @@
     </div>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script type="text/javascript">
-        $(function(){
-        $("#saveusers").on('click', function(){
-        var user_id = $("#user_id").val();
-        $.ajax({
-            method: "GET",
+        var logged_in = false;
+        function create_user(user_id) {
+            $.ajax({
+                method: "POST",
+                url: "create_user.php",
+                data: {"user_id": user_id}
+            }).done(function (data) {
+                console.log(data);
+                document.getElementById("send_button").value = "Launch Nomon";
+                document.getElementById("info_text").innerHTML =
+                            `<strong>Created user with ID ${user_id}! Click to launch Nomon.</strong>`;
+                document.getElementById("send_button").onclick = function(){
+                    window.open("html/keyboard.html",'_self');
+                };
+            });
+        }
 
-            url: "send_login.php",
-            data: { "user_id": user_id}
-        }).done(function( data ) {
-            var result= $.parseJSON(data)[0];
-            console.log(result);
-        });
-        });
-        });
+        function send_login() {
+            var requested_user_id = $("#user_id").val();
+            $.ajax({
+                method: "GET",
+                url: "send_login.php",
+                data: {"user_id": requested_user_id}
+            }).done(function (data) {
+                var result = $.parseJSON(data);
+                console.log(result);
+                var user_id;
+                var click_dist;
+                if (result.length > 0) {
+                    result = result[0];
+                }
+                if ("MAX(id)" in result) {
+                    console.log(requested_user_id);
+                    if (!Number.isInteger(parseInt(requested_user_id))) {
+                        user_id = parseInt(result["MAX(id)"]) + 7;
+                        document.getElementById("info_text").innerHTML =
+                            `<strong>Your ID will be: ${user_id}. Press "Create User".</strong>`;
+                        document.getElementById("send_button").value = "Create User";
+                        document.getElementById("user_id").style.display = "none";
+                        document.getElementById("send_button").onclick = function() {
+                            create_user(user_id);
+                        };
+
+                    } else {
+                        document.getElementById("info_text").innerHTML =
+                            `<strong>We could not find a user with ID ${requested_user_id}. Please try again.</strong>`;
+                        document.getElementById("send_button").value = "Enter";
+                    }
+                } else if ("id" in result) {
+                    user_id = requested_user_id;
+                    click_dist = result["click_dist"];
+                    if (click_dist === null) {
+                        document.getElementById("info_text").innerHTML =
+                            `<strong>Loading User ${user_id}... No click distribution was found.</strong>`;
+                    } else {
+                        document.getElementById("info_text").innerHTML =
+                            `<strong>Loading User ${user_id}... Click distribution loaded!</strong>`;
+                    }
+
+                    document.getElementById("send_button").value = "Launch Nomon";
+                    document.getElementById("user_id").style.display = "none";
+                    document.getElementById("send_button").onclick = function(){
+                        window.open("html/keyboard.html",'_self');
+                    };
+                }
+            });
+        }
+        document.getElementById("send_button").onclick = send_login;
+        // $("#send_button").on('click', send_login());
+
+        // });
     </script>
 
 </body>

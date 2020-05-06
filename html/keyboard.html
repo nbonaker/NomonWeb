@@ -59,6 +59,7 @@ label {
 
 <div class="slidecontainer">
     <form>
+        <label id="user_num_label"><b>Welcome User!</b></label>
         <label for="speed_slider"><b>Clock Rotation Speed: </b></label>
         <input type="range" min="1" max="20" value="10" class="slider" id="speed_slider">
         <label for="speed_slider"><b><span id="speed_slider_value"></span></b></label>
@@ -185,6 +186,12 @@ Your browser does not support the canvas element.
 <canvas id="info">
 Your browser does not support the canvas element.
 </canvas>
+
+<script type="text/javascript">
+    const params = new URLSearchParams(document.location.search);
+    const user_id = params.get("user_id");
+    document.getElementById("user_num_label").innerHTML =`<b>Welcome User ${user_id}!</b>`
+</script>
 
 <script type="module" src="../js/keyboard.js"></script>
 
