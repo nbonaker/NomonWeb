@@ -54,6 +54,7 @@
 </style>
 </head>
 <body>
+
     <div id = "container" >
     <h1>Welcome to the Nomon Keybaord!</h1>
     <p id="info_text"><strong>If you are a returning user, please enter your user ID below.<br>
@@ -120,9 +121,7 @@
                             `<strong>Your ID will be: ${user_id}. Press "Create User".</strong>`;
                         document.getElementById("send_button").value = "Create User";
                         document.getElementById("user_id").style.display = "none";
-                        document.getElementById("send_button").onclick = function() {
-                            create_user(user_id);
-                        };
+                        create_user(user_id);
 
                     }
                 } else if ("id" in result) {

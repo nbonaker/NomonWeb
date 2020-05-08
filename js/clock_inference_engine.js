@@ -284,19 +284,28 @@ export class ClockInference{
                 this.inc_score_inc(this.clock_history[-selection_index][press][win_index]);
             }
             var click_data_json = JSON.stringify(this.kde.dens_li);
+            var y_li = JSON.stringify(this.kde.y_li);
             var user_id = this.parent.user_id;
             console.log(this.parent.user_id);
             var Z = this.kde.Z;
             var ksigma = this.kde.ksigma;
             var ksigma0 = this.kde.ksigma0;
+            var rotate_index = this.parent.rotate_index;
+            var is_learn = this.parent.learn_checkbox.checked;
+            var is_pause = this.parent.pause_checkbox.checked;
+            var is_sound = this.parent.audio_checkbox.checked;
 
             // noinspection JSAnnotator
             function send_data() { // jshint ignore:line
-                console.log({"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma, "ksigma0": ksigma0});
+                console.log({"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma,
+                        "ksigma0": ksigma0, "y_li": y_li, "rotate_index": rotate_index, "learn": is_learn,
+                        "pause": is_pause, "sound": is_sound});
                 $.ajax({
                     method: "POST",
                     url: "../update_click_dist.php",
-                    data: {"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma, "ksigma0": ksigma0}
+                    data: {"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma,
+                        "ksigma0": ksigma0, "y_li": y_li, "rotate_index": rotate_index, "learn": is_learn,
+                        "pause": is_pause, "sound": is_sound}
                 }).done(function (data) {
                     console.log("SENT DATA");
                 });

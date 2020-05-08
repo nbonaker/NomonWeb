@@ -37,7 +37,11 @@ class Keyboard{
         this.lm_prefix = "";
 
         this.init_locs();
-        this.rotate_index = config.default_rotate_ind;
+        if (this.prev_data.rotate_index !== null) {
+            this.rotate_index = this.prev_data.rotate_index;
+        }else{
+            this.rotate_index = config.default_rotate_ind;
+        }
         this.time_rotate = config.period_li[this.rotate_index];
 
         this.typed = "";
@@ -101,7 +105,8 @@ class Keyboard{
     init_ui(){
         this.speed_slider = document.getElementById("speed_slider");
         this.speed_slider_output = document.getElementById("speed_slider_value");
-        this.speed_slider_output.innerHTML = this.speed_slider.value;
+        this.speed_slider_output.innerHTML = this.rotate_index;
+        this.speed_slider.value = this.rotate_index;
 
         this.speed_slider.oninput = function() {
             this.speed_slider_output.innerHTML = this.speed_slider.value;
@@ -109,14 +114,26 @@ class Keyboard{
         }.bind(this);
 
         this.learn_checkbox = document.getElementById("checkbox_learn");
-        this.learn_checkbox.checked = true;
+        if (this.prev_data.learn !== null){
+            this.learn_checkbox.checked = this.prev_data.learn;
+        }else {
+            this.learn_checkbox.checked = true;
+        }
 
         this.pause_checkbox = document.getElementById("checkbox_pause");
-        this.pause_checkbox.checked = true;
+        if (this.prev_data.pause !== null){
+            this.pause_checkbox.checked = this.prev_data.pause;
+        }else {
+            this.pause_checkbox.checked = true;
+        }
 
-        this.audio = new Audio('audio/bell.wav');
+        this.audio = new Audio('../audio/bell.wav');
         this.audio_checkbox = document.getElementById("checkbox_sound");
-        this.audio_checkbox.checked = true;
+        if (this.prev_data.sound !== null){
+            this.audio_checkbox.checked = this.prev_data.sound;
+        }else {
+            this.audio_checkbox.checked = true;
+        }
 
         this.checkbox_webcam = document.getElementById("checkbox_webcam");
         this.checkbox_webcam.onchange = function () {
@@ -812,20 +829,58 @@ function send_login() {
             var prev_data = {};
             result = result[0];
             var click_dist = JSON.parse(result.click_dist);
-            console.log("Retrieved Click Dist!");
+            if (click_dist !== null) {
+                console.log("Retrieved Click Dist!");
+            }
             prev_data["click_dist"]= click_dist;
 
+            var y_li = JSON.parse(result.y_li);
+            if (y_li !== null) {
+                console.log("Retrieved y_li!");
+            }
+            prev_data["y_li"]= y_li;
+
             var Z = JSON.parse(result.Z);
-            console.log("Retrieved Z!");
+            if (Z !== null) {
+                console.log("Retrieved Z!");
+            }
             prev_data["Z"]= Z;
 
             var ksigma = JSON.parse(result.ksigma);
-            console.log("Retrieved ksigma!");
+            if (ksigma !== null) {
+                console.log("Retrieved ksigma!");
+            }
             prev_data["ksigma"]= ksigma;
 
             var ksigma0 = JSON.parse(result.ksigma0);
-            console.log("Retrieved ksigma0!");
+            if (ksigma0 !== null) {
+                console.log("Retrieved ksigma0!");
+            }
             prev_data["ksigma0"]= ksigma0;
+
+            var rotate_index = JSON.parse(result.rotate_index);
+            if (rotate_index !== null) {
+                console.log("Retrieved Rotation Index!");
+            }
+            prev_data["rotate_index"]= rotate_index;
+
+            var learn = JSON.parse(result.learn);
+            if (learn !== null) {
+                console.log("Retrieved Learn Checkbox!");
+            }
+            prev_data["learn"]= learn;
+
+            var pause = JSON.parse(result.pause);
+            if (pause !== null) {
+                console.log("Retrieved Pause Checkbox!");
+            }
+            prev_data["pause"]= pause;
+
+            var sound = JSON.parse(result.sound);
+            if (sound !== null) {
+                console.log("Retrieved Sound Checkbox!");
+            }
+            prev_data["sound"]= sound;
         }
 
         let keyboard = new Keyboard(user_id, first_load, prev_data);
