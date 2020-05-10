@@ -1,9 +1,6 @@
 <?php
 
-$host         = "localhost";
-$username     = "root";
-$password     = "";
-$dbname       = "userDB";
+include '/var/www/nomon.csail.mit.edu/mysql_login.php';
 
 $connection = mysqli_connect($host, $username, $password, $dbname);
 
