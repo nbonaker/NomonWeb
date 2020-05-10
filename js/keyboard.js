@@ -302,6 +302,35 @@ class Keyboard{
         } else {
             next_software_name = "software A";
         }
+
+        var user_id = this.user_id;
+        var sessions = this.session_number + 1;
+
+        var today = new Date();
+        var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+        var dates;
+        if (this.session_dates !== null) {
+            dates = JSON.stringify(this.session_dates.push(date));
+        } else {
+            dates = JSON.stringify([date]);
+        }
+        var phrase_queue = this.phrase_queue;
+
+        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue};
+        console.log(post_data);
+
+        function increment_session() { // jshint ignore:line
+            $.ajax({
+                method: "POST",
+                url: "../php/increment_session.php",
+                data: post_data
+            }).done(function (data) {
+                var result = data;
+                console.log(result);
+            });
+        }
+        increment_session(this);
+
         alert(`You have finished typing with ${current_software_name} in this session. You will now be redirected to ${next_software_name} to finish this session.`);
         var keyboard_url = "../html/keyboard.html";
         keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false');
@@ -325,11 +354,11 @@ class Keyboard{
         this.draw_phrase();
     }
     save_selection_data(selection){
-        var phrase = this.cur_phrase;
+        var phrase = this.cur_phrase.replace("'", "8");
         var phrase_num = this.phrase_num;
-
+        selection = selection.replace("'", "8");
         var previous_text = this.textbox.text;
-        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
+        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length).replace("'", "8");
         var timestamp = Date.now()/1000;
         var rotate_ind = this.rotate_index;
         var abs_click_times = JSON.stringify(this.bc.abs_click_times);
