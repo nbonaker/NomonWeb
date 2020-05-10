@@ -55,6 +55,8 @@ class Keyboard{
         this.session_number = null;
         this.session_dates = null;
         this.phrase_queue = null;
+        this.cur_phrase = null;
+        this.phrase_num = 0;
         this.starting_software = null;
         this.session_length = null;
         this.session_start_time = null;
@@ -199,7 +201,9 @@ class Keyboard{
                 console.log(result);
                 keyboard.session_number = parseInt(result[0].sessions)+1;
                 keyboard.session_dates = result[0].dates;
-                keyboard.phrase_queue = result[0].phrase_queue;
+                keyboard.phrase_queue = JSON.parse(result[0].phrase_queue);
+                keyboard.parse_phrases();
+
                 var first_software = result[0].first_software;
                 if (keyboard.session_number-1 % 2){
                     keyboard.starting_software = first_software;
@@ -231,6 +235,12 @@ class Keyboard{
         }
         var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
         if (response){
+             window.addEventListener('keypress', function (e) {
+                if (e.keyCode === 13) {
+                    this.phrase_complete();
+                }
+            }.bind(this), false);
+
             if (this.session_number === 1){
                 this.in_session = true;
 
@@ -254,6 +264,8 @@ class Keyboard{
 
                 this.session_length = 60*1;
                 this.session_start_time = Math.round(Date.now() / 1000);
+
+                this.draw_phrase();
             }
             // noinspection JSAnnotator
             function create_session_table(keyboard) { // jshint ignore:line
@@ -294,6 +306,58 @@ class Keyboard{
         var keyboard_url = "../html/keyboard.html";
         keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false');
         window.open(keyboard_url,'_self');
+    }
+    parse_phrases(){
+        var temp_phrase_queue = this.phrase_queue.slice();
+        this.phrase_queue = [];
+        for (var phrase_index in temp_phrase_queue){
+            var phrase = temp_phrase_queue[phrase_index];
+            this.phrase_queue.push(phrase.replace("8", "'"));
+        }
+        this.phrase_num = 0;
+    }
+    draw_phrase(){
+        this.cur_phrase = this.phrase_queue.shift();
+        this.textbox.draw_text(this.cur_phrase.concat('\n'));
+        this.phrase_num = this.phrase_num + 1;
+    }
+    phrase_complete(){
+        this.draw_phrase();
+    }
+    save_selection_data(selection){
+        var phrase = this.cur_phrase;
+        var phrase_num = this.phrase_num;
+
+        var previous_text = this.textbox.text;
+        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
+        var timestamp = Date.now()/1000;
+        var rotate_ind = this.rotate_index;
+        var abs_click_times = JSON.stringify(this.bc.abs_click_times);
+        var rel_click_times = JSON.stringify(this.bc.rel_click_times);
+
+        this.bc.abs_click_times = [];
+        this.bc.rel_click_times = [];
+
+        var post_data = {"user_id": this.user_id.toString(), "session": this.session_number.toString(),
+            "software": "nomon", "phrase": phrase, "phrase_num": phrase_num, "typed_text": typed_text,
+            "timestamp": timestamp, "rotate_ind": rotate_ind, "abs_click_times": abs_click_times,
+            "rel_click_times": rel_click_times, "selection": selection};
+
+        console.log(post_data);
+
+        // noinspection JSAnnotator
+        function send_click_data(keyboard) { // jshint ignore:line
+            $.ajax({
+                method: "POST",
+                url: "../php/send_click_data.php",
+                data: post_data
+            }).done(function (data) {
+                var result = data;
+                console.log(result);
+            });
+        }
+        send_click_data(this);
+
     }
     change_speed(index){
         var speed_index = Math.floor(index);
@@ -612,6 +676,9 @@ class Keyboard{
         var previous_text = this.textbox.text;
         previous_text = previous_text.replace("|", "");
 
+        if (this.in_session) {
+            previous_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
+        }
         if (previous_text.length > 0 && previous_text.charAt(previous_text.length - 1) == "_") {
             previous_text = previous_text.slice(0, previous_text.length - 1).concat(" ");
         }
@@ -665,10 +732,16 @@ class Keyboard{
                 }
 
                 input_text = new_text;
+                if (this.in_session) {
+                    new_text = this.cur_phrase.concat('\n', new_text);
+                }
                 this.textbox.draw_text(new_text);
             }
             else {
                 input_text = "";
+                if (this.in_session) {
+                    input_text = this.cur_phrase.concat('\n', input_text);
+                }
             }
         }
         else if (is_undo){
@@ -680,6 +753,9 @@ class Keyboard{
                     new_text = new_text.slice(0, new_text.length - 1);
                 }
                 input_text = new_text;
+                if (this.in_session) {
+                    new_text = this.cur_phrase.concat('\n', new_text);
+                }
                 this.textbox.draw_text(new_text);
             }
             else {
@@ -698,6 +774,9 @@ class Keyboard{
             input_text = input_text.replace(" ?", "?_");
             input_text = input_text.replace(" !", "!_");
 
+            if (this.in_session) {
+                input_text = this.cur_phrase.concat('\n', input_text);
+            }
             this.textbox.draw_text(input_text);
         }
         if (undo_text == kconfig.mybad_char){
@@ -871,11 +950,14 @@ class Keyboard{
 
         this.is_undo = is_undo;
         this.is_equalize = is_equalize;
+
+        if (this.in_session){
+            this.save_selection_data(selection);
+        }
         // # update the word prior
 
         this.fetched_words = false;
         this.lm.update_cache(this.left_context, this.lm_prefix, selection);
-
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }

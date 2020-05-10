@@ -16,6 +16,9 @@ export class BroderClocks{
         this.last_gap_time_li = [];
         this.last_press_time_li = [];
 
+        this.abs_click_times = [];
+        this.rel_click_times = [];
+
         this.time_rotate = this.parent.time_rotate;
         this.clock_inf.clock_util.change_period(this.time_rotate);
     }
@@ -24,6 +27,7 @@ export class BroderClocks{
     }
     select(){
         var time_in = Date.now()/1000;
+
         this.clock_inf.update_scores(time_in - this.latest_time);
         if (config.is_learning) {
             this.clock_inf.update_history(time_in - this.latest_time);
@@ -31,6 +35,9 @@ export class BroderClocks{
 
         var top_score_clock = this.clock_inf.sorted_inds[0];
         var ind_in_histo = this.clock_inf.reverse_index_gsi(this.clock_inf.cscores[top_score_clock]);
+
+        this.abs_click_times.push(time_in);
+        this.rel_click_times.push(ind_in_histo);
 
         var last_gap_time = (time_in - this.last_press_time) % this.time_rotate;
 
