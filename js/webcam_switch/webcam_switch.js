@@ -57,7 +57,6 @@ export class WebcamSwitch{
             this.face_x_calibration = this.initial_face_xs.reduce(function(a, b){return a + b;}, 0) /
                 this.initial_face_xs.length;
         }
-        console.log(this.face_x_calibration);
 
         var facebar_x = this.webcam_canvas.screen_width*(face_x-face_size - this.face_x_calibration);
         var trigger_bar_x = this.webcam_canvas.screen_width*(0.5+face_size*2);

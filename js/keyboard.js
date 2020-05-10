@@ -51,6 +51,14 @@ class Keyboard{
         this.old_context_li = [""];
         this.last_add_li = [0];
 
+        this.in_session = false;
+        this.session_number = null;
+        this.session_dates = null;
+        this.phrase_queue = null;
+        this.starting_software = null;
+        this.session_length = null;
+        this.session_start_time = null;
+
         this.full_init=false;
         this.fetched_words = false;
         this.lm = new lm.LanguageModel(this);
@@ -113,6 +121,14 @@ class Keyboard{
             this.change_speed(this.speed_slider.value);
         }.bind(this);
 
+        this.change_user_button = document.getElementById("send_button");
+
+        this.session_button = document.getElementById("session_button");
+        this.session_button.onclick = function () {
+            this.request_session_data();
+        }.bind(this);
+        this.session_time_label = document.getElementById("session_timer");
+
         this.learn_checkbox = document.getElementById("checkbox_learn");
         if (this.prev_data.learn !== null){
             this.learn_checkbox.checked = this.prev_data.learn;
@@ -169,6 +185,115 @@ class Keyboard{
             this.in_info_screen = false;
             this.in_webcam_info_screen = false;
         }
+    }
+    request_session_data(){
+        var user_id = parseInt(this.user_id);
+        console.log({"user_id": user_id});
+        function init_phrases(keyboard) {
+            $.ajax({
+                method: "POST",
+                url: "../php/init_study.php",
+                data: {"user_id": user_id}
+            }).done(function (data) {
+                var result = $.parseJSON(data);
+                console.log(result);
+                keyboard.session_number = parseInt(result[0].sessions)+1;
+                keyboard.session_dates = result[0].dates;
+                keyboard.phrase_queue = result[0].phrase_queue;
+                var first_software = result[0].first_software;
+                if (keyboard.session_number-1 % 2){
+                    keyboard.starting_software = first_software;
+                }else{
+                    if (first_software === "nomon") {
+                        keyboard.starting_software = "rowcol";
+                    }else{
+                        keyboard.starting_software = "nomon";
+                    }
+                }
+                keyboard.init_session();
+            });
+        }
+        init_phrases(this);
+    }
+    init_session(){
+        console.log(this.session_number, this.session_dates, this.phrase_queue, this.starting_software);
+        var software_name;
+        if (this.starting_software === "nomon"){
+            software_name = "software A";
+        } else {
+            software_name = "software B";
+        }
+        var last_session;
+        if (this.session_dates !== null){
+            last_session = `Your last session was on ${this.session_dates[this.session_dates.length-1]}. `;
+        } else {
+            last_session = "";
+        }
+        var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
+        if (response){
+            if (this.session_number === 1){
+                this.in_session = true;
+
+                this.session_button.value = "Finished Typing";
+                this.session_button.onclick = null;
+                this.session_button.className = "btn unclickable";
+
+                this.change_user_button.onclick = null;
+                this.change_user_button.className = "btn unclickable";
+
+                this.change_speed(1);
+                this.speed_slider_output.innerHTML = 1;
+                this.speed_slider.value = 1;
+                this.learn_checkbox.checked = true;
+                this.pause_checkbox.checked = true;
+                this.audio_checkbox.checked = true;
+                this.checkbox_webcam.checked = true;
+
+                this.init_webcam_switch();
+                document.onkeypress = null;
+
+                this.session_length = 60*1;
+                this.session_start_time = Math.round(Date.now() / 1000);
+            }
+            // noinspection JSAnnotator
+            function create_session_table(keyboard) { // jshint ignore:line
+                $.ajax({
+                    method: "POST",
+                    url: "../php/start_session.php",
+                    data: {"user_id": keyboard.user_id.toString(), "session": keyboard.session_number.toString(), "software": "nomon"}
+                }).done(function (data) {
+                    var result = data;
+                    console.log(result);
+                });
+            }
+            create_session_table(this);
+        }
+    }
+    allow_session_continue(){
+        this.session_button.value = "Finished Typing";
+        this.session_button.onclick = function () {
+            this.session_continue();
+        }.bind(this);
+        this.session_button.className = "btn clickable";
+    }
+    session_continue(){
+        var current_software_name;
+        if (this.starting_software === "nomon"){
+            current_software_name = "software A";
+        } else {
+            current_software_name = "software B";
+        }
+
+        var next_software_name;
+        if (this.starting_software === "nomon"){
+            next_software_name = "software B";
+        } else {
+            next_software_name = "software A";
+        }
+        alert(`You have finished typing with ${current_software_name} in this session. You will now be redirected to ${next_software_name} to finish this session.`);
+        var keyboard_url = "../html/keyboard.html";
+        keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false');
+        window.open(keyboard_url,'_self');
     }
     change_speed(index){
         var speed_index = Math.floor(index);
@@ -778,7 +903,19 @@ class Keyboard{
                 }
                 this.ws.skip_update = (this.ws.skip_update + 1) % 2;
             }
-            // console.log(Date.now()/1000 - time_in);
+
+            if (this.in_session){
+                var min_rem = Math.floor((this.session_length - (Date.now() / 1000 - this.session_start_time))/60);
+                var sec_rem = Math.floor(this.session_length - (Date.now() / 1000 - this.session_start_time) - min_rem*60);
+                if (min_rem >= 0) {
+                    if (sec_rem < 10) {
+                    sec_rem = `0${sec_rem}`;
+                    }
+                    this.session_time_label.innerHTML = `<b>Time remaining: ${min_rem}:${sec_rem}</b>`;
+                }else{
+                    this.allow_session_continue();
+                }
+            }
         }
     }
     play_audio() {
@@ -819,7 +956,7 @@ console.log(user_id);
 function send_login() {
     $.ajax({
         method: "GET",
-        url: "../send_login.php",
+        url: "../php/send_login.php",
         data: {"user_id": user_id}
     }).done(function (data) {
         var result = $.parseJSON(data);
