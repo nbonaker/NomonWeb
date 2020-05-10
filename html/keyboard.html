@@ -17,12 +17,14 @@ textarea {
 label {
     font-family: Helvetica, sans-serif;
     font-size: 1.2vw ;
-    vertical-align: 30%;
 }
+.toprow { vertical-align: 30%;}
+.webcam { vertical-align: 50%;}
+
 .slider {
   -webkit-appearance: none;
   width: 35vw ;
-  height: 10%;
+  height: 25px;
   background: #d3d3d3;
   outline: none;
   opacity: 0.7;
@@ -56,8 +58,8 @@ label {
 .container.space-between {
   justify-content: space-between;
 }
+
 .btn {
-  background-color: #0056ff;
   border: none;
   color: white;
   padding: 5px 15px;
@@ -70,22 +72,26 @@ label {
   cursor: pointer;
   border-radius: 4px;
 }
+.clickable {
+    background-color: #0056ff;
+}
+.unclickable {
+    background-color: rgba(0, 89, 255, 0.32);
+}
 
 </style>
 
 <body>
 
-<div class="slidecontainer">
-    <form>
-        <label for="speed_slider"><b>Clock Rotation Speed: </b></label>
-        <input type="range" min="1" max="20" value="10" class="slider" id="speed_slider">
-        <label for="speed_slider"><b><span id="speed_slider_value"></span></b></label>
-
-<!--        <label class="checkbox-inline" style="color:white">____________________</label>-->
-
-<!--        <label class="checkbox-inline">-->
-<!--          <input type="checkbox" value="" id="checkbox_learn"><b>Learn</b>-->
-<!--        </label>-->
+<div class="container space-between">
+    <div>
+        <div class="slidecontainer">
+            <label for="speed_slider" class="label toprow"><b>Clock Rotation Speed: </b></label>
+            <input type="range" min="1" max="20" value="10" class="slider" id="speed_slider">
+            <label for="speed_slider" class="label toprow"><b><span id="speed_slider_value"></span></b></label>
+        </div>
+    </div>
+    <div>
         <label for="checkbox"
           onmousedown="event.preventDefault()"
           onclick="
@@ -149,11 +155,14 @@ label {
           />
         <b>Sound</b>
         </label>
-    </form>
-    <div class="container space-between">
+    </div>
+</div>
+<div class="container space-between">
         <div>
             <label id="user_num_label"><b>Welcome User!</b></label>
-            <input class='btn' type="button" id = "send_button" value = "Change User"/>
+            <input class='btn clickable' type="button" id = "send_button" value = "Change User"/>
+            <input class='btn clickable' type="button" id = "session_button" value = "Start Session"/>
+            <label id = "session_timer"><b> </b></label>
         </div>
         <div>
             <canvas id="webcam_canvas" height="35%" width="250%">
@@ -171,7 +180,8 @@ label {
                         // call click on the labeled control
                         this.control && this.control.click();
                     }
-                ">
+                "
+                class="label webcam">
                 <input id="checkbox_webcam" type="checkbox"
                     onmousedown="event.preventDefault()"
                     onclick="

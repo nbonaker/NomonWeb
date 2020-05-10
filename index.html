@@ -84,7 +84,7 @@
         function create_user(user_id) {
             $.ajax({
                 method: "POST",
-                url: "create_user.php",
+                url: "../php/create_user.php",
                 data: {"user_id": user_id}
             }).done(function (data) {
                 console.log(data);
@@ -103,7 +103,7 @@
             var requested_user_id = $("#user_id").val();
             $.ajax({
                 method: "GET",
-                url: "send_login.php",
+                url: "../php/send_login.php",
                 data: {"user_id": requested_user_id}
             }).done(function (data) {
                 var result = $.parseJSON(data);
