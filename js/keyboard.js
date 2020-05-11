@@ -200,7 +200,7 @@ class Keyboard{
                 var result = $.parseJSON(data);
                 console.log(result);
                 keyboard.session_number = parseInt(result[0].sessions)+1;
-                keyboard.session_dates = result[0].dates;
+                keyboard.session_dates = JSON.parse(result[0].dates);
                 keyboard.phrase_queue = JSON.parse(result[0].phrase_queue);
                 keyboard.parse_phrases();
 
@@ -241,31 +241,34 @@ class Keyboard{
                 }
             }.bind(this), false);
 
+            this.in_session = true;
+
+            this.session_button.value = "Finished Typing";
+            this.session_button.onclick = null;
+            this.session_button.className = "btn unclickable";
+
+            this.change_user_button.onclick = null;
+            this.change_user_button.className = "btn unclickable";
+
+            this.learn_checkbox.checked = true;
+            this.checkbox_webcam.checked = true;
+
+            this.init_webcam_switch();
+            // document.onkeypress = null;
+
+            this.session_length = 60*1;
+            this.session_start_time = Math.round(Date.now() / 1000);
+
+            this.draw_phrase();
+
             if (this.session_number === 1){
-                this.in_session = true;
-
-                this.session_button.value = "Finished Typing";
-                this.session_button.onclick = null;
-                this.session_button.className = "btn unclickable";
-
-                this.change_user_button.onclick = null;
-                this.change_user_button.className = "btn unclickable";
 
                 this.change_speed(1);
                 this.speed_slider_output.innerHTML = 1;
                 this.speed_slider.value = 1;
-                this.learn_checkbox.checked = true;
+
                 this.pause_checkbox.checked = true;
                 this.audio_checkbox.checked = true;
-                this.checkbox_webcam.checked = true;
-
-                this.init_webcam_switch();
-                document.onkeypress = null;
-
-                this.session_length = 60*1;
-                this.session_start_time = Math.round(Date.now() / 1000);
-
-                this.draw_phrase();
             }
             // noinspection JSAnnotator
             function create_session_table(keyboard) { // jshint ignore:line
@@ -304,17 +307,18 @@ class Keyboard{
         }
 
         var user_id = this.user_id;
-        var sessions = this.session_number + 1;
+        var sessions = this.session_number;
 
         var today = new Date();
         var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
         var dates;
         if (this.session_dates !== null) {
-            dates = JSON.stringify(this.session_dates.push(date));
+            this.session_dates.push(date);
+            dates = JSON.stringify(this.session_dates);
         } else {
             dates = JSON.stringify([date]);
         }
-        var phrase_queue = this.phrase_queue;
+        var phrase_queue = JSON.stringify(this.unparse_phrases());
 
         var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue};
         console.log(post_data);
@@ -329,7 +333,7 @@ class Keyboard{
                 console.log(result);
             });
         }
-        increment_session(this);
+        increment_session();
 
         alert(`You have finished typing with ${current_software_name} in this session. You will now be redirected to ${next_software_name} to finish this session.`);
         var keyboard_url = "../html/keyboard.html";
@@ -345,13 +349,28 @@ class Keyboard{
         }
         this.phrase_num = 0;
     }
+    unparse_phrases(){
+        var temp_phrase_queue = [];
+        for (var phrase_index in this.phrase_queue){
+            var phrase = this.phrase_queue[phrase_index];
+            temp_phrase_queue.push(phrase.replace("'", "8"));
+        }
+        return(temp_phrase_queue);
+    }
     draw_phrase(){
         this.cur_phrase = this.phrase_queue.shift();
         this.textbox.draw_text(this.cur_phrase.concat('\n'));
         this.phrase_num = this.phrase_num + 1;
     }
     phrase_complete(){
-        this.draw_phrase();
+        var min_rem = Math.floor((this.session_length - (Date.now() / 1000 - this.session_start_time))/60);
+        var sec_rem = Math.floor(this.session_length - (Date.now() / 1000 - this.session_start_time) - min_rem*60);
+
+        if (min_rem <= 0 && sec_rem < 30){
+            this.allow_session_continue();
+        } else {
+            this.draw_phrase();
+        }
     }
     save_selection_data(selection){
         var phrase = this.cur_phrase.replace("'", "8");

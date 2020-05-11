@@ -6,6 +6,10 @@ $connection = mysqli_connect($host, $username, $password, $dbname);
 
 $user_id = $_POST['user_id'];
 
+// check if study table exists
+$query = "CREATE TABLE IF NOT EXISTS study_info (id INT, sessions INT, dates JSON, phrase_queue JSON, first_software Varchar(6))";
+$result = mysqli_query($connection, $query);
+
 // check if user has started study
 $query = "SELECT COUNT(id) FROM study_info WHERE id = '$user_id'";
 $result = mysqli_query($connection, $query);
