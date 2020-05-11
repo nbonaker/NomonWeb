@@ -256,7 +256,7 @@ class Keyboard{
             this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 60*1;
+            this.session_length = 60*3;
             this.session_start_time = Math.round(Date.now() / 1000);
 
             this.draw_phrase();
