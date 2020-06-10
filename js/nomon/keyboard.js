@@ -41,13 +41,12 @@ class Keyboard{
         this.left_context = "";
         this.lm_prefix = "";
 
-        // this.init_locs();
-        // if (this.prev_data.rotate_index !== null) {
-        //     this.rotate_index = this.prev_data.rotate_index;
-        // }else{
-        //     this.rotate_index = config.default_rotate_ind;
-        // }
-        this.rotate_index = config.default_rotate_ind;
+        this.init_locs();
+        if (this.prev_data.rotate_index !== null) {
+            this.rotate_index = this.prev_data.rotate_index;
+        }else{
+            this.rotate_index = config.default_rotate_ind;
+        }
         this.time_rotate = config.period_li[this.rotate_index];
 
         this.typed = "";
