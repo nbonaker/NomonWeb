@@ -49,7 +49,6 @@ export class BroderClocks{
             this.clock_inf.entropy.update_bits();
             this.parent.make_choice(this.clock_inf.sorted_inds[0]);
 
-
         }else{
             this.init_round(false, false, []);
         }
@@ -60,14 +59,17 @@ export class BroderClocks{
         var clock_score_prior = results[2];
         this.is_undo = results[3];
         this.is_equalize = results[4];
+        var skip_hist = results[5];
 
-        if (this.parent.learn_checkbox.checked) {
-            this.clock_inf.learn_scores(this.is_undo);
+        if (skip_hist){
+            this.init_round(true, true, clock_score_prior);
+        }else {
+            if (this.parent.learn_checkbox.checked) {
+                this.clock_inf.learn_scores(this.is_undo);
+            }
+
+            this.init_round(true, false, clock_score_prior);
         }
-        // this.parent.histogram.dens_li = this.clock_inf.kde.dens_li;
-        // this.parent.histogram.upd();
-
-        this.init_round(true, false, clock_score_prior);
     }
     init_bits(){
         this.bits_per_select = Math.log(this.clock_inf.clocks_on.length) / Math.log(2);
