@@ -21,7 +21,7 @@ export class KeyboardCanvas{
         this.bottom_height_factor = bottom_height_factor;
         this.top_offest = 75;
 
-        this.canvas.width = this.window_width * this.resolution_factor;
+        this.canvas.width = (this.window_width) * this.resolution_factor;
         this.canvas.height = (this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.resolution_factor;
         this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("px");
         this.canvas.style.height = ((this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
@@ -163,8 +163,13 @@ export class KeyGrid {
                 this.keygrid_canvas.ctx.fillStyle = "#000000";
                 var cell_height = y_end - y_start;
                 var font_height = cell_height * 0.5;
-                var font_width = this.keygrid_canvas.ctx.measureText(cell_text).width;
                 this.keygrid_canvas.ctx.font = font_height.toString().concat("px Helvetica");
+                var font_width = this.keygrid_canvas.ctx.measureText(cell_text).width;
+                if (font_width > (x_end - x_start)*0.9){
+                    var font_shrink_factor = (x_end - x_start)*0.9/font_width;
+                    font_width = font_width * font_shrink_factor;
+                    this.keygrid_canvas.ctx.font = (font_height * font_shrink_factor).toString().concat("px Helvetica");
+                }
                 this.keygrid_canvas.ctx.fillText(cell_text, (x_end + x_start - font_width) / 2,
                     y_end - font_height * 2 / 3);
             }
@@ -209,8 +214,14 @@ export class KeyGrid {
             this.keygrid_canvas.ctx.fillStyle = "#000000";
             var cell_height = y_end - y_start;
             var font_height = cell_height * 0.5;
-            var font_width = this.keygrid_canvas.ctx.measureText(cell_text).width;
             this.keygrid_canvas.ctx.font = font_height.toString().concat("px Helvetica");
+            var font_width = this.keygrid_canvas.ctx.measureText(cell_text).width;
+            if (font_width > (x_end - x_start)*0.9){
+                var font_shrink_factor = (x_end - x_start)*0.9/font_width;
+                font_width = font_width * font_shrink_factor;
+                this.keygrid_canvas.ctx.font = (font_height * font_shrink_factor).toString().concat("px Helvetica");
+            }
+
             this.keygrid_canvas.ctx.fillText(cell_text, (x_end + x_start - font_width) / 2,
                 y_end - font_height * 2 / 3);
         }

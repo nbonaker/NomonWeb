@@ -60,6 +60,7 @@ export class LanguageModel{
             var undo_cache_list = this.word_cache[kconfig.mybad_char];
 
             if (selection == kconfig.mybad_char && undo_cache_list.length > 0){
+                console.log("pulling from undo cache...");
                 var undo_cache_values = undo_cache_list.pop();
                 this.word_predictions = undo_cache_values.words.words;
                 this.word_prediction_probs = undo_cache_values.words.probs;
@@ -70,24 +71,22 @@ export class LanguageModel{
                 this.parent.on_word_load();
             }
             else if (selection in this.word_cache && selection != kconfig.mybad_char &&
-                    "words" in this.word_cache[selection] && "keys" in this.word_cache[selection]){
+                    "words" in this.word_cache[selection]){
+                console.log("pulling from word cache...");
                 this.word_predictions = this.word_cache[selection].words.words;
                 this.word_prediction_probs = this.word_cache[selection].words.probs;
-                this.key_probs = this.word_cache[selection].keys;
 
                 this.word_cache = {};
-                undo_cache_list.push({"words": {"words": undo_word_predictions, "probs": undo_word_prediction_probs},
-                    "keys": undo_key_probs});
+                undo_cache_list.push({"words": {"words": undo_word_predictions, "probs": undo_word_prediction_probs}});
                 this.word_cache[kconfig.mybad_char] = undo_cache_list;
-                this.parent.on_word_load();
+                this.parent.on_word_load(false);
             }
             else{
+                console.log("pulling from api...");
                 this.word_update_complete = false;
-                this.char_update_complete = false;
 
                 this.word_cache = {};
-                undo_cache_list.push({"words": {"words": undo_word_predictions, "probs": undo_word_prediction_probs},
-                    "keys": undo_key_probs});
+                undo_cache_list.push({"words": {"words": undo_word_predictions, "probs": undo_word_prediction_probs}});
                 this.word_cache[kconfig.mybad_char] = undo_cache_list;
 
                 //get base word predictions
