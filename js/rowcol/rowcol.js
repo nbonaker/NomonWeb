@@ -447,7 +447,7 @@ class Keyboard{
         this.winner_clock.winner = false;
         this.winner_clock.draw_face();
     }
-    on_word_load(){
+    on_word_load(update_scan=true){
         this.fetched_words = true;
 
         if (!this.full_init) {
@@ -458,6 +458,7 @@ class Keyboard{
             var results = [this.words_on, this.words_off, this.word_score_prior, this.is_undo, this.is_equalize, this.skip_hist];
         }
         this.update_scan_time(false);
+
         this.keygrid.draw_layout(this.row_scan, this.col_scan);
         this.keygrid.update_words(this.lm.word_predictions, this.row_scan, this.col_scan);
     }
@@ -857,13 +858,15 @@ class Keyboard{
         // this.previous_winner = index;
         // this.highlight_winner(index);
 
+        text = text.replace("Undo", kconfig.mybad_char);
+        text = text.replace("Backspace", kconfig.back_char);
+        text = text.replace("Clear", kconfig.clear_char);
+
         var i;
         // # if selected a key
-        if (this.row_scan > 0){
+        if (text.length === 1){
             new_char = text;
-            new_char = new_char.replace("Undo", kconfig.mybad_char);
-            new_char = new_char.replace("Backspace", kconfig.back_char);
-            new_char = new_char.replace("Clear", kconfig.clear_char);
+
             selection = new_char;
 
 
@@ -1016,7 +1019,6 @@ class Keyboard{
     update_scan_time(press){
         var time_in = Date.now()/1000;
 
-        console.log(this.row_scan, this.col_scan, press);
         if (press) {
             if (this.col_scan == -1) { // in row scan
                 this.col_scan = kconfig.num_cols;
@@ -1028,11 +1030,11 @@ class Keyboard{
                 } else{
                     selected_text = kconfig.target_layout[this.row_scan][this.col_scan];
                 }
-                this.make_choice(selected_text);
-
                 this.col_scan = -1;
                 this.row_scan = kconfig.num_rows-1;
                 this.next_scan_time = Infinity;
+
+                this.make_choice(selected_text);
             }
 
         } else {
@@ -1072,6 +1074,7 @@ class Keyboard{
                 }
             }
         }
+        console.log(this.row_scan, this.col_scan, press, this.next_scan_time);
     }
     animate(){
         if (this.full_init) {
@@ -1115,22 +1118,7 @@ class Keyboard{
         this.keygrid.draw_layout();
         this.keygrid.update_words(this.lm.word_predictions);
 
-        this.clockface_canvas.calculate_size();
-        this.clockhand_canvas.calculate_size();
-        this.clockgrid.clocks = [];
-        this.clockgrid.generate_layout();
-        this.clockgrid.update_word_clocks(this.words_li);
-        for (var clock_ind in this.clockgrid.clocks){
-            var clock = this.clockgrid.clocks[clock_ind];
-            if (clock != null){
-                clock.draw_face();
-            }
-        }
-
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + 70);
-        this.histogram.calculate_size();
-        this.histogram.draw_box();
-        this.histogram.draw_histogram();
         this.textbox.calculate_size();
     }
 }
