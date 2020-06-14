@@ -15,11 +15,22 @@ $phrase_num = $_POST['phrase_num'];
 $typed_text = $_POST['typed_text'];
 $selection = $_POST['selection'];
 $timestamp = $_POST['timestamp'];
-$rotate_ind = $_POST['rotate_ind'];
 $abs_click_times = $_POST['abs_click_times'];
 $rel_click_times = $_POST['rel_click_times'];
+$click_scan_pos = $_POST['click_scan_pos'];
 
-$query = "INSERT INTO ".$table_name." (phrase, phrase_num, typed_text, selection, timestamp, rotate_ind, abs_click_times, rel_click_times) VALUES ('$phrase', '$phrase_num', '$typed_text', '$selection', '$timestamp', '$rotate_ind', '$abs_click_times', '$rel_click_times')";
+
+if ($software == "nomon"){
+    $rotate_ind = $_POST['rotate_ind'];
+    $query = "INSERT INTO ".$table_name." (phrase, phrase_num, typed_text, selection, timestamp, rotate_ind, abs_click_times, rel_click_times) VALUES ('$phrase', '$phrase_num', '$typed_text', '$selection', '$timestamp', '$rotate_ind', '$abs_click_times', '$rel_click_times')";
+
+} else {
+    $scan_delay = $_POST['scan_delay'];
+    $extra_delay = $_POST['extra_delay'];
+    $query = "INSERT INTO ".$table_name." (phrase, phrase_num, typed_text, selection, timestamp, scan_delay, extra_delay, abs_click_times, rel_click_times, click_scan_pos) VALUES ('$phrase', '$phrase_num', '$typed_text', '$selection', '$timestamp', '$scan_delay', '$extra_delay' '$abs_click_times', '$rel_click_times', '$click_scan_pos')";
+
+}
+
 $result = mysqli_query($connection, $query);
 
 echo $query;
