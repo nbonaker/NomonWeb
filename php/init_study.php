@@ -7,7 +7,7 @@ $connection = mysqli_connect($host, $username, $password, $dbname);
 $user_id = $_POST['user_id'];
 
 // check if study table exists
-$query = "CREATE TABLE IF NOT EXISTS study_info (id INT, sessions INT, dates JSON, phrase_queue JSON, first_software Varchar(6))";
+$query = "CREATE TABLE IF NOT EXISTS study_info (id INT, nomon_sessions INT, rowcol_sessions INT, dates JSON, nomon_phrase_queue JSON, rowcol_phrase_queue JSON, first_software Varchar(6))";
 $result = mysqli_query($connection, $query);
 
 // check if user has started study
@@ -33,27 +33,36 @@ if (!$user_exists){
         $data = file_get_contents($file_path);
         $phrases_oov = json_decode($data);
 
-        $phrases_shuffled = array();
+        for ($software_ind = 0; $software_ind < 2; $software_ind++){
+                $temp_iv = $phrases_iv;
+                $temp_oov = $phrases_oov;
+                $phrases_shuffled = array();
 
-        $phrase_index = 0;
-        while (count($phrases_oov) > 0 && count($phrases_iv) > 0){
-                if ($phrase_index % 3){
-                        $rand_index = rand(0, count($phrases_iv)-1);
-                        $sample_phrase = $phrases_iv[$rand_index];
-                        unset($phrases_iv[$rand_index]);
-                        $phrases_iv = array_values($phrases_iv);
-                        array_push($phrases_shuffled, $sample_phrase);
-                } else {
-                        $rand_index = rand(0, count($phrases_oov)-1);
-                        $sample_phrase = $phrases_oov[$rand_index];
-                        unset($phrases_oov[$rand_index]);
-                        $phrases_oov = array_values($phrases_oov);
-                        array_push($phrases_shuffled, $sample_phrase);
+                $phrase_index = 0;
+                while (count($temp_oov) > 0 && count($temp_iv) > 0){
+                        if ($phrase_index % 3){
+                                $rand_index = rand(0, count($temp_iv)-1);
+                                $sample_phrase = $temp_iv[$rand_index];
+                                unset($temp_iv[$rand_index]);
+                                $temp_iv = array_values($temp_iv);
+                                array_push($phrases_shuffled, $sample_phrase);
+                        } else {
+                                $rand_index = rand(0, count($temp_oov)-1);
+                                $sample_phrase = $temp_oov[$rand_index];
+                                unset($temp_oov[$rand_index]);
+                                $temp_oov = array_values($temp_oov);
+                                array_push($phrases_shuffled, $sample_phrase);
+                        }
+                        $phrase_index++;
                 }
-                $phrase_index++;
-        }
 
-        $phrases_json = json_encode($phrases_shuffled);
+                if ($software_ind == 0){
+                        $nomon_phrases_json = json_encode($phrases_shuffled);
+                } else {
+                        $rowcol_phrases_json = json_encode($phrases_shuffled);
+                }
+
+        }
 
         //determine starting software
         $query = "SELECT first_software FROM study_info ORDER BY id DESC LIMIT 1";
@@ -65,7 +74,11 @@ if (!$user_exists){
                 array_push($result_array, $row);
             }
         }
-        $last_software = $result_array[0]['first_software'];
+        if (count($result_array) > 0){
+            $last_software = $result_array[0]['first_software'];
+        } else {
+            $last_software = 0;
+        }
 
         if (!$last_software){
                 $last_software = "nomon";
@@ -78,7 +91,7 @@ if (!$user_exists){
         }
 
         //insert user into study_info table
-        $query = "INSERT INTO study_info (id, sessions, phrase_queue, first_software) VALUES ('$user_id', 0, '$phrases_json', '$last_software')";
+        $query = "INSERT INTO study_info (id, nomon_sessions, rowcol_sessions, nomon_phrase_queue, rowcol_phrase_queue, first_software) VALUES ('$user_id', 0, 0, '$nomon_phrases_json', '$rowcol_phrases_json', '$last_software')";
         $result = mysqli_query($connection, $query);
 }
 

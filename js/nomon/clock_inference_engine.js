@@ -302,7 +302,7 @@ export class ClockInference{
                         "pause": is_pause, "sound": is_sound});
                 $.ajax({
                     method: "POST",
-                    url: "../php/update_click_dist.php",
+                    url: "../php/update_nomon_data.php",
                     data: {"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma,
                         "ksigma0": ksigma0, "y_li": y_li, "rotate_index": rotate_index, "learn": is_learn,
                         "pause": is_pause, "sound": is_sound}

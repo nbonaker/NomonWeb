@@ -12,10 +12,11 @@ function log_add_exp(a_1, a_2){
 }
 
 class Keyboard{
-    constructor(user_id, first_load, prev_data){
+    constructor(user_id, first_load, partial_session, prev_data){
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
+        this.partial_session = partial_session;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + 70);
@@ -53,6 +54,11 @@ class Keyboard{
         this.row_scan = -1;
         this.col_scan = -1;
         this.next_scan_time = Infinity;
+        this.prev_scan_time = Infinity;
+
+        this.rel_click_times = [];
+        this.abs_click_times = [];
+        this.click_scan_positions = [];
 
         this.typed = "";
         this.typed_versions = [""];
@@ -238,7 +244,6 @@ class Keyboard{
             this.change_user_button.onclick = null;
             this.change_user_button.className = "btn unclickable";
 
-            this.learn_checkbox.checked = true;
             this.checkbox_webcam.checked = true;
 
             this.init_webcam_switch();
@@ -255,7 +260,9 @@ class Keyboard{
                 this.speed_slider_output.innerHTML = 1;
                 this.speed_slider.value = 1;
 
-                this.pause_checkbox.checked = true;
+                this.extra_delay_slider_output.innerHTML = 1;
+                this.extra_delay_slider.value = 1;
+
                 this.audio_checkbox.checked = true;
             }
             // noinspection JSAnnotator
@@ -280,20 +287,6 @@ class Keyboard{
         this.session_button.className = "btn clickable";
     }
     session_continue(){
-        var current_software_name;
-        if (this.starting_software === "nomon"){
-            current_software_name = "software A";
-        } else {
-            current_software_name = "software B";
-        }
-
-        var next_software_name;
-        if (this.starting_software === "nomon"){
-            next_software_name = "software B";
-        } else {
-            next_software_name = "software A";
-        }
-
         var user_id = this.user_id;
         var sessions = this.session_number;
 
@@ -308,7 +301,7 @@ class Keyboard{
         }
         var phrase_queue = JSON.stringify(this.unparse_phrases());
 
-        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue};
+        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue, "software": "rowcol"};
         console.log(post_data);
 
         function increment_session() { // jshint ignore:line
@@ -323,10 +316,14 @@ class Keyboard{
         }
         increment_session();
 
-        alert(`You have finished typing with ${current_software_name} in this session. You will now be redirected to ${next_software_name} to finish this session.`);
-        var keyboard_url = "../html/keyboard.html";
-        keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false');
-        window.open(keyboard_url,'_self');
+        if (this.partial_session){
+            alert(`You have finished typing for this session. Click to exit.`);
+        } else {
+            alert(`You have finished typing with Software B in this session. You will now be redirected to Software A to finish this session.`);
+            var keyboard_url = "../html/keyboard.html";
+            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false', '&partial_session=true');
+            window.open(keyboard_url, '_self');
+        }
     }
     parse_phrases(){
         var temp_phrase_queue = this.phrase_queue.slice();
@@ -376,17 +373,20 @@ class Keyboard{
         var previous_text = this.textbox.text;
         var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length).replace("'", "8");
         var timestamp = Date.now()/1000;
-        var rotate_ind = this.rotate_index;
-        var abs_click_times = JSON.stringify(this.bc.abs_click_times);
-        var rel_click_times = JSON.stringify(this.bc.rel_click_times);
+        var scan_delay = this.scan_delay_index;
+        var extra_delay = this.extra_delay_index;
+        var abs_click_times = JSON.stringify(this.abs_click_times);
+        var rel_click_times = JSON.stringify(this.rel_click_times);
+        var click_scan_positions = JSON.stringify(this.click_scan_positions);
 
-        this.bc.abs_click_times = [];
-        this.bc.rel_click_times = [];
+        this.abs_click_times = [];
+        this.rel_click_times = [];
+        this.click_scan_positions = [];
 
         var post_data = {"user_id": this.user_id.toString(), "session": this.session_number.toString(),
-            "software": "nomon", "phrase": phrase, "phrase_num": phrase_num, "typed_text": typed_text,
-            "timestamp": timestamp, "rotate_ind": rotate_ind, "abs_click_times": abs_click_times,
-            "rel_click_times": rel_click_times, "selection": selection};
+            "software": "rowcol", "phrase": phrase, "phrase_num": phrase_num, "typed_text": typed_text,
+            "timestamp": timestamp, "scan_delay": scan_delay, "extra_delay": extra_delay, "abs_click_times": abs_click_times,
+            "rel_click_times": rel_click_times, "click_scan_pos": click_scan_positions, "selection": selection};
 
         console.log(post_data);
 
@@ -410,7 +410,7 @@ class Keyboard{
         this.scan_delay_index = speed_index;
         var old_scan_delay = this.scan_delay;
         this.scan_delay = config.scan_delay_li[this.scan_delay_index];
-
+        this.send_user_data()
     }
     change_extra_delay(index){
         var speed_index = Math.floor(index);
@@ -418,6 +418,7 @@ class Keyboard{
         this.extra_delay_index = speed_index;
         var old_extra_delay = this.extra_delay;
         this.extra_delay = config.extra_delay_li[this.extra_delay_index];
+        this.send_user_data()
 
     }
     on_press(){
@@ -1004,6 +1005,27 @@ class Keyboard{
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
+    send_user_data(){
+        var user_id = this.parent.user_id;
+        console.log(this.parent.user_id);
+        var scan_delay = this.scan_delay;
+        var extra_delay = this.extra_delay;
+        var is_sound = this.audio_checkbox.checked;
+
+        // noinspection JSAnnotator
+        function send_data() { // jshint ignore:line
+            console.log({"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": is_sound});
+            $.ajax({
+                method: "POST",
+                url: "../php/update_nomon_data.php",
+                data: {"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": is_sound}
+            }).done(function (data) {
+                console.log("SENT DATA");
+            });
+        }
+
+        send_data();
+    }
     update_context(){
         var space_index = Math.max(this.typed.lastIndexOf(" "), this.typed.lastIndexOf("_"));
         var break_index = -1;
@@ -1020,6 +1042,7 @@ class Keyboard{
         var time_in = Date.now()/1000;
 
         if (press) {
+            this.abs_click_times.push(time_in);
             if (this.col_scan == -1) { // in row scan
                 this.col_scan = kconfig.num_cols;
                 this.next_scan_time = time_in;
@@ -1030,6 +1053,9 @@ class Keyboard{
                 } else{
                     selected_text = kconfig.target_layout[this.row_scan][this.col_scan];
                 }
+                this.rel_click_times.push(time_in - this.prev_scan_time);
+                this.click_scan_positions.push([this.row_scan, this.col_scan]);
+
                 this.col_scan = -1;
                 this.row_scan = kconfig.num_rows-1;
                 this.next_scan_time = Infinity;
@@ -1038,6 +1064,8 @@ class Keyboard{
             }
 
         } else {
+            this.prev_scan_time = this.next_scan_time;
+
             if (this.col_scan == -1) { // in row scan
                 this.row_scan += 1;
                 if (this.row_scan >= kconfig.num_rows) {
@@ -1126,91 +1154,49 @@ class Keyboard{
 const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
 const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
-console.log(user_id);
+const partial_session = params.get("partial_session");
+console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", parital_session);
 
 var prev_data = {};
 
-let keyboard = new Keyboard(user_id, first_load, prev_data);
+let keyboard = new Keyboard(user_id, first_load, prev_data, partial_session);
         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 
-// function send_login() {
-//     $.ajax({
-//         method: "GET",
-//         url: "../php/send_login.php",
-//         data: {"user_id": user_id}
-//     }).done(function (data) {
-//         var result = $.parseJSON(data);
-//         var click_dist;
-//         var prev_data;
-//         if (result.length > 0) {
-//             var prev_data = {};
-//             result = result[0];
-//             var click_dist = JSON.parse(result.click_dist);
-//             if (click_dist !== null) {
-//                 console.log("Retrieved Click Dist!");
-//             }
-//             prev_data["click_dist"]= click_dist;
-//
-//             var y_li = JSON.parse(result.y_li);
-//             if (y_li !== null) {
-//                 console.log("Retrieved y_li!");
-//             }
-//             prev_data["y_li"]= y_li;
-//
-//             var Z = JSON.parse(result.Z);
-//             if (Z !== null) {
-//                 console.log("Retrieved Z!");
-//             }
-//             prev_data["Z"]= Z;
-//
-//             var ksigma = JSON.parse(result.ksigma);
-//             if (ksigma !== null) {
-//                 console.log("Retrieved ksigma!");
-//             }
-//             prev_data["ksigma"]= ksigma;
-//
-//             var ksigma0 = JSON.parse(result.ksigma0);
-//             if (ksigma0 !== null) {
-//                 console.log("Retrieved ksigma0!");
-//             }
-//             prev_data["ksigma0"]= ksigma0;
-//
-//             var rotate_index = JSON.parse(result.rotate_index);
-//             if (rotate_index !== null) {
-//                 console.log("Retrieved Rotation Index!");
-//             }
-//             prev_data["rotate_index"]= rotate_index;
-//
-//             var learn = JSON.parse(result.learn);
-//             if (learn !== null) {
-//                 console.log("Retrieved Learn Checkbox!");
-//             }
-//             prev_data["learn"]= learn;
-//
-//             var pause = JSON.parse(result.pause);
-//             if (pause !== null) {
-//                 console.log("Retrieved Pause Checkbox!");
-//             }
-//             prev_data["pause"]= pause;
-//
-//             var sound = JSON.parse(result.sound);
-//             if (sound !== null) {
-//                 console.log("Retrieved Sound Checkbox!");
-//             }
-//             prev_data["sound"]= sound;
-//         }
-//
-//         let keyboard = new Keyboard(user_id, first_load, prev_data);
-//         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
-//     });
-// }
-//
-// send_login();
+function send_login() {
+    $.ajax({
+        method: "GET",
+        url: "../php/send_login.php",
+        data: {"user_id": user_id}
+    }).done(function (data) {
+        var result = $.parseJSON(data);
+        var prev_data;
+        if (result.length > 0) {
+            var prev_data = {};
+            result = result[0];
 
+            var scan_delay = JSON.parse(result.scan_delay);
+            if (scan_delay !== null) {
+                console.log("Retrieved Scan Delay!");
+            }
+            prev_data["scan_delay"]= scan_delay;
 
+            var extra_delay = JSON.parse(result.extra_delay);
+            if (extra_delay !== null) {
+                console.log("Retrieved Extra Delay!");
+            }
+            prev_data["extra_delay"]= extra_delay;
 
+            var sound = JSON.parse(result.sound);
+            if (sound !== null) {
+                console.log("Retrieved Sound Checkbox!");
+            }
+            prev_data["sound"]= sound;
+        }
 
-// Attaching the event listener function to window's resize event
+        let keyboard = new Keyboard(user_id, first_load, prev_data);
+        setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
+    });
+}
 
-    // Calling the function for the first time
-// displayWindowSize();
+send_login();
+

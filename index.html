@@ -91,15 +91,86 @@
                 data: {"user_id": user_id}
             }).done(function (data) {
                 console.log(data);
-                document.getElementById("send_button").value = "Launch Nomon";
-                document.getElementById("info_text").innerHTML =
-                            `<strong>Created user with ID ${user_id}! Click to launch Nomon.</strong>`;
-                document.getElementById("send_button").onclick = function(){
-                    var keyboard_url = "html/keyboard.html";
-                    keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true');
-                    window.open(keyboard_url,'_self');
-                };
             });
+        }
+
+        function handle_partial_sessions(nomon_sessions, rowcol_sessions, first_software) {
+            var session_num = Math.min(nomon_sessions, rowcol_sessions);
+            var partial_session;
+            var keyboard_url;
+            var cur_info_text = document.getElementById("info_text").textContent;
+
+            if (nomon_sessions < rowcol_sessions){
+                document.getElementById("info_text").innerHTML =
+                        `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
+
+                keyboard_url = "html/keyboard.html";
+                partial_session = true;
+
+            } else if (rowcol_sessions < nomon_sessions){
+
+                document.getElementById("info_text").innerHTML =
+                        `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
+
+                keyboard_url = "html/rowcol.html";
+                partial_session = true;
+
+            } else {
+
+                document.getElementById("info_text").innerHTML =
+                        `<strong>${cur_info_text} <br> You have completed ${session_num} sessions. Click to launch the keyboard software.</strong>`;
+
+                if (session_num % 2){
+                    if (first_software === "nomon") {
+                        first_software = "rowcol";
+                    }else{
+                        first_software = "nomon";
+                    }
+                }
+                if (first_software === "nomon"){
+                    keyboard_url = "html/keyboard.html";
+                } else {
+                    keyboard_url = "html/rowcol.html";
+                }
+                partial_session = false;
+            }
+
+            return [session_num, keyboard_url, partial_session];
+        }
+
+        function init_study(user_id) {
+            $.ajax({
+                method: "POST",
+                url: "../php/init_study.php",
+                data: {"user_id": user_id}
+            }).done(function (data) {
+                var result = $.parseJSON(data);
+                console.log(result);
+                var user_id = result[0].id;
+                var first_software = result[0].first_software;
+
+                var next_session_results = handle_partial_sessions(parseInt(result[0].nomon_sessions), parseInt(result[0].rowcol_sessions), first_software);
+                var session_num = next_session_results[0];
+                var keyboard_url = next_session_results[1];
+                var partial_session = next_session_results[2];
+
+
+                launch_software(user_id, keyboard_url, partial_session);
+
+            });
+
+        }
+
+        function launch_software(user_id, keyboard_url, partial_session){
+
+            console.log(keyboard_url);
+
+            document.getElementById("send_button").value = "Launch Software";
+
+            document.getElementById("send_button").onclick = function(){
+                keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true', '&partial_session=', partial_session.toString());
+                window.open(keyboard_url,'_self');
+            };
         }
 
         function send_login() {
@@ -116,37 +187,37 @@
                 if (result.length > 0) {
                     result = result[0];
                 }
-                if ("MAX(id)" in result) {
-                    console.log(requested_user_id);
+                if ("MAX(id)" in result) {  // Create new user
+                    console.log("requested_id:", requested_user_id);
                     if (!Number.isInteger(parseInt(requested_user_id))) {
                         user_id = parseInt(result["MAX(id)"]) + 7;
+                        if (Number.isNaN(user_id)){
+                            user_id = 0;
+                        }
+                        console.log("given_id:", user_id);
                         document.getElementById("info_text").innerHTML =
                             `<strong>Your ID will be: ${user_id}. Press "Create User".</strong>`;
                         document.getElementById("send_button").value = "Create User";
                         document.getElementById("user_id").style.display = "none";
                         create_user(user_id);
-
+                        document.getElementById("info_text").innerHTML =
+                        `<strong>Created user with ID ${user_id}!</strong>`;
+                        init_study(user_id);
                     }
-                } else if ("id" in result) {
+                } else if ("id" in result) {  // Load previous user
                     user_id = requested_user_id;
-                    click_dist = result["click_dist"];
+                    click_dist = result.click_dist;
                     if (click_dist === null) {
                         document.getElementById("info_text").innerHTML =
-                            `<strong>Loading User ${user_id}... No click distribution was found.</strong>`;
+                            `<strong>Loading User ${user_id}... No user preferences were found.</strong>`;
                     } else {
                         document.getElementById("info_text").innerHTML =
-                            `<strong>Loading User ${user_id}... Click distribution loaded!</strong>`;
+                            `<strong>Loading User ${user_id}... User preferences loaded!</strong>`;
                     }
-
-                    document.getElementById("send_button").value = "Launch Nomon";
-                    document.getElementById("user_id").style.display = "none";
-                    document.getElementById("send_button").onclick = function(){
-                        var keyboard_url = "html/keyboard.html";
-                        keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=false');
-                        window.open(keyboard_url,'_self');
-                    };
+                    console.log("given_id:", user_id);
+                    init_study(user_id);
                 }
-                else {
+                else {  //  User not found
                     document.getElementById("info_text").innerHTML =
                         `<strong>We could not find a user with ID ${requested_user_id}. Please try again.</strong>`;
                     document.getElementById("send_button").value = "Enter";

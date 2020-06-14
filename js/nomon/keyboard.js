@@ -13,10 +13,11 @@ function log_add_exp(a_1, a_2){
 }
 
 class Keyboard{
-    constructor(user_id, first_load, prev_data){
+    constructor(user_id, first_load, partial_session, prev_data){
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
+        this.partial_session = partial_session;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
@@ -205,21 +206,13 @@ class Keyboard{
             }).done(function (data) {
                 var result = $.parseJSON(data);
                 console.log(result);
-                keyboard.session_number = parseInt(result[0].sessions)+1;
+                keyboard.session_number = parseInt(result[0].nomon_sessions)+1;
                 keyboard.session_dates = JSON.parse(result[0].dates);
-                keyboard.phrase_queue = JSON.parse(result[0].phrase_queue);
+                keyboard.phrase_queue = JSON.parse(result[0].nomon_phrase_queue);
                 keyboard.parse_phrases();
 
-                var first_software = result[0].first_software;
-                if (keyboard.session_number-1 % 2){
-                    keyboard.starting_software = first_software;
-                }else{
-                    if (first_software === "nomon") {
-                        keyboard.starting_software = "rowcol";
-                    }else{
-                        keyboard.starting_software = "nomon";
-                    }
-                }
+                keyboard.starting_software = "nomon";
+
                 keyboard.init_session();
             });
         }
@@ -262,7 +255,7 @@ class Keyboard{
             this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 60*3;
+            this.session_length = 10*3;
             this.session_start_time = Math.round(Date.now() / 1000);
 
             this.draw_phrase();
@@ -298,20 +291,6 @@ class Keyboard{
         this.session_button.className = "btn clickable";
     }
     session_continue(){
-        var current_software_name;
-        if (this.starting_software === "nomon"){
-            current_software_name = "software A";
-        } else {
-            current_software_name = "software B";
-        }
-
-        var next_software_name;
-        if (this.starting_software === "nomon"){
-            next_software_name = "software B";
-        } else {
-            next_software_name = "software A";
-        }
-
         var user_id = this.user_id;
         var sessions = this.session_number;
 
@@ -326,7 +305,7 @@ class Keyboard{
         }
         var phrase_queue = JSON.stringify(this.unparse_phrases());
 
-        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue};
+        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue, "software": "nomon"};
         console.log(post_data);
 
         function increment_session() { // jshint ignore:line
@@ -341,10 +320,14 @@ class Keyboard{
         }
         increment_session();
 
-        alert(`You have finished typing with ${current_software_name} in this session. You will now be redirected to ${next_software_name} to finish this session.`);
-        var keyboard_url = "../html/keyboard.html";
-        keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false');
-        window.open(keyboard_url,'_self');
+        if (this.partial_session){
+            alert(`You have finished typing for this session. Click to exit.`);
+        } else {
+            alert(`You have finished typing with Software A in this session. You will now be redirected to Software B to finish this session.`);
+            var keyboard_url = "../html/rowcol.html";
+            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false', '&partial_session=true');
+            window.open(keyboard_url, '_self');
+        }
     }
     parse_phrases(){
         var temp_phrase_queue = this.phrase_queue.slice();
@@ -1097,7 +1080,8 @@ class Keyboard{
 const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
 const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
-console.log(user_id);
+const partial_session = params.get("partial_session");
+console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", parital_session);
 
 function send_login() {
     $.ajax({
@@ -1166,17 +1150,9 @@ function send_login() {
             prev_data["sound"]= sound;
         }
 
-        let keyboard = new Keyboard(user_id, first_load, prev_data);
+        let keyboard = new Keyboard(user_id, first_load, partial_session, prev_data);
         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
     });
 }
 
 send_login();
-
-
-
-
-// Attaching the event listener function to window's resize event
-
-    // Calling the function for the first time
-// displayWindowSize();

@@ -14,11 +14,11 @@ if ($result->num_rows > 0) {
 
 $user_data = array();
 foreach($user_ids as $user_id) {
-    $result = mysqli_query($connection, "SELECT sessions FROM study_info WHERE id = '$user_id'");
+    $result = mysqli_query($connection, "SELECT nomon_sessions FROM study_info WHERE id = '$user_id'");
     $num_sessions = array();
     if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
-            array_push($num_sessions, $row["sessions"]);
+            array_push($num_sessions, $row["nomon_sessions"]);
         }
     }
     $num_sessions = $num_sessions[0];
