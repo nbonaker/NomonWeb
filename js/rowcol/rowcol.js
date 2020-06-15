@@ -33,7 +33,7 @@ class Keyboard{
             }
         }.bind(this), false);
         // document.onkeypress = function() {this.on_press();}.bind(this);
-        // document.onmousedown = function() {this.destroy_info_screen();}.bind(this);
+        document.onmousedown = function() {this.destroy_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
@@ -193,21 +193,13 @@ class Keyboard{
             }).done(function (data) {
                 var result = $.parseJSON(data);
                 console.log(result);
-                keyboard.session_number = parseInt(result[0].sessions)+1;
+                keyboard.session_number = parseInt(result[0].rowcol_sessions)+1;
                 keyboard.session_dates = JSON.parse(result[0].dates);
-                keyboard.phrase_queue = JSON.parse(result[0].phrase_queue);
+                keyboard.phrase_queue = JSON.parse(result[0].rowcol_phrase_queue);
                 keyboard.parse_phrases();
 
-                var first_software = result[0].first_software;
-                if (keyboard.session_number-1 % 2){
-                    keyboard.starting_software = first_software;
-                }else{
-                    if (first_software === "nomon") {
-                        keyboard.starting_software = "rowcol";
-                    }else{
-                        keyboard.starting_software = "nomon";
-                    }
-                }
+                keyboard.starting_software = "rowcol";
+
                 keyboard.init_session();
             });
         }
@@ -249,17 +241,18 @@ class Keyboard{
             this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 60*3;
+            this.session_length = 10*3;
             this.session_start_time = Math.round(Date.now() / 1000);
 
             this.draw_phrase();
 
             if (this.session_number === 1){
 
-                this.change_speed(1);
+                this.change_scan_delay(1);
                 this.speed_slider_output.innerHTML = 1;
                 this.speed_slider.value = 1;
 
+                this.change_extra_delay(1);
                 this.extra_delay_slider_output.innerHTML = 1;
                 this.extra_delay_slider.value = 1;
 
@@ -270,7 +263,7 @@ class Keyboard{
                 $.ajax({
                     method: "POST",
                     url: "../php/start_session.php",
-                    data: {"user_id": keyboard.user_id.toString(), "session": keyboard.session_number.toString(), "software": "nomon"}
+                    data: {"user_id": keyboard.user_id.toString(), "session": keyboard.session_number.toString(), "software": "rowcol"}
                 }).done(function (data) {
                     var result = data;
                     console.log(result);
@@ -1006,10 +999,10 @@ class Keyboard{
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
     send_user_data(){
-        var user_id = this.parent.user_id;
-        console.log(this.parent.user_id);
-        var scan_delay = this.scan_delay;
-        var extra_delay = this.extra_delay;
+        var user_id = this.user_id;
+        console.log(this.user_id);
+        var scan_delay = this.scan_delay_index;
+        var extra_delay = this.extra_delay_index;
         var is_sound = this.audio_checkbox.checked;
 
         // noinspection JSAnnotator
@@ -1017,7 +1010,7 @@ class Keyboard{
             console.log({"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": is_sound});
             $.ajax({
                 method: "POST",
-                url: "../php/update_nomon_data.php",
+                url: "../php/update_rowcol_data.php",
                 data: {"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": is_sound}
             }).done(function (data) {
                 console.log("SENT DATA");
@@ -1043,6 +1036,9 @@ class Keyboard{
 
         if (press) {
             this.abs_click_times.push(time_in);
+            this.rel_click_times.push(time_in - this.prev_scan_time);
+            this.click_scan_positions.push([this.row_scan, this.col_scan]);
+
             if (this.col_scan == -1) { // in row scan
                 this.col_scan = kconfig.num_cols;
                 this.next_scan_time = time_in;
@@ -1053,8 +1049,6 @@ class Keyboard{
                 } else{
                     selected_text = kconfig.target_layout[this.row_scan][this.col_scan];
                 }
-                this.rel_click_times.push(time_in - this.prev_scan_time);
-                this.click_scan_positions.push([this.row_scan, this.col_scan]);
 
                 this.col_scan = -1;
                 this.row_scan = kconfig.num_rows-1;
@@ -1154,13 +1148,8 @@ class Keyboard{
 const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
 const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
-const partial_session = params.get("partial_session");
-console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", parital_session);
-
-var prev_data = {};
-
-let keyboard = new Keyboard(user_id, first_load, prev_data, partial_session);
-        setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
+const partial_session = params.get("partial_session") === 'true';
+console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session);
 
 function send_login() {
     $.ajax({
@@ -1171,7 +1160,7 @@ function send_login() {
         var result = $.parseJSON(data);
         var prev_data;
         if (result.length > 0) {
-            var prev_data = {};
+            prev_data = {};
             result = result[0];
 
             var scan_delay = JSON.parse(result.scan_delay);
@@ -1193,7 +1182,7 @@ function send_login() {
             prev_data["sound"]= sound;
         }
 
-        let keyboard = new Keyboard(user_id, first_load, prev_data);
+        let keyboard = new Keyboard(user_id, first_load, partial_session, prev_data);
         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
     });
 }

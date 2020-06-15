@@ -10,9 +10,7 @@ $extra_delay = $_POST['extra_delay'];
 $sound_bool = $_POST['sound'];
 $sound = (int)($sound_bool === 'true');
 
-echo $click_dist;
-
-$query = "UPDATE user_info SET click_dist = scan_delay = '$scan_delay', extra_delay = '$extra_delay', sound = '$sound'
+$query = "UPDATE user_info SET scan_delay = '$scan_delay', extra_delay = '$extra_delay', sound = '$sound'
   WHERE id = '$user_id'";
 
 $result = mysqli_query($connection, $query);
