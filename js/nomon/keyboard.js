@@ -1080,8 +1080,8 @@ class Keyboard{
 const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
 const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
-const partial_session = params.get("partial_session");
-console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", parital_session);
+const partial_session = params.get("partial_session") === 'true';
+console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session);
 
 function send_login() {
     $.ajax({

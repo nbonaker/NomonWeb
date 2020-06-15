@@ -1,5 +1,51 @@
 import * as kconfig from './kconfig.js';
 
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (stroke) {
+    ctx.stroke();
+    }
+    if (fill) {
+    ctx.fill();
+    }
+}
+
+function drawArrowhead(ctx, locx, locy, angle, sizex, sizey) {
+    var hx = sizex / 2;
+    var hy = sizey / 2;
+
+    ctx.translate((locx ), (locy));
+    ctx.rotate(angle);
+    ctx.translate(-hx,-hy);
+
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(0,1*sizey);
+    ctx.lineTo(1*sizex,1*hy);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.translate(hx,hy);
+    ctx.rotate(-angle);
+    ctx.translate(-locx,-locy);
+}
+
+// returns radians
+function findAngle(sx, sy, ex, ey) {
+    // make sx and sy at the zero point
+    return Math.atan2((ey - sy), (ex - sx));
+}
+
 export class KeyboardCanvas{
     constructor(canvas_id, layer_index) {
         this.canvas = document.getElementById(canvas_id);
@@ -280,6 +326,87 @@ export class Textbox{
     draw_text(text){
         this.text = text;
         this.box.value = text;
+    }
+}
+
+export class WebcamInfoScreen {
+    constructor(info_canvas) {
+        this.info_canvas = info_canvas;
+        this.x_pos = 0;
+        this.y_pos = 0;
+        this.width = this.info_canvas.screen_width;
+        this.height = this.info_canvas.screen_height;
+
+        this.info_canvas.ctx.beginPath();
+        this.info_canvas.ctx.fillStyle = "rgba(232,232,232, 0.5)";
+        this.info_canvas.ctx.rect(0, 0, this.width, this.height);
+        this.info_canvas.ctx.fill();
+        this.draw_screen();
+    }
+    draw_screen(){
+        var font_height = this.width/70;
+
+        var rect_x = this.width*0.6;
+        var rect_y = this.height*0.1;
+
+        this.info_canvas.ctx.fillStyle = "#ffffff";
+        this.info_canvas.ctx.strokeStyle = "#404040";
+        this.info_canvas.ctx.lineWidth = font_height*0.3;
+        roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height*27, font_height*15,
+            20, true, true);
+
+        var arrow_x_start = rect_x + font_height*8;
+        var arrow_y_start = rect_y - font_height*0.5;
+
+        var arrow_x_end = arrow_x_start + font_height;
+        var arrow_y_end = arrow_y_start - font_height*2;
+
+        var arrow_x_center = arrow_x_start;
+        var arrow_y_center = arrow_y_start - font_height;
+
+        this.info_canvas.ctx.beginPath();
+        this.info_canvas.ctx.fillStyle = "#404040";
+        this.info_canvas.ctx.lineWidth = font_height*0.4;
+        this.info_canvas.ctx.moveTo(arrow_x_start,arrow_y_start);
+        this.info_canvas.ctx.quadraticCurveTo(arrow_x_center, arrow_y_center, arrow_x_end, arrow_y_end);
+        this.info_canvas.ctx.stroke();
+        drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, -Math.PI*0.3, font_height*1.5, font_height*1.5);
+
+        this.info_canvas.ctx.fillStyle = "#404040";
+        this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+        this.info_canvas.ctx.fillText("The Webcam Switch tracks your face to send inputs",
+            rect_x + font_height, rect_y + font_height*1.3);
+        this.info_canvas.ctx.fillText("into Nomon. You can activate the switch by moving",
+            rect_x + font_height, rect_y + font_height*2.5);
+        this.info_canvas.ctx.fillText("your body to the right.",
+            rect_x + font_height, rect_y + font_height*3.7);
+
+        this.info_canvas.ctx.fillStyle = "rgba(238,133,0,1)";
+        this.info_canvas.ctx.fillText("The orange box is your current face position.",
+            rect_x + font_height, rect_y + font_height*6);
+        this.info_canvas.ctx.fillStyle = "rgba(0,0,238,1)";
+        this.info_canvas.ctx.fillText("The blue rectangle is the reset box.",
+            rect_x + font_height, rect_y + font_height*7.2);
+        this.info_canvas.ctx.fillStyle = "rgb(0,195,0)";
+        this.info_canvas.ctx.fillText("The green rectangle is the trigger box.",
+            rect_x + font_height, rect_y + font_height*8.5);
+
+        this.info_canvas.ctx.fillStyle = "#404040";
+        this.info_canvas.ctx.fillText("The reset and trigger boxes are activated",
+            rect_x + font_height, rect_y + font_height*10.8);
+        this.info_canvas.ctx.fillText("when the orange box intersects one of them.",
+            rect_x + font_height, rect_y + font_height*12);
+        this.info_canvas.ctx.fillText("You must activate the reset box before you",
+            rect_x + font_height, rect_y + font_height*13.2);
+        this.info_canvas.ctx.fillText("can activate the trigger box.",
+            rect_x + font_height, rect_y + font_height*14.4);
+
+
+        this.info_canvas.ctx.fillStyle = "#000000";
+        var font_height = this.width/80;
+        this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+        this.info_canvas.ctx.fillText("Click on screen to exit",
+            this.width*0.87, this.height*0.99);
     }
 }
 
