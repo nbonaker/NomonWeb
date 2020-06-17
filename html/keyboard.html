@@ -87,7 +87,7 @@ label {
 
 <body>
 
-<div class="container space-between">
+<div class="container space-between" id="top_bar_top">
     <div>
         <div class="slidecontainer">
             <label for="speed_slider" class="label toprow"><b>Clock Rotation Speed: </b></label>
@@ -161,12 +161,13 @@ label {
         </label>
     </div>
 </div>
-<div class="container space-between">
+<div class="container space-between" id="top_bar_bottom">
         <div>
-            <label id="user_num_label"><b>Welcome User!</b></label>
             <input class='btn clickable' type="button" id = "send_button" value = "Change User"/>
             <input class='btn clickable' type="button" id = "session_button" value = "Start Session"/>
             <label id = "session_timer"><b> </b></label>
+            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! Press Start Session to begin.</i></label>
+            <input class='btn clickable' type="button" id = "help_button" value = "?" >
         </div>
         <div>
             <canvas id="webcam_canvas" height="35%" width="250%">
@@ -230,7 +231,7 @@ Your browser does not support the canvas element.
 
     const params = new URLSearchParams(document.location.search);
     const user_id = params.get("user_id");
-    document.getElementById("user_num_label").innerHTML =`<b>Welcome User ${user_id}!</b>`;
+    document.getElementById("info_label").innerHTML =`<b>Welcome user ${user_id}! Press Start Session to begin.</b>`;
 
     document.getElementById("send_button").onclick = function(){
         var login_url = "../index.php";

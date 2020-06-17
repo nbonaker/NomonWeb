@@ -22,7 +22,7 @@ class Keyboard{
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
-        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + 70);
+        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.webcam_canvas = document.getElementById("webcam_canvas");
         this.webcam_enabled = false;
         this.webcam_info_complete=false;
@@ -138,6 +138,12 @@ class Keyboard{
         }.bind(this);
         this.session_time_label = document.getElementById("session_timer");
 
+        this.info_button = document.getElementById("help_button");
+        this.info_button.onclick = function () {
+            this.in_info_screen = true;
+            this.init_info_screen();
+        }.bind(this);
+
         this.learn_checkbox = document.getElementById("checkbox_learn");
         if (this.prev_data.learn !== null){
             this.learn_checkbox.checked = this.prev_data.learn;
@@ -179,13 +185,11 @@ class Keyboard{
     init_webcam_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_canvas.canvas.style.top = "75px";
         this.info_screen = new widgets.WebcamInfoScreen(this.info_canvas);
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_canvas.canvas.style.top = "75px";
         this.info_screen = new widgets.InfoScreen(this.info_canvas);
     }
     destroy_info_screen(){
@@ -242,6 +246,8 @@ class Keyboard{
 
             this.in_session = true;
 
+            document.getElementById("info_label").innerHTML =`<i>Copy the phrase in the box below. Press enter for the next phrase.</i>`;
+
             this.session_button.value = "Finished Typing";
             this.session_button.onclick = null;
             this.session_button.className = "btn unclickable";
@@ -255,7 +261,7 @@ class Keyboard{
             this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 10*3;
+            this.session_length = 60*1.5;
             this.session_start_time = Math.round(Date.now() / 1000);
 
             this.draw_phrase();
@@ -289,6 +295,8 @@ class Keyboard{
             this.session_continue();
         }.bind(this);
         this.session_button.className = "btn clickable";
+
+        document.getElementById("info_label").innerHTML =`<i>This is your last phrase. Press Finished Typing when you are finished.</i>`;
     }
     session_continue(){
         var user_id = this.user_id;
@@ -322,6 +330,8 @@ class Keyboard{
 
         if (this.partial_session){
             alert(`You have finished typing for this session. Click to exit.`);
+            var keyboard_url = "../index.php";
+            window.open(keyboard_url, '_self');
         } else {
             alert(`You have finished typing with Software A in this session. You will now be redirected to Software B to finish this session.`);
             var keyboard_url = "../html/rowcol.html";
@@ -364,7 +374,8 @@ class Keyboard{
         var min_rem = Math.floor((this.session_length - (Date.now() / 1000 - this.session_start_time))/60);
         var sec_rem = Math.floor(this.session_length - (Date.now() / 1000 - this.session_start_time) - min_rem*60);
 
-        if (min_rem <= 0 && sec_rem < 30){
+        console.log(min_rem, sec_rem);
+        if ((min_rem <= 0 && sec_rem < 30) || (min_rem < 0)){
             this.allow_session_continue();
         } else {
             this.draw_phrase();
@@ -1068,8 +1079,7 @@ class Keyboard{
                 clock.draw_face();
             }
         }
-    
-        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + 70);
+        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.histogram.calculate_size();
         this.histogram.draw_box();
         this.histogram.draw_histogram();
