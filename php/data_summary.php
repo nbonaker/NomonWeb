@@ -4,6 +4,8 @@ include '/var/www/nomon.csail.mit.edu/mysql_login.php';
 
 $connection = mysqli_connect($host, $username, $password, $dbname);
 
+$software = $_GET['software'];
+
 $result = mysqli_query($connection, "SELECT id from study_info");
 $user_ids = array();
 if ($result->num_rows > 0) {
@@ -14,18 +16,18 @@ if ($result->num_rows > 0) {
 
 $user_data = array();
 foreach($user_ids as $user_id) {
-    $result = mysqli_query($connection, "SELECT nomon_sessions FROM study_info WHERE id = '$user_id'");
+    $result = mysqli_query($connection, "SELECT ".$software."_sessions FROM study_info WHERE id = '$user_id'");
     $num_sessions = array();
     if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
-            array_push($num_sessions, $row["nomon_sessions"]);
+            array_push($num_sessions, $row[$software."_sessions"]);
         }
     }
     $num_sessions = $num_sessions[0];
 
     $session_array = array();
     for ($session_num = 1; $session_num <= $num_sessions; $session_num++) {
-        $table_name =  "nomon_session_".$session_num."_user_".$user_id;
+        $table_name =  $software."_session_".$session_num."_user_".$user_id;
         $words_per_min = array();
 
         $result = mysqli_query($connection, "SELECT MAX(phrase_num) FROM ".$table_name );

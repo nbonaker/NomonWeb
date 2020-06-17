@@ -2,33 +2,60 @@
 <html>
     <title>Study Data</title>
     <link rel="icon"
-          type="image/png"
-          href="../icon.png">
-    <head>
-        <style>
-            body{
-                font-family: "Helvetica", Gadget, sans-serif;
-            }
-            table, td, th {
-              border: 1px solid black;
-            }
+    type="image/png"
+    href="../icon.png">
+<head>
+<style>
+body{
+    font-family: "Helvetica", Gadget, sans-serif;
+}
+table, td, th {
+  border: 1px solid black;
+}
 
-            table {
-              border-collapse: collapse;
-            }
+table {
+  border-collapse: collapse;
+}
 
-            th {
-              height: 30px;
-            }
+th {
+  height: 30px;
+}
+
+.btn {
+  border: none;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: Helvetica, sans-serif;
+  font-size: 1.1vw ;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.clickable {
+    background-color: #0056ff;
+}
+.unclickable {
+    background-color: rgba(0, 89, 255, 0.32);
+}
         </style>
     </head>
     <body>
         <h2><b>Study Data</b></h2>
+
+    <div>
+        <input class='btn clickable' type="button" id = "nomon_button" value = "Nomon Summary"/>
+        <input class='btn unclickable' type="button" id = "rowcol_button" value = "RowCol Summary"/>
+        <input class='btn unclickable' type="button" id = "avg_button" value = "Average Summary"/>
+    </div>
     <h4><b>Current Users</b></h4>
-    <table style="width:50%" id ="user_table">
+    <table style="width:100%" id ="user_table">
         <tr>
             <th>User ID</th>
-            <th>Sessions Completed</th>
+            <th>Nomon Sessions Completed</th>
+            <th>Rowcol Sessions Completed</th>
             <th>Last Session</th>
         </tr>
     </table>
@@ -38,296 +65,6 @@
     <canvas id="cps_chart" width="1000" height="500"></canvas>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="../node_modules/chart.js/dist/Chart.js"></script>
-    <script type="text/javascript">
-        function getFormattedDate(date) {
-            var year = date.getFullYear();
-
-            var month = (1 + date.getMonth()).toString();
-            month = month.length > 1 ? month : '0' + month;
-
-            var day = date.getDate().toString();
-            day = day.length > 1 ? day : '0' + day;
-
-            return month + '/' + day + '/' + year;
-        }
-        function fill_user_table(user_data){
-            var table = document.getElementById("user_table");
-                Object.keys(user_data).forEach(function(user_key) {
-                    var row = table.insertRow(-1);
-                    var cell1 = row.insertCell(0);
-                    var cell2 = row.insertCell(1);
-                    var cell3 = row.insertCell(2);
-                    cell1.innerHTML = user_key;
-
-                    var sessions = [];
-                    Object.keys(user_data[user_key]).forEach(function(session_key) {
-                        var session = parseInt(session_key);
-                        if (!Number.isNaN(session)) {
-                            sessions.push(session);
-                        }
-                    });
-
-                    var num_sessions = Math.max.apply(Math, sessions);
-                    cell2.innerHTML = num_sessions.toString().concat(`    <progress id=\"file\" value=\"${num_sessions}\" max=\"10\"></progress>`);
-
-                    var epoch_timestamp = user_data[user_key]["timestamp"]*1000;
-                    var date = new Date(epoch_timestamp);
-
-                    cell3.innerHTML = getFormattedDate(date);
-                });
-        }
-        function get_graph_data(user_data, user, type){
-            var session_data = user_data[user];
-
-            var sessions = Object.keys(session_data);
-            var x_labels = [];
-
-            var values_avg_data = [];
-            var values_std_data = [];
-            for(var i in sessions){
-                if (sessions[i] !== "timestamp") {
-                    x_labels.push(sessions[i]);
-                    var session = sessions[i];
-                    var phrase_data = session_data[session];
-
-                    console.log(type);
-                    if (type === "wpm" || type === "ppc"){
-                        var phrase_values = [];
-                        for (var phrase_num in phrase_data) {
-                            phrase_values.push(phrase_data[phrase_num][type]);
-                        }
-                    } else if (type === "uer"){
-                        var phrase_values = [];
-                        for (var phrase_num in phrase_data) {
-                            var phrase_text = phrase_data[phrase_num]["phrase"];
-                            var typed_text = phrase_data[phrase_num]["typed"];
-                            phrase_values.push(calc_MSD(phrase_text, typed_text));
-                        }
-                    }
-                    else if (type === "cps"){
-                        var phrase_values = [];
-                        for (var phrase_num in phrase_data) {
-                            var num_corrections = phrase_data[phrase_num]["corr"];
-                            var num_selections = phrase_data[phrase_num]["sel"];
-                            phrase_values.push(num_corrections / num_selections);
-                            console.log(phrase_values);
-                        }
-                    }
-
-                    var values_avg = phrase_values.reduce((a, b) => (a + b)) / phrase_values.length;
-                    values_avg_data.push(values_avg);
-
-                    var wpm_std = Math.sqrt(phrase_values.map(x => Math.pow(x-values_avg,2)).reduce((a,b) => a+b)/phrase_values.length);
-                    values_std_data.push(wpm_std);
-                }
-            }
-
-            var values_std_upper = [];
-            var values_std_lower = [];
-            for (var j in values_avg_data){
-                values_std_upper.push(values_avg_data[j]+values_std_data[j]);
-                values_std_lower.push(Math.max(values_avg_data[j]-values_std_data[j], 0));
-            }
-
-
-            return [x_labels, values_avg_data, values_std_upper, values_std_lower];
-        }
-        function generate_dataset(graph_datas, users){
-            var num_users = users.length;
-            var colors = [];
-            for (var color_index in users){
-                colors.push([(210+360/num_users*color_index)%360, 100, 55]);
-            }
-            console.log(colors);
-
-            var dataset = [];
-            var largest_x_label = [];
-            for (var user_index in  graph_datas){
-                var color = colors[user_index];
-                var h = color[0];
-                var s = color[1];
-                var l = color[2];
-
-                var user_id = users[user_index];
-                var graph_data = graph_datas[user_index];
-                var x_labels = graph_data[0];
-                if (x_labels.length > largest_x_label.length){
-                    largest_x_label = x_labels;
-                }
-
-                var values_avg = graph_data[1];
-                var values_std_upper = graph_data[2];
-                var values_std_lower = graph_data[3];
-
-                dataset.push({
-                        label: `User ${user_id}`,
-                        borderColor: `hsl(${h},${s}%,${l}%)`,
-                        backgroundColor: 'rgb(0,241,0, 0)',
-                        data: values_avg
-                });
-                dataset.push({
-                        label: "hide",
-                        backgroundColor: `hsla(${h},${s}%,${l}%, 0.15)`,
-                        borderColor: 'rgb(0,89,255,0)',
-                        fill: false,  //no fill here
-                        data: values_std_lower
-                });
-                dataset.push({
-                        label: "hide",
-                        backgroundColor: `hsla(${h},${s}%,${l}%, 0.15)`,
-                        borderColor: 'rgb(0,89,255,0)',
-                        fill: '-1', //fill until previous dataset
-                        data: values_std_upper
-                });
-            }
-            return [dataset, largest_x_label];
-        }
-        function draw_graph(user_data, type){
-
-            var graph_datas = [];
-            var users = [];
-            Object.keys(user_data).forEach(function(user_key) {
-                var graph_data = get_graph_data(user_data, user_key, type);
-                graph_datas.push(graph_data);
-                users.push(user_key);
-            });
-
-            var results = generate_dataset(graph_datas, users);
-            var dataset = results[0];
-            var x_labels = results[1];
-
-            if (type === "wpm") {
-                var title = 'Text Entry Rate of Users';
-                var y_axis = 'Entry Rate (wpm)';
-            } else if (type === "ppc"){
-                var title = 'Click Load of Users';
-                var y_axis = 'Click Load (clicks per character)';
-            } else if (type === "uer"){
-                var title = 'Uncorrected Error Rate Users';
-                var y_axis = 'Uncorrected Error Rate (%)';
-            } else if (type === "cps"){
-                var title = 'Correction Rate Users';
-                var y_axis = 'Correction Rate (corrections per selection)';
-            }
-
-            var ctx = document.getElementById(`${type}_chart`).getContext('2d');
-            var chart = new Chart(ctx, {
-                // The type of chart we want to create
-                type: 'line',
-
-                // The data for our dataset
-                data: {
-                    labels: x_labels,
-                    datasets: dataset
-                },
-
-                // Configuration options go here
-                options: {
-                    responsive: false,
-                    elements: {
-                        line: {
-                            tension: 0, // disables bezier curves
-                        }
-                    },
-                    legend: {
-                        labels: {
-                            filter: function(item, chart) {
-                                // Logic to remove a particular legend item goes here
-                                return !item.text.includes("hide");
-                            }
-                        }
-                    },
-                    scales: {
-                        yAxes: [{
-                            scaleLabel: {
-                                display: true,
-                                labelString: y_axis
-                            }
-                        }],
-                        xAxes: [{
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Session Number'
-                            }
-                        }]
-                    },
-                    title: {
-                        display: true,
-                        text: title
-                    }
-                }
-            });
-        }
-
-        function r(x, y){
-            return x !== y;
-        }
-
-        function calc_MSD(a, b){
-            a = a.split('');
-            b = b.split('');
-
-            if (a[a.length-1] === " "){
-                a = a.slice(0, a.length-1)
-            }
-            if (b[b.length-1] === " "){
-                b = b.slice(0, b.length-1)
-            }
-
-            var D = [];
-            var i;
-            var j;
-            var row = [];
-            for (j in b) {
-                row.push(0);
-            }
-            for (i in a){
-                D.push(row.slice(0, row.length));
-            }
-            for (i in a) {
-                D[i][0] = parseInt(i);
-            }
-            for (j in b) {
-                D[0][j] = parseInt(j);
-            }
-
-            var l;
-            var m;
-            for (i in a) {
-                for (j in b) {
-                    if (i > 0){
-                        l = parseInt(i)-1;
-                    }else{
-                        l = a.length-1
-                    }
-                    if (j > 0){
-                        m = parseInt(j)-1;
-                    }else{
-                        m = b.length-1
-                    }
-                    D[parseInt(i)][parseInt(j)] = Math.min(D[l][parseInt(j)] + 1, D[parseInt(i)][m] + 1, D[l][m] + r(a[parseInt(i)], b[parseInt(j)]));
-                }
-            }
-            return D[a.length-1][b.length-1] / Math.max(a.length, b.length)*100;
-        }
-
-        function get_user_data() {
-            $.ajax({
-                method: "GET",
-                url: "../php/data_summary.php",
-                data: {}
-            }).done(function (data) {
-                var user_data = JSON.parse(data);
-                console.log(user_data);
-                fill_user_table(user_data);
-                draw_graph(user_data, "wpm");
-                draw_graph(user_data, "ppc");
-                draw_graph(user_data, "uer");
-                draw_graph(user_data, "cps");
-            });
-        }
-
-        get_user_data();
-    </script>
+    <script type="module" src="../js/data_load.js"></script>
     </body>
 </html>
