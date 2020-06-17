@@ -19,7 +19,7 @@ class Keyboard{
         this.partial_session = partial_session;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
-        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + 70);
+        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.webcam_canvas = document.getElementById("webcam_canvas");
         this.webcam_enabled = false;
         this.webcam_info_complete=false;
@@ -53,6 +53,7 @@ class Keyboard{
 
         this.row_scan = -1;
         this.col_scan = -1;
+        this.col_scan_count = 0;
         this.next_scan_time = Infinity;
         this.prev_scan_time = Infinity;
 
@@ -143,6 +144,11 @@ class Keyboard{
         }.bind(this);
         this.session_time_label = document.getElementById("session_timer");
 
+        this.info_button = document.getElementById("help_button");
+        this.info_button.onclick = function () {
+            this.init_info_screen();
+        }.bind(this);
+
         this.audio = new Audio('../audio/bell.wav');
         this.audio_checkbox = document.getElementById("checkbox_sound");
         if (this.prev_data.sound !== null){
@@ -229,6 +235,8 @@ class Keyboard{
 
             this.in_session = true;
 
+            document.getElementById("info_label").innerHTML =`<i>Copy the phrase in the box below. Press enter for the next phrase.</i>`;
+
             this.session_button.value = "Finished Typing";
             this.session_button.onclick = null;
             this.session_button.className = "btn unclickable";
@@ -241,7 +249,7 @@ class Keyboard{
             this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 10*3;
+            this.session_length = 60*1.5;
             this.session_start_time = Math.round(Date.now() / 1000);
 
             this.draw_phrase();
@@ -278,6 +286,8 @@ class Keyboard{
             this.session_continue();
         }.bind(this);
         this.session_button.className = "btn clickable";
+
+        document.getElementById("info_label").innerHTML =`<i>This is your last phrase. Press Finished Typing when you are finished.</i>`;
     }
     session_continue(){
         var user_id = this.user_id;
@@ -311,6 +321,8 @@ class Keyboard{
 
         if (this.partial_session){
             alert(`You have finished typing for this session. Click to exit.`);
+            var keyboard_url = "../index.php";
+            window.open(keyboard_url, '_self');
         } else {
             alert(`You have finished typing with Software B in this session. You will now be redirected to Software A to finish this session.`);
             var keyboard_url = "../html/keyboard.html";
@@ -353,7 +365,7 @@ class Keyboard{
         var min_rem = Math.floor((this.session_length - (Date.now() / 1000 - this.session_start_time))/60);
         var sec_rem = Math.floor(this.session_length - (Date.now() / 1000 - this.session_start_time) - min_rem*60);
 
-        if (min_rem <= 0 && sec_rem < 30){
+        if ((min_rem <= 0 && sec_rem < 30) || (min_rem < 0)){
             this.allow_session_continue();
         } else {
             this.draw_phrase();
@@ -931,7 +943,7 @@ class Keyboard{
                 this.old_context_li.push(this.context);
                 this.context = "";
                 this.ctyped.push(this.typed);
-                this.typed = ""
+                this.typed = "";
                 this.last_add_li.push(-2);
 
                 this.clear_text = true;
@@ -1061,9 +1073,14 @@ class Keyboard{
             this.prev_scan_time = this.next_scan_time;
 
             if (this.col_scan == -1) { // in row scan
+                this.col_scan_count = 0;
                 this.row_scan += 1;
                 if (this.row_scan >= kconfig.num_rows) {
-                    this.row_scan = 0;
+                    if (this.lm.word_predictions[0] === ""){  // skip first row if no word predictions
+                        this.row_scan = 1;
+                    } else {
+                        this.row_scan = 0;
+                    }
                 }
 
                 if (this.row_scan == 0) { // first row
@@ -1082,10 +1099,12 @@ class Keyboard{
                     }
                     if (this.col_scan >= num_words) {
                         this.col_scan = 0;
+                        this.col_scan_count += 1;
                     }
                 } else {
                     if (this.col_scan >= kconfig.row_lengths[this.row_scan]) {
                         this.col_scan = 0;
+                        this.col_scan_count += 1;
                     }
                 }
 
@@ -1095,7 +1114,15 @@ class Keyboard{
                     this.next_scan_time = time_in + this.scan_delay;
                 }
             }
+
+
+            if (this.col_scan_count > config.scan_abort_count){
+                this.row_scan = 0;
+                this.col_scan = -1;
+                this.col_scan_count = 0;
+            }
         }
+
         console.log(this.row_scan, this.col_scan, press, this.next_scan_time);
     }
     animate(){
@@ -1140,7 +1167,7 @@ class Keyboard{
         this.keygrid.draw_layout();
         this.keygrid.update_words(this.lm.word_predictions);
 
-        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + 70);
+        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.textbox.calculate_size();
     }
 }

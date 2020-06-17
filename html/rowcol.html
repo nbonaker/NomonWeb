@@ -87,15 +87,15 @@ label {
 
 <body>
 
-<div class="container space-between">
+<div class="container space-between" id="top_bar_top">
     <div>
         <div class="slidecontainer">
-            <label for="speed_slider" class="label toprow"><b>Scanning Delay: </b></label>
+            <label for="speed_slider" class="label toprow"><b>Scan Speed: </b></label>
             <input type="range" min="1" max="20" value="10" class="slider" id="speed_slider">
             <label for="speed_slider" class="label toprow"><b><span id="speed_slider_value"></span></b></label>
         </div>
         <div class="slidecontainer">
-            <label for="extra_delay_slider" class="label toprow"><b>Extra Delay: </b></label>
+            <label for="extra_delay_slider" class="label toprow" style="padding-left: 20px"><b>First Row Scan Speed: </b></label>
             <input type="range" min="1" max="10" value="5" class="slider" id="extra_delay_slider" >
             <label for="extra_delay_slider" class="label toprow"><b><span id="extra_delay_slider_value"></span></b></label>
         </div>
@@ -124,12 +124,13 @@ label {
         </label>
     </div>
 </div>
-<div class="container space-between">
+<div class="container space-between" id="top_bar_bottom">
         <div>
-            <label id="user_num_label"><b>Welcome User!</b></label>
             <input class='btn clickable' type="button" id = "send_button" value = "Change User"/>
             <input class='btn clickable' type="button" id = "session_button" value = "Start Session"/>
             <label id = "session_timer"><b> </b></label>
+            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! Press Start Session to begin.</i></label>
+            <input class='btn clickable' type="button" id = "help_button" value = "?" >
         </div>
         <div>
             <canvas id="webcam_canvas" height="35%" width="250%">
@@ -180,19 +181,18 @@ Your browser does not support the canvas element.
 </canvas>
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-<!--<script type="text/javascript">-->
+<script type="text/javascript">
 
+    const params = new URLSearchParams(document.location.search);
+    const user_id = params.get("user_id");
+    document.getElementById("info_label").innerHTML =`<b>Welcome user ${user_id}! Press Start Session to begin.</b>`;
 
-<!--    const params = new URLSearchParams(document.location.search);-->
-<!--    const user_id = params.get("user_id");-->
-<!--    document.getElementById("user_num_label").innerHTML =`<b>Welcome User ${user_id}!</b>`;-->
-
-<!--    document.getElementById("send_button").onclick = function(){-->
-<!--        var login_url = "../index.php";-->
-<!--        // keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true');-->
-<!--        window.open(login_url,'_self');-->
-<!--    };-->
-<!--</script>-->
+    document.getElementById("send_button").onclick = function(){
+        var login_url = "../index.php";
+        // keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true');
+        window.open(login_url,'_self');
+    };
+</script>
 
 <script type="module" src="../js/rowcol/rowcol.js"></script>
 

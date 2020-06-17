@@ -57,23 +57,25 @@ export class KeyboardCanvas{
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
+        this.topbar_height = document.getElementById('top_bar_top').getBoundingClientRect().height +
+            document.getElementById('top_bar_bottom').getBoundingClientRect().height + 10;
+
         this.canvas.style.position = "absolute";
-        this.canvas.style.top = "75px";
+        this.canvas.style.top = this.topbar_height.toString().concat("px");
         this.canvas.style.left = "0px";
         this.ctx = this.canvas.getContext("2d");
 
         this.resolution_factor = 2;
-        this.screen_fill_factor = 0.989;
+        this.screen_fill_factor = 0.98;
         this.bottom_height_factor = bottom_height_factor;
-        this.top_offest = 75;
 
         this.canvas.width = (this.window_width) * this.resolution_factor;
-        this.canvas.height = (this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.resolution_factor;
+        this.canvas.height = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
         this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("px");
-        this.canvas.style.height = ((this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
+        this.canvas.style.height = ((this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
 
         this.screen_width = this.window_width * this.resolution_factor;
-        this.screen_height = (this.window_height - this.top_offest) * (1 - this.bottom_height_factor) * this.resolution_factor;
+        this.screen_height = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
     }
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
@@ -93,17 +95,20 @@ export class OutputCanvas{
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
+        this.topbar_height = document.getElementById('top_bar_top').getBoundingClientRect().height +
+            document.getElementById('top_bar_bottom').getBoundingClientRect().height + 10;
+
         this.resolution_factor = 2;
-        this.screen_fill_factor = 0.989;
+        this.screen_fill_factor = 0.98;
         this.bottom_height_factor = 0.2;
 
         this.canvas.width = this.window_width * this.resolution_factor;
-        this.canvas.height = (this.window_height - 50) * (this.bottom_height_factor) * this.resolution_factor;
+        this.canvas.height = (this.window_height - this.topbar_height) * (this.bottom_height_factor) * this.resolution_factor;
         this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("px");
-        this.canvas.style.height = ((this.window_height - 50) * (this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
+        this.canvas.style.height = ((this.window_height - this.topbar_height) * (this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
 
         this.screen_width = this.window_width * this.resolution_factor;
-        this.screen_height = (this.window_height - 50) * (this.bottom_height_factor) * this.resolution_factor;
+        this.screen_height = (this.window_height - this.topbar_height) * (this.bottom_height_factor) * this.resolution_factor;
     }
 }
 
@@ -319,8 +324,8 @@ export class Textbox{
     }
     calculate_size(){
         this.box.style['top'] = this.output_canvas.canvas.style.top;
-        this.box.style['width'] = ((this.output_canvas.screen_width/2)-30).toString().concat("px");
-        this.box.style['height'] = ((this.output_canvas.screen_height/2)*0.9).toString().concat("px");
+        this.box.style['width'] = (this.output_canvas.screen_width*0.97/2).toString().concat("px");
+        this.box.style['height'] = (this.output_canvas.screen_height*0.9/2).toString().concat("px");
 
     }
     draw_text(text){

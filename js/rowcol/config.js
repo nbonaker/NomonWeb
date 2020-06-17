@@ -12,6 +12,8 @@ for (var k=0; k < 11; k++){
 
 export var default_extra_delay_index = 5;
 
+export var scan_abort_count = 2;
+
 export var num_divs_click = 80;
 export var ideal_wait_s = 0.04;
 
