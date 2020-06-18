@@ -1,13 +1,13 @@
 export var scan_delay_li = [];
 for (var i=0; i < 21; i++){
-    scan_delay_li.push(1.5*Math.exp((-i)/11));
+    scan_delay_li.push(3*Math.exp((-i)/11));
 }
 
 export var default_scan_delay_index = 6;
 
 export var extra_delay_li = [];
 for (var k=0; k < 11; k++){
-    extra_delay_li.push(0.15*(10-k));
+    extra_delay_li.push(0.2*(10-k));
 }
 
 export var default_extra_delay_index = 5;

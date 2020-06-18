@@ -154,21 +154,28 @@
                 var keyboard_url = next_session_results[1];
                 var partial_session = next_session_results[2];
 
+                var first_load;
+                if (session_num == 1){
+                    first_load = "true";
+                } else {
+                    first_load = "false";
+                }
 
-                launch_software(user_id, keyboard_url, partial_session);
+
+                launch_software(user_id, keyboard_url, partial_session, first_load);
 
             });
 
         }
 
-        function launch_software(user_id, keyboard_url, partial_session){
+        function launch_software(user_id, keyboard_url, partial_session, first_load){
 
             console.log(keyboard_url);
 
             document.getElementById("send_button").value = "Launch Software";
 
             document.getElementById("send_button").onclick = function(){
-                keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true', '&partial_session=', partial_session.toString());
+                keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,'&partial_session=', partial_session.toString());
                 window.open(keyboard_url,'_self');
             };
         }

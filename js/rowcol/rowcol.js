@@ -18,6 +18,7 @@ class Keyboard{
         this.user_id = user_id;
         this.prev_data = prev_data;
         this.partial_session = partial_session;
+        this.session_pause_time = 0;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
@@ -151,7 +152,11 @@ class Keyboard{
                 this.destroy_info_screen();
             } else {
                 this.in_info_screen = true;
-                this.init_info_screen();
+                if (this.in_session){
+                    this.init_session_info_screen();
+                } else {
+                    this.init_info_screen();
+                }
             }
         }.bind(this);
 
@@ -186,6 +191,15 @@ class Keyboard{
         this.info_canvas.calculate_size(0);
         this.info_screen = new infoscreen.InfoScreen(this.info_canvas);
     }
+    init_session_info_screen(){
+        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.info_canvas.calculate_size(0);
+        this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas);
+
+        if (this.in_session){
+            this.session_pause_start_time = Math.round(Date.now() / 1000);
+        }
+    }
     increment_info_screen(){
         if (this.in_info_screen){
             if (this.info_screen.screen_num <= this.info_screen.num_screens){
@@ -202,6 +216,14 @@ class Keyboard{
             this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
             this.in_info_screen = false;
             this.in_webcam_info_screen = false;
+
+            if (this.in_session){
+                this.session_pause_time += Math.round(Date.now() / 1000) - this.session_pause_start_time;
+                this.session_pause_start_time = Infinity;
+                if (!this.webcam_info_complete) {
+                    this.init_webcam_switch();
+                }
+            }
         }
     }
     request_session_data(){
@@ -267,20 +289,23 @@ class Keyboard{
 
             this.session_length = 60*1.5;
             this.session_start_time = Math.round(Date.now() / 1000);
+            this.session_pause_time = 0;
+            this.session_pause_start_time = Infinity;
 
             this.draw_phrase();
 
             if (this.session_number === 1){
-
-                this.change_scan_delay(1);
+                this.change_speed(1);
                 this.speed_slider_output.innerHTML = 1;
                 this.speed_slider.value = 1;
 
-                this.change_extra_delay(1);
-                this.extra_delay_slider_output.innerHTML = 1;
-                this.extra_delay_slider.value = 1;
-
+                this.pause_checkbox.checked = true;
                 this.audio_checkbox.checked = true;
+
+                this.in_info_screen = true;
+                this.init_session_info_screen();
+            } else {
+                this.init_webcam_switch();
             }
             // noinspection JSAnnotator
             function create_session_table(keyboard) { // jshint ignore:line
@@ -1159,8 +1184,14 @@ class Keyboard{
             }
 
             if (this.in_session){
-                var min_rem = Math.floor((this.session_length - (Date.now() / 1000 - this.session_start_time))/60);
-                var sec_rem = Math.floor(this.session_length - (Date.now() / 1000 - this.session_start_time) - min_rem*60);
+                var session_paused_time = this.session_pause_time;
+                if (this.session_pause_start_time !== Infinity){
+                    session_paused_time += time_in - this.session_pause_start_time;
+                }
+                var session_rem_time = this.session_length - (time_in - this.session_start_time) + session_paused_time;
+                var min_rem = Math.floor((session_rem_time)/60);
+                var sec_rem = Math.floor(session_rem_time) - min_rem*60;
+
                 if (min_rem >= 0) {
                     if (sec_rem < 10) {
                     sec_rem = `0${sec_rem}`;
