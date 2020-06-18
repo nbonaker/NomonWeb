@@ -4,6 +4,7 @@ import * as config from './config.js';
 import * as lm from './lm.js';
 import * as webswitch from "../webcam_switch/webcam_switch.js";
 import {makeCorsRequest} from "../cors_request.js";
+import * as infoscreen from './info_screens.js';
 
 function log_add_exp(a_1, a_2){
     var b = Math.max(a_1, a_2);
@@ -33,7 +34,7 @@ class Keyboard{
             }
         }.bind(this), false);
         // document.onkeypress = function() {this.on_press();}.bind(this);
-        document.onmousedown = function() {this.destroy_info_screen();}.bind(this);
+        document.onmousedown = function() {this.increment_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
@@ -146,7 +147,12 @@ class Keyboard{
 
         this.info_button = document.getElementById("help_button");
         this.info_button.onclick = function () {
-            this.init_info_screen();
+            if (this.in_info_screen){
+                this.destroy_info_screen();
+            } else {
+                this.in_info_screen = true;
+                this.init_info_screen();
+            }
         }.bind(this);
 
         this.audio = new Audio('../audio/bell.wav');
@@ -166,20 +172,30 @@ class Keyboard{
         this.textbox = new widgets.Textbox(this.output_canvas);
 
         if (this.in_info_screen){
-            // this.init_info_screen();
+            this.init_info_screen();
         }
     }
     init_webcam_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
         this.info_canvas.canvas.style.top = "75px";
-        this.info_screen = new widgets.WebcamInfoScreen(this.info_canvas);
+        this.info_screen = new infoscreen.WebcamInfoScreen(this.info_canvas);
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_canvas.canvas.style.top = "75px";
-        this.info_screen = new widgets.InfoScreen(this.info_canvas);
+        this.info_screen = new infoscreen.InfoScreen(this.info_canvas);
+    }
+    increment_info_screen(){
+        if (this.in_info_screen){
+            if (this.info_screen.screen_num <= this.info_screen.num_screens){
+                this.info_screen.increment_screen();
+            } else {
+                this.destroy_info_screen();
+            }
+        } else if (this.in_webcam_info_screen){
+            this.destroy_info_screen();
+        }
     }
     destroy_info_screen(){
         if (this.in_info_screen || this.in_webcam_info_screen) {
@@ -1169,6 +1185,12 @@ class Keyboard{
 
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.textbox.calculate_size();
+
+        if (this.in_info_screen){
+            this.info_canvas.calculate_size(0);
+            var info_screen_num = this.info_screen.screen_num - 1;
+            this.info_screen = new infoscreen.InfoScreen(this.info_canvas, info_screen_num);
+        }
     }
 }
 
