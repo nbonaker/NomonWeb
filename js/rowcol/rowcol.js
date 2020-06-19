@@ -81,6 +81,7 @@ class Keyboard{
         this.skip_hist = false;
 
         this.in_session = false;
+        this.allow_session_finish = false;
         this.session_number = null;
         this.session_dates = null;
         this.phrase_queue = null;
@@ -95,6 +96,7 @@ class Keyboard{
         this.lm = new lm.LanguageModel(this);
 
         this.in_info_screen = first_load;
+        this.in_finished_screen = false;
         this.init_ui();
     }
     init_webcam_switch(){
@@ -300,7 +302,7 @@ class Keyboard{
             // this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 60*1.5;
+            this.session_length = 60*1;
             this.session_start_time = Math.round(Date.now() / 1000);
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
@@ -348,8 +350,25 @@ class Keyboard{
             this.session_continue();
         }.bind(this);
         this.session_button.className = "btn clickable";
+        this.allow_session_finish = true;
 
         document.getElementById("info_label").innerHTML =`<i>This is your last phrase. Press Finished Typing when you are finished.</i>`;
+    }
+    finish_session(){
+        this.in_finished_screen = true;
+        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.info_canvas.calculate_size(0);
+
+        this.info_canvas.ctx.beginPath();
+        this.info_canvas.ctx.fillStyle = "rgba(232,232,232, 0.5)";
+        this.info_canvas.ctx.rect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
+        this.info_canvas.ctx.fill();
+
+        this.info_button.disabled = true;
+        this.info_button.className = "btn unclickable";
+        document.getElementById("info_label").innerHTML =`<i>press Finished Typing</i>`;
+        this.textbox.draw_text("");
+
     }
     session_continue(){
         var user_id = this.user_id;
@@ -405,7 +424,7 @@ class Keyboard{
         this.phrase_queue = [];
         for (var phrase_index in temp_phrase_queue){
             var phrase = temp_phrase_queue[phrase_index];
-            this.phrase_queue.push(phrase.replace("8", "'"));
+            this.phrase_queue.push(phrase.replace(new RegExp("8", "g"), "'"));
         }
         this.phrase_num = 0;
     }
@@ -413,7 +432,7 @@ class Keyboard{
         var temp_phrase_queue = [];
         for (var phrase_index in this.phrase_queue){
             var phrase = this.phrase_queue[phrase_index];
-            temp_phrase_queue.push(phrase.replace("'", "8"));
+            temp_phrase_queue.push(phrase.replace(new RegExp("'", "g"), "8"));
         }
         return(temp_phrase_queue);
     }
@@ -432,8 +451,15 @@ class Keyboard{
         this.phrase_num = this.phrase_num + 1;
     }
     phrase_complete(){
-        var min_rem = Math.floor((this.session_length - (Date.now() / 1000 - this.session_start_time))/60);
-        var sec_rem = Math.floor(this.session_length - (Date.now() / 1000 - this.session_start_time) - min_rem*60);
+        var time_in = Date.now()/1000;
+
+        var session_paused_time = this.session_pause_time;
+        if (this.session_pause_start_time !== Infinity){
+            session_paused_time += time_in - this.session_pause_start_time;
+        }
+        var session_rem_time = this.session_length - (time_in - this.session_start_time) + session_paused_time;
+        var min_rem = Math.floor((session_rem_time)/60);
+        var sec_rem = Math.floor(session_rem_time) - min_rem*60;
 
         if ((min_rem <= 0 && sec_rem < 30) || (min_rem < 0)){
             this.allow_session_continue();
@@ -442,6 +468,10 @@ class Keyboard{
             this.pre_phrase_scan_delay_index = this.scan_delay_index;
             this.pre_phrase_extra_delay_index = this.extra_delay_index;
             this.allow_slider_input = true;
+        }
+
+        if (this.allow_session_finish){
+            this.finish_session();
         }
     }
     save_selection_data(selection){
@@ -529,7 +559,7 @@ class Keyboard{
     }
     on_press(){
         this.play_audio();
-        if (this.fetched_words && !this.in_info_screen && !this.in_webcam_info_screen) {
+        if (this.fetched_words && !this.in_info_screen && !this.in_webcam_info_screen  && !this.in_finished_screen) {
             if (this.in_session){
                 this.allow_slider_input = false;
                 this.pre_phrase_scan_delay_index = this.scan_delay_index;
@@ -1263,7 +1293,9 @@ class Keyboard{
                     }
                     this.session_time_label.innerHTML = `<b>Time remaining: ${min_rem}:${sec_rem}</b>`;
                 }else{
-                    this.allow_session_continue();
+                    if (!this.allow_session_finish) {
+                        this.allow_session_continue();
+                    }
                 }
             }
         }

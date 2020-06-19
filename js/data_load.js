@@ -170,6 +170,7 @@ class dataScreen {
             var cell2 = row.insertCell(1);
             var cell3 = row.insertCell(2);
             var cell4 = row.insertCell(3);
+            var cell5 = row.insertCell(4);
             cell1.innerHTML = user_key;
 
             var nomon_sessions = [0];
@@ -199,7 +200,54 @@ class dataScreen {
             var date = new Date(epoch_timestamp);
 
             cell4.innerHTML = getFormattedDate(date);
-        });
+
+            cell5.innerHTML = `<input class='btn clickable' type="button" id = "drop_user_${user_key}" value = "Drop User"/>`;
+            var drop_user_button = document.getElementById("drop_user_".concat(user_key.toString()));
+            drop_user_button.onclick = function() {
+                this.drop_user_form(user_key, cell5, num_nomon_sessions, num_rowcol_sessions);
+            }.bind(this);
+        }.bind(this));
+    }
+    drop_user_form(user_id, button_cell, nomon_sessions, rowcol_sessions){
+        button_cell.innerHTML = ` <label for="fname">Password:</label>
+            <input type="password" id="pwd" name="pwd" minlength="8">
+            <input class='btn clickable' type="button" id = "drop_user_${user_id}" value ="Submit"/>`;
+
+        var send_button = document.getElementById("drop_user_".concat(user_id.toString()));
+        send_button.onclick = function() {
+                this.send_drop_user(user_id, button_cell, nomon_sessions, rowcol_sessions);
+            }.bind(this);
+    }
+    send_drop_user(user_id, button_cell, nomon_sessions, rowcol_sessions){
+        var password_field = document.getElementById("pwd");
+        var password = password_field.value;
+
+        var data = {"user_id": user_id.toString(), "nomon_sessions": nomon_sessions, "rowcol_sessions": rowcol_sessions, "password": password};
+        console.log(data);
+
+        $.ajax({
+            method: "POST",
+            url: "../php/drop_user.php",
+            data: data
+        }).done(function (data) {
+            var response = data;
+            console.log(response);
+
+            if (response === "Login Failed!"){
+                button_cell.innerHTML = ` <label for="fname">Login Failed:</label>
+                    <input type="password" id="pwd" name="pwd" minlength="8">
+                    <input class='btn clickable' type="button" id = "drop_user_${user_id}" value ="Submit"/>`;
+                var send_button = document.getElementById("drop_user_".concat(user_id.toString()));
+                send_button.onclick = function() {
+                    this.send_drop_user(user_id, button_cell, nomon_sessions, rowcol_sessions);
+                }.bind(this);
+
+            } else {
+                button_cell.innerHTML = ` <label>User Deleted! Reload Page ...</label>`;
+            }
+
+        }.bind(this));
+
     }
     compute_average_data(graph_datas){
         var average_data = [];
