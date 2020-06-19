@@ -3,7 +3,7 @@ for (var i=0; i < 21; i++){
     period_li.push(3*Math.exp((-i)/12));
 }
 
-export var default_rotate_ind = 6;
+export var default_rotate_ind = 1;
 
 export var num_divs_click = 80;
 export var ideal_wait_s = 0.04;

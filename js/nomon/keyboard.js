@@ -32,13 +32,15 @@ class Keyboard{
         this.ws = null;
         this.init_webcam_switch();
 
-        window.addEventListener('keypress', function (e) {
+        window.addEventListener('keydown', function (e) {
+            e.preventDefault();
             if (e.keyCode === 32) {
                 this.on_press();
             }
         }.bind(this), false);
         // document.onkeypress = function() {this.on_press();}.bind(this);
-        document.onmousedown = function() {this.increment_info_screen();}.bind(this);
+        document.onmousedown = function() {
+            this.increment_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
@@ -51,6 +53,8 @@ class Keyboard{
             this.rotate_index = config.default_rotate_ind;
         }
         this.time_rotate = config.period_li[this.rotate_index];
+        this.pre_phrase_rotate_index = this.rotate_index;
+        this.allow_slider_input = true;
 
         this.typed = "";
         this.btyped = "";
@@ -141,6 +145,7 @@ class Keyboard{
         this.session_time_label = document.getElementById("session_timer");
 
         this.info_button = document.getElementById("help_button");
+
         this.info_button.onclick = function () {
             if (this.in_info_screen){
                 this.destroy_info_screen();
@@ -280,8 +285,9 @@ class Keyboard{
         }
         var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
         if (response){
-             window.addEventListener('keypress', function (e) {
+             window.addEventListener('keydown', function (e) {
                 if (e.keyCode === 13) {
+                    e.preventDefault();
                     this.phrase_complete();
                 }
             }.bind(this), false);
@@ -314,6 +320,7 @@ class Keyboard{
                 this.change_speed(1);
                 this.speed_slider_output.innerHTML = 1;
                 this.speed_slider.value = 1;
+                this.pre_phrase_rotate_index = 1;
 
                 this.pause_checkbox.checked = true;
                 this.audio_checkbox.checked = true;
@@ -322,6 +329,7 @@ class Keyboard{
                 this.init_session_info_screen();
             } else {
                 this.init_webcam_switch();
+                this.pre_phrase_rotate_index = this.rotate_index;
             }
             // noinspection JSAnnotator
             function create_session_table(keyboard) { // jshint ignore:line
@@ -376,14 +384,22 @@ class Keyboard{
         }
         increment_session();
 
+        var keyboard_url;
         if (this.partial_session){
             alert(`You have finished typing for this session. Click to exit.`);
-            var keyboard_url = "../index.php";
+            keyboard_url = "../index.php";
             window.open(keyboard_url, '_self');
         } else {
             alert(`You have finished typing with Software A in this session. You will now be redirected to Software B to finish this session.`);
-            var keyboard_url = "../html/rowcol.html";
-            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false', '&partial_session=true');
+            keyboard_url = "../html/rowcol.html";
+
+            var first_load;
+            if (this.session_number === 1){
+                first_load = "true";
+            } else {
+                first_load = "false";
+            }
+            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load, '&partial_session=true');
             window.open(keyboard_url, '_self');
         }
     }
@@ -428,6 +444,9 @@ class Keyboard{
         } else {
             this.draw_phrase();
         }
+
+        this.pre_phrase_rotate_index = this.rotate_index;
+        this.allow_slider_input = true;
     }
     save_selection_data(selection){
         var phrase = this.cur_phrase.replace("'", "8");
@@ -465,21 +484,43 @@ class Keyboard{
 
     }
     change_speed(index){
-        var speed_index = Math.floor(index);
-        // # period (as stored in config.py)
-        this.rotate_index = speed_index;
-        var old_rotate = this.time_rotate;
-        this.time_rotate = config.period_li[this.rotate_index];
-        this.bc.time_rotate = this.time_rotate;
-        this.bc.clock_inf.clock_util.change_period(this.time_rotate);
+        var speed_index;
+        if (this.in_session){
+            if (this.allow_slider_input){
+                var sign_change = Math.sign(Math.floor(index) - this.pre_phrase_rotate_index);
+                speed_index = Math.min(Math.max(0, this.pre_phrase_rotate_index + sign_change), 20);
+                this.rotate_index = speed_index;
+                this.time_rotate = config.period_li[this.rotate_index];
+                this.bc.time_rotate = this.time_rotate;
+                this.bc.clock_inf.clock_util.change_period(this.time_rotate);
 
-        // # update the histogram
-        this.histogram.update(this.bc.clock_inf.kde.dens_li);
+                // # update the histogram
+                this.histogram.update(this.bc.clock_inf.kde.dens_li);
+            } else {
+                speed_index = this.pre_phrase_rotate_index;
+            }
+        } else {
+            speed_index = Math.floor(index);
+
+            this.rotate_index = speed_index;
+            this.time_rotate = config.period_li[this.rotate_index];
+            this.bc.time_rotate = this.time_rotate;
+            this.bc.clock_inf.clock_util.change_period(this.time_rotate);
+
+            // # update the histogram
+            this.histogram.update(this.bc.clock_inf.kde.dens_li);
+        }
+        this.speed_slider_output.innerHTML = speed_index;
+        this.speed_slider.value = speed_index;
     }
     on_press(){
         this.play_audio();
         if (this.fetched_words && !this.in_info_screen && !this.in_webcam_info_screen) {
             this.bc.select();
+            if (this.in_session){
+                this.allow_slider_input = false;
+                this.pre_phrase_rotate_index = this.rotate_index;
+            }
         }
     }
     start_pause(){

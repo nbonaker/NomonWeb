@@ -351,9 +351,9 @@ export class WebcamInfoScreen {
         this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
         this.info_canvas.ctx.fillText("The Webcam Switch tracks your face to send inputs",
             rect_x + font_height, rect_y + font_height*1.3);
-        this.info_canvas.ctx.fillText("into Nomon. You can activate the switch by moving",
+        this.info_canvas.ctx.fillText("into the keyboard. You can activate the switch by",
             rect_x + font_height, rect_y + font_height*2.5);
-        this.info_canvas.ctx.fillText("your body to the right.",
+        this.info_canvas.ctx.fillText("moving your body to the right.",
             rect_x + font_height, rect_y + font_height*3.7);
 
         this.info_canvas.ctx.fillStyle = "rgba(238,133,0,1)";
