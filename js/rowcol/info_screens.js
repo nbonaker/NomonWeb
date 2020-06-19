@@ -372,9 +372,9 @@ export class WebcamInfoScreen {
         this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
         this.info_canvas.ctx.fillText("The Webcam Switch tracks your face to send inputs",
             rect_x + font_height, rect_y + font_height*1.3);
-        this.info_canvas.ctx.fillText("into Nomon. You can activate the switch by moving",
+        this.info_canvas.ctx.fillText("into the keyboard. You can activate the switch by",
             rect_x + font_height, rect_y + font_height*2.5);
-        this.info_canvas.ctx.fillText("your body to the right.",
+        this.info_canvas.ctx.fillText("moving your body to the right.",
             rect_x + font_height, rect_y + font_height*3.7);
 
         this.info_canvas.ctx.fillStyle = "rgba(238,133,0,1)";
@@ -514,8 +514,8 @@ export class SessionInfoScreen {
         this.info_canvas.ctx.fillStyle = "#404040";
         this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
         this.info_canvas.ctx.fillText("You are allowed to increment/decrement", this.width/20, this.height/15 + 1.3*font_height );
-        this.info_canvas.ctx.fillText("the scan speed first row scan speed ", this.width/20, this.height/15 + 2.6*font_height );
-        this.info_canvas.ctx.fillText("by 1 phrases.", this.width/20, this.height/15+3.9*font_height);
+        this.info_canvas.ctx.fillText("the scan speed and first row scan speed ", this.width/20, this.height/15 + 2.6*font_height );
+        this.info_canvas.ctx.fillText("by 1 between phrases.", this.width/20, this.height/15+3.9*font_height);
     }
     draw_timer_info(){
         var font_height = this.width/70;

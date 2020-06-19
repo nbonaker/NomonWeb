@@ -29,8 +29,9 @@ class Keyboard{
         this.ws = null;
         this.init_webcam_switch();
 
-        window.addEventListener('keypress', function (e) {
+        window.addEventListener('keydown', function (e) {
             if (e.keyCode === 32) {
+                e.preventDefault();
                 this.on_press();
             }
         }.bind(this), false);
@@ -42,16 +43,23 @@ class Keyboard{
         this.lm_prefix = "";
 
         this.init_locs();
-        // if (this.prev_data.rotate_index !== null) {
-        //     this.rotate_index = this.prev_data.rotate_index;
-        // }else{
-        //     this.scan_delay_index = config.default_scan_delay_index;
-        // }
-        this.scan_delay_index = config.default_scan_delay_index;
+        
+        this.allow_slider_input = true;
+        if (this.prev_data.scan_delay !== null) {
+            this.scan_delay_index = this.prev_data.scan_delay;
+        }else{
+            this.scan_delay_index = config.default_scan_delay_index;
+        }
         this.scan_delay = config.scan_delay_li[this.scan_delay_index];
+        this.pre_phrase_scan_delay_index = this.scan_delay_index;
 
-        this.extra_delay_index = config.default_extra_delay_index;
+        if (this.prev_data.extra_delay !== null) {
+            this.extra_delay_index = this.prev_data.extra_delay;
+        }else{
+            this.extra_delay_index = config.default_extra_delay_index;
+        }
         this.extra_delay = config.extra_delay_li[this.extra_delay_index];
+        this.pre_phrase_extra_delay_index = this.extra_delay_index;
 
         this.row_scan = -1;
         this.col_scan = -1;
@@ -185,6 +193,10 @@ class Keyboard{
         this.info_canvas.calculate_size(0);
         this.info_canvas.canvas.style.top = "75px";
         this.info_screen = new infoscreen.WebcamInfoScreen(this.info_canvas);
+
+        if (this.in_session){
+            this.session_pause_start_time = Math.round(Date.now() / 1000);
+        }
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -265,8 +277,9 @@ class Keyboard{
         }
         var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
         if (response){
-             window.addEventListener('keypress', function (e) {
+             window.addEventListener('keydown', function (e) {
                 if (e.keyCode === 13) {
+                    e.preventDefault();
                     this.phrase_complete();
                 }
             }.bind(this), false);
@@ -284,7 +297,7 @@ class Keyboard{
 
             this.checkbox_webcam.checked = true;
 
-            this.init_webcam_switch();
+            // this.init_webcam_switch();
             // document.onkeypress = null;
 
             this.session_length = 60*1.5;
@@ -295,16 +308,24 @@ class Keyboard{
             this.draw_phrase();
 
             if (this.session_number === 1){
-                this.change_speed(1);
+
+                this.change_scan_delay(1);
                 this.speed_slider_output.innerHTML = 1;
                 this.speed_slider.value = 1;
+                this.pre_phrase_scan_delay_index = 1;
 
-                this.pause_checkbox.checked = true;
+                this.change_extra_delay(1);
+                this.extra_delay_slider_output.innerHTML = 1;
+                this.extra_delay_slider.value = 1;
+                this.pre_phrase_extra_delay_index = 1;
+
                 this.audio_checkbox.checked = true;
 
                 this.in_info_screen = true;
                 this.init_session_info_screen();
             } else {
+                this.pre_phrase_scan_delay_index = this.scan_delay_index;
+                this.pre_phrase_extra_delay_index = this.extra_delay_index;
                 this.init_webcam_switch();
             }
             // noinspection JSAnnotator
@@ -360,14 +381,22 @@ class Keyboard{
         }
         increment_session();
 
+        var keyboard_url;
         if (this.partial_session){
             alert(`You have finished typing for this session. Click to exit.`);
-            var keyboard_url = "../index.php";
+            keyboard_url = "../index.php";
             window.open(keyboard_url, '_self');
         } else {
             alert(`You have finished typing with Software B in this session. You will now be redirected to Software A to finish this session.`);
-            var keyboard_url = "../html/keyboard.html";
-            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=false', '&partial_session=true');
+            keyboard_url = "../html/keyboard.html";
+
+            var first_load;
+            if (this.session_number === 1){
+                first_load = "true";
+            } else {
+                first_load = "false";
+            }
+            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load, '&partial_session=true');
             window.open(keyboard_url, '_self');
         }
     }
@@ -410,6 +439,9 @@ class Keyboard{
             this.allow_session_continue();
         } else {
             this.draw_phrase();
+            this.pre_phrase_scan_delay_index = this.scan_delay_index;
+            this.pre_phrase_extra_delay_index = this.extra_delay_index;
+            this.allow_slider_input = true;
         }
     }
     save_selection_data(selection){
@@ -451,25 +483,58 @@ class Keyboard{
 
     }
     change_scan_delay(index){
-        var speed_index = Math.floor(index);
-        // # period (as stored in config.py)
-        this.scan_delay_index = speed_index;
-        var old_scan_delay = this.scan_delay;
-        this.scan_delay = config.scan_delay_li[this.scan_delay_index];
-        this.send_user_data()
+        var speed_index;
+        if (this.in_session){
+            if (this.allow_slider_input){
+                var sign_change = Math.sign(Math.floor(index) - this.pre_phrase_scan_delay_index);
+                speed_index = Math.min(Math.max(0, this.pre_phrase_scan_delay_index + sign_change), 20);
+                // # period (as stored in config.py)
+                this.scan_delay_index = speed_index;
+                this.scan_delay = config.scan_delay_li[this.scan_delay_index];
+            } else {
+                speed_index = this.pre_phrase_scan_delay_index;
+            }
+        } else {
+            speed_index = Math.floor(index);
+            // # period (as stored in config.py)
+            this.scan_delay_index = speed_index;
+            this.scan_delay = config.scan_delay_li[this.scan_delay_index];
+        }
+        this.speed_slider_output.innerHTML = speed_index;
+        this.speed_slider.value = speed_index;
+        this.send_user_data();
     }
     change_extra_delay(index){
-        var speed_index = Math.floor(index);
-        // # period (as stored in config.py)
-        this.extra_delay_index = speed_index;
-        var old_extra_delay = this.extra_delay;
-        this.extra_delay = config.extra_delay_li[this.extra_delay_index];
-        this.send_user_data()
+        var speed_index;
+        if (this.in_session){
+            if (this.allow_slider_input){
+                var sign_change = Math.sign(Math.floor(index) - this.pre_phrase_extra_delay_index);
+                speed_index = Math.min(Math.max(0, this.pre_phrase_extra_delay_index + sign_change), 20);
+                // # period (as stored in config.py)
+                this.extra_delay_index = speed_index;
+                this.extra_delay = config.extra_delay_li[this.extra_delay_index];
+            } else {
+                speed_index = this.pre_phrase_extra_delay_index;
+            }
+        } else {
+            speed_index = Math.floor(index);
+            // # period (as stored in config.py)
+            this.extra_delay_index = speed_index;
+            this.extra_delay = config.extra_delay_li[this.extra_delay_index];
+        }
+        this.extra_delay_slider_output.innerHTML = speed_index;
+        this.extra_delay_slider.value = speed_index;
+        this.send_user_data();
 
     }
     on_press(){
         this.play_audio();
-        if (this.fetched_words) {
+        if (this.fetched_words && !this.in_info_screen && !this.in_webcam_info_screen) {
+            if (this.in_session){
+                this.allow_slider_input = false;
+                this.pre_phrase_scan_delay_index = this.scan_delay_index;
+                this.pre_phrase_extra_delay_index = this.extra_delay_index;
+            }
             this.update_scan_time(true);
         }
     }
@@ -554,7 +619,7 @@ class Keyboard{
         var word = 0;
         var key = 0;
 
-        this.w_canvas = 0
+        this.w_canvas = 0;
         this.index_to_wk = [];
         for (row = 0; row < this.N_rows; row++){
             this.w_canvas = Math.max([this.w_canvas, this.N_keys_row[row] * (6 * kconfig.clock_rad + kconfig.word_w)]);
