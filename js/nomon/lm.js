@@ -276,6 +276,9 @@ export class LanguageModel{
                 var word = words_li[word_index].token;
                 var log_prob = words_li[word_index].logProb;
                 if (word.charAt(temp_prefix.length) == char && char_words.length < kconfig.n_pred && num_admitted_words < 17) {
+                    if (word.length == 1){
+                        word = word.concat("_");
+                    }
                     char_words.push(word);
                     char_word_probs.push(log_prob);
                     normalizer = log_add_exp(normalizer, log_prob);
