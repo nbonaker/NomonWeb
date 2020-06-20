@@ -172,6 +172,9 @@ export class LanguageModel{
 
         for (var word_index in words_li) {
             var word = words_li[word_index].token;
+            if (word.length == 1){
+                word = word.concat("_");
+            }
             var log_prob = words_li[word_index].logProb;
             word_predictions.push(word);
             word_prediction_probs.push(log_prob);

@@ -302,7 +302,7 @@ class Keyboard{
             // this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 60*1;
+            this.session_length = 60*3;
             this.session_start_time = Math.round(Date.now() / 1000);
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
@@ -352,7 +352,7 @@ class Keyboard{
         this.session_button.className = "btn clickable";
         this.allow_session_finish = true;
 
-        document.getElementById("info_label").innerHTML =`<i>This is your last phrase. Press Finished Typing when you are finished.</i>`;
+        document.getElementById("info_label").innerHTML =`<i>This is your last phrase.</i>`;
     }
     finish_session(){
         this.in_finished_screen = true;
@@ -1106,7 +1106,11 @@ class Keyboard{
             }
         }
         else{
-            new_word = text.concat("_");
+            if (text.charAt(text.length-1) !== "_") {
+                new_word = text.concat("_");
+            } else {
+                new_word = text;
+            }
             selection = new_word;
             var context_length = this.lm_prefix.length;
 

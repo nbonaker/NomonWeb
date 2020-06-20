@@ -311,7 +311,7 @@ class Keyboard{
             // this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 60*1.5;
+            this.session_length = 60*3;
             this.session_start_time = Math.round(Date.now() / 1000);
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
@@ -1093,7 +1093,10 @@ class Keyboard{
         else{
             var key = this.index_to_wk[index];
             var pred = this.index_to_wk[index] % kconfig.n_pred;
-            new_word = this.clockgrid.clocks[index].text.concat("_");
+            new_word = this.clockgrid.clocks[index].text;
+            if (new_word.charAt(new_word.length - 1) !== "_"){
+                new_word = new_word.concat("_");
+            }
             selection = new_word;
             var context_length = this.lm_prefix.length;
 

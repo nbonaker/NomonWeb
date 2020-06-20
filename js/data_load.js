@@ -260,6 +260,7 @@ class dataScreen {
             for (var session in (graph_datas[user][0])){
                 if (session_avg_data.length <= session){
                     session_avg_data.push([]);
+                    session_std_data.push([]);
                 }
                 var avg = graph_datas[user][1][session];
                 var std = graph_datas[user][2][session] - avg;
@@ -269,10 +270,13 @@ class dataScreen {
         }
         for (session in session_avg_data) {
             average_data.push(session_avg_data[session].reduce((a, b) => (a + b)) / session_avg_data[session].length);
-            std_data.push(Math.sqrt(session_std_data[session].reduce((a, b) => (Math.pow(a, 2) + Math.pow(b, 2))) / session_std_data[session].length))
+            std_data.push(Math.sqrt(session_std_data[session].reduce((a, b) => (Math.pow(a, 2) + Math.pow(b, 2)))) / session_std_data[session].length)
         }
-        console.log(average_data);
-        console.log(std_data);
+        console.log("avg:", average_data);
+        console.log("std:", std_data);
+
+        return [average_data, std_data];
+
     }
     get_graph_data(user_data, user, type) {
         var session_data = user_data[user];
@@ -379,21 +383,77 @@ class dataScreen {
     }
     draw_graph(user_data, type) {
 
-        var graph_datas = [];
-        var users = [];
-        Object.keys(user_data).forEach(function (user_key) {
-            var graph_data = this.get_graph_data(user_data, user_key, type);
-            graph_datas.push(graph_data);
-            users.push(user_key);
-        }.bind(this));
+        var results;
+        var dataset;
+        var x_labels;
 
         if (this.display_type === "avg"){
-            this.compute_average_data(graph_datas);
-        }
+            var rowcol_graph_datas = [];
+            var nomon_graph_datas = [];
 
-        var results = this.generate_dataset(graph_datas, users);
-        var dataset = results[0];
-        var x_labels = results[1];
+            Object.keys(this.rowcol_user_data).forEach(function (user_key) {
+                var graph_data = this.get_graph_data(this.rowcol_user_data, user_key, type);
+                rowcol_graph_datas.push(graph_data);
+            }.bind(this));
+
+            Object.keys(this.nomon_user_data).forEach(function (user_key) {
+                var graph_data = this.get_graph_data(this.nomon_user_data, user_key, type);
+                nomon_graph_datas.push(graph_data);
+            }.bind(this));
+
+            var rowcol_avg_results = this.compute_average_data(rowcol_graph_datas);
+            var rowcol_values_avg_data = rowcol_avg_results[0];
+            var rowcol_values_std_data = rowcol_avg_results[1];
+
+            var rowcol_labels = [];
+            var i;
+            for (i in rowcol_values_avg_data){
+                rowcol_labels.push((i+1).toString());
+            }
+            var rowcol_values_std_upper = [];
+            var rowcol_values_std_lower = [];
+            for (i in rowcol_values_avg_data){
+                rowcol_values_std_upper.push(rowcol_values_avg_data[i] + rowcol_values_std_data[i]);
+                rowcol_values_std_lower.push(rowcol_values_avg_data[i] - rowcol_values_std_data[i]);
+            }
+            
+            var nomon_avg_results = this.compute_average_data(nomon_graph_datas);
+            var nomon_values_avg_data = nomon_avg_results[0];
+            var nomon_values_std_data = nomon_avg_results[1];
+
+            var nomon_labels = [];
+            var i;
+            for (i in nomon_values_avg_data){
+                nomon_labels.push((i+1).toString());
+            }
+            var nomon_values_std_upper = [];
+            var nomon_values_std_lower = [];
+            for (i in nomon_values_avg_data) {
+                nomon_values_std_upper.push(nomon_values_avg_data[i] + nomon_values_std_data[i]);
+                nomon_values_std_lower.push(nomon_values_avg_data[i] - nomon_values_std_data[i]);
+            }
+
+            graph_datas = [[nomon_labels, nomon_values_avg_data, nomon_values_std_upper, nomon_values_std_lower],
+                [rowcol_labels, rowcol_values_avg_data, rowcol_values_std_upper, rowcol_values_std_lower]];
+
+            results = this.generate_dataset(graph_datas, ["Nomon", "Rowcol"]);
+            dataset = results[0];
+            x_labels = results[1];
+
+        } else {
+            var graph_datas = [];
+            var users = [];
+
+            Object.keys(user_data).forEach(function (user_key) {
+                var graph_data = this.get_graph_data(user_data, user_key, type);
+                graph_datas.push(graph_data);
+                users.push(user_key);
+            }.bind(this));
+
+            results = this.generate_dataset(graph_datas, users);
+            dataset = results[0];
+            x_labels = results[1];
+        }
 
         if (type === "wpm") {
             var title = 'Text Entry Rate of Users';
