@@ -3,6 +3,7 @@ import * as infoscreen from './info_screens.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
+import * as tm from './tutorial.js';
 import * as lm from './lm.js';
 import * as webswitch from "../webcam_switch/webcam_switch.js";
 import {makeCorsRequest} from "../cors_request.js";
@@ -80,6 +81,8 @@ class Keyboard{
         this.lm = new lm.LanguageModel(this);
 
         this.in_info_screen = first_load;
+        this.start_tutorial = first_load;
+        this.in_tutorial = false;
         this.in_finished_screen = false;
         this.init_ui();
     }
@@ -236,6 +239,12 @@ class Keyboard{
     destroy_info_screen(){
         if (this.in_info_screen || this.in_webcam_info_screen) {
             this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
+
+            if (this.start_tutorial){
+                this.tutorial_manager = new tm.tutorialManager(this);
+                this.in_tutorial = true;
+            }
+
             this.in_info_screen = false;
             this.in_webcam_info_screen = false;
 
@@ -588,6 +597,11 @@ class Keyboard{
             this.gen_word_prior(false);
             var results = [this.words_on, this.words_off, this.word_score_prior, this.is_undo, this.is_equalize, this.skip_hist];
             this.bc.continue_select(results);
+
+            if (this.in_tutorial){
+                this.tutorial_manager.update_target();
+                this.tutorial_manager.change_focus();
+            }
         }
     }
     init_locs(){
@@ -1222,7 +1236,9 @@ class Keyboard{
             } else {
                 this.info_screen = new infoscreen.InfoScreen(this.info_canvas, info_screen_num);
             }
-
+        }
+        if (this.in_tutorial){
+            this.tutorial_manager.change_focus();
         }
     }
 }
