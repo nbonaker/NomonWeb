@@ -25,8 +25,8 @@ export class BroderClocks{
     get_histogram() {
         return this.clock_inf.kde.dens_li;
     }
-    select(){
-        var time_in = Date.now()/1000;
+    select(time_in){
+        // var time_in = Date.now()/1000;
 
         this.clock_inf.update_scores(time_in - this.latest_time);
         if (config.is_learning) {
@@ -41,7 +41,7 @@ export class BroderClocks{
 
         var last_gap_time = (time_in - this.last_press_time) % this.time_rotate;
 
-        if (this.clock_inf.is_winner()){
+        if (this.clock_inf.is_winner() && !this.parent.in_tutorial){
             console.log(this.parent.clockgrid.clocks[top_score_clock].text);
 
             this.clock_inf.win_history[0] = this.clock_inf.sorted_inds[0];
@@ -64,7 +64,7 @@ export class BroderClocks{
         if (skip_hist){
             this.init_round(true, true, clock_score_prior);
         }else {
-            if (this.parent.learn_checkbox.checked) {
+            if (this.parent.learn_checkbox.checked && !this.parent.in_tutorial) {
                 this.clock_inf.learn_scores(this.is_undo);
             }
 
