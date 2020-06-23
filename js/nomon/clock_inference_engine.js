@@ -75,6 +75,30 @@ export class KernelDensityEstimation{
             this.ksigma = this.ksigma0;
         }
     }
+    initialize_zero_dens(){
+        this.Z = 0;
+
+        if (this.past_data !== null && this.past_data.click_dist !== null && this.past_data.Z !== null &&
+            this.past_data.ksigma !== null && this.past_data.ksigma0 !== null){
+            this.dens_li = this.past_data.click_dist;
+            this.Z = this.past_data.Z;
+            this.ksigma = this.past_data.ksigma;
+            this.ksigma0 = this.past_data.ksigma0;
+        }else {
+            this.dens_li = [];
+
+            for (var i in this.x_li) {
+                var x = this.x_li[i];
+                var diff = x - config.mu0;
+
+                var dens = 0;
+                this.dens_li.push(dens);
+                this.Z += dens;
+            }
+            this.ksigma0 = 1.06 * config.sigma0 / (this.n_ksigma ** 0.2);
+            this.ksigma = this.ksigma0;
+        }
+    }
     normal(x, mu, sig_sq){
         return Math.exp(-((x - mu) ** 2) / (2 * sig_sq)) / Math.sqrt(2 * Math.PI * sig_sq);
     }
@@ -175,6 +199,7 @@ export class ClockInference{
         return most_likely_index;
     }
     inc_score_inc(yin){
+        console.log("yin:", yin);
         if (this.kde.y_li.length > this.n_hist) {
             this.kde.y_li.pop();
             this.kde.y_ksigma.pop();
@@ -221,8 +246,9 @@ export class ClockInference{
         var clocks_on_cursor = 0;
         for (var i in this.clocks_li){
             if (i == this.clocks_on[clocks_on_cursor]){
-                var click_time = (this.clock_util.cur_hours[i] * this.time_rotate / this.clock_util.num_divs_time +
-                    time_diff_in - this.time_rotate * config.frac_period + 0.5) % 1 - 0.5;
+                var click_time = this.clock_util.cur_hours[i] * this.time_rotate / this.clock_util.num_divs_time +
+                    time_diff_in - this.time_rotate * config.frac_period;
+
 
                 clock_history_temp.push(click_time);
                 clocks_on_cursor += 1;
@@ -252,6 +278,8 @@ export class ClockInference{
     }
     is_winner(){
         var loc_win_diff = this.win_diffs[this.sorted_inds[0]];
+
+
         if (this.clocks_on.length <= 1){
             return true;
         }

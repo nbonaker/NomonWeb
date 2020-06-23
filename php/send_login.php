@@ -1,6 +1,6 @@
 <?php
 
-include '/var/www/nomon.csail.mit.edu/mysql_login.php';
+include '/var/www/keyboardstudy.csail.mit.edu/mysql_login.php';
 
 $exit_code = 0;
 $connection = mysqli_connect($host, $username, $password, $dbname);

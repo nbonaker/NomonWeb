@@ -237,12 +237,13 @@ class Keyboard{
         }
     }
     destroy_info_screen(){
-        if (this.in_info_screen || this.in_webcam_info_screen) {
+        if (this.in_info_screen || this.in_webcam_info_screen || this.in_tutorial) {
             this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
 
             if (this.start_tutorial){
-                this.tutorial_manager = new tm.tutorialManager(this);
+                this.tutorial_manager = new tm.tutorialManager(this, this.bc);
                 this.in_tutorial = true;
+                this.start_tutorial = false;
             }
 
             this.in_info_screen = false;
@@ -555,11 +556,20 @@ class Keyboard{
     on_press(){
         this.play_audio();
         if (this.fetched_words && !this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
-            this.bc.select();
+            var time_in = Date.now()/1000;
+
+            if (this.in_tutorial) {
+                console.log("cur_hour", this.bc.clock_inf.clock_util.cur_hours[this.tutorial_manager.target_clock]);
+                this.tutorial_manager.on_press(time_in);
+
+            }
+
+            this.bc.select(time_in);
             if (this.in_session){
                 this.allow_slider_input = false;
                 this.pre_phrase_rotate_index = this.rotate_index;
             }
+
         }
     }
     start_pause(){
@@ -600,7 +610,6 @@ class Keyboard{
 
             if (this.in_tutorial){
                 this.tutorial_manager.update_target();
-                this.tutorial_manager.change_focus();
             }
         }
     }
