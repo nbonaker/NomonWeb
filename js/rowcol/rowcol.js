@@ -2,6 +2,7 @@ import * as widgets from './widgets.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as lm from './lm.js';
+import * as sm from './study_manager.js';
 import * as webswitch from "../webcam_switch/webcam_switch.js";
 import {makeCorsRequest} from "../cors_request.js";
 import * as infoscreen from './info_screens.js';
@@ -17,8 +18,10 @@ class Keyboard{
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
-        this.partial_session = partial_session;
-        this.session_pause_time = 0;
+        if (this.user_id){
+            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
+        }
+        this.in_session = false;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
@@ -45,21 +48,21 @@ class Keyboard{
         this.init_locs();
         
         this.allow_slider_input = true;
-        if (this.prev_data.scan_delay !== null) {
+        if (this.prev_data && this.prev_data.scan_delay !== null) {
             this.scan_delay_index = this.prev_data.scan_delay;
         }else{
             this.scan_delay_index = config.default_scan_delay_index;
         }
-        this.scan_delay = config.scan_delay_li[this.scan_delay_index];
         this.pre_phrase_scan_delay_index = this.scan_delay_index;
+        this.scan_delay = config.scan_delay_li[this.scan_delay_index];
 
-        if (this.prev_data.extra_delay !== null) {
+        if (this.prev_data && this.prev_data.extra_delay !== null) {
             this.extra_delay_index = this.prev_data.extra_delay;
         }else{
             this.extra_delay_index = config.default_extra_delay_index;
         }
-        this.extra_delay = config.extra_delay_li[this.extra_delay_index];
         this.pre_phrase_extra_delay_index = this.extra_delay_index;
+        this.extra_delay = config.extra_delay_li[this.extra_delay_index];
 
         this.row_scan = -1;
         this.col_scan = -1;
@@ -79,17 +82,6 @@ class Keyboard{
         this.old_context_li = [""];
         this.last_add_li = [0];
         this.skip_hist = false;
-
-        this.in_session = false;
-        this.allow_session_finish = false;
-        this.session_number = null;
-        this.session_dates = null;
-        this.phrase_queue = null;
-        this.cur_phrase = null;
-        this.phrase_num = 0;
-        this.starting_software = null;
-        this.session_length = null;
-        this.session_start_time = null;
 
         this.full_init=true;
         this.fetched_words = false;
@@ -149,20 +141,37 @@ class Keyboard{
         }.bind(this);
 
         this.change_user_button = document.getElementById("send_button");
+        if (this.user_id) {
+            this.change_user_button.onclick = function () {
+                if (!this.in_session && !this.in_info_screen) {
+                    var login_url = "../index.php";
+                    window.open(login_url, '_self');
+                }
+            }.bind(this);
+        } else {
+            this.change_user_button.style.display = "none";
+        }
 
         this.session_button = document.getElementById("session_button");
-        this.session_button.onclick = function () {
-            this.request_session_data();
-        }.bind(this);
-        this.session_time_label = document.getElementById("session_timer");
+        if (this.user_id) {
+            this.session_button.onclick = function () {
+                if (!this.in_info_screen) {
+                    this.study_manager.request_session_data();
+                }
+            }.bind(this);
+            this.session_time_label = document.getElementById("session_timer");
+        } else {
+            this.session_button.style.display = "none";
+            document.getElementById("info_label").innerHTML =`<b>Welcome to the Row Column Scanner! Press ? for help.</b>`;
+        }
 
         this.info_button = document.getElementById("help_button");
         this.info_button.onclick = function () {
-            if (this.in_info_screen){
+            if (this.in_info_screen) {
                 this.destroy_info_screen();
             } else {
                 this.in_info_screen = true;
-                if (this.in_session){
+                if (this.in_session) {
                     this.init_session_info_screen();
                 } else {
                     this.init_info_screen();
@@ -172,7 +181,7 @@ class Keyboard{
 
         this.audio = new Audio('../audio/bell.wav');
         this.audio_checkbox = document.getElementById("checkbox_sound");
-        if (this.prev_data.sound !== null){
+        if (this.prev_data && this.prev_data.sound !== null){
             this.audio_checkbox.checked = this.prev_data.sound;
         }else {
             this.audio_checkbox.checked = true;
@@ -204,6 +213,9 @@ class Keyboard{
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
         this.info_screen = new infoscreen.InfoScreen(this.info_canvas);
+
+        this.session_button.className = "btn unclickable";
+        this.change_user_button.className = "btn unclickable";
     }
     init_session_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -228,6 +240,7 @@ class Keyboard{
     destroy_info_screen(){
         if (this.in_info_screen || this.in_webcam_info_screen) {
             this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
+
             this.in_info_screen = false;
             this.in_webcam_info_screen = false;
 
@@ -237,204 +250,11 @@ class Keyboard{
                 if (!this.webcam_info_complete) {
                     this.init_webcam_switch();
                 }
-            }
-        }
-    }
-    request_session_data(){
-        var user_id = parseInt(this.user_id);
-        console.log({"user_id": user_id});
-        function init_phrases(keyboard) {
-            $.ajax({
-                method: "POST",
-                url: "../php/init_study.php",
-                data: {"user_id": user_id}
-            }).done(function (data) {
-                var result = $.parseJSON(data);
-                console.log(result);
-                keyboard.session_number = parseInt(result[0].rowcol_sessions)+1;
-                keyboard.session_dates = JSON.parse(result[0].dates);
-                keyboard.phrase_queue = JSON.parse(result[0].rowcol_phrase_queue);
-                keyboard.parse_phrases();
-
-                keyboard.starting_software = "rowcol";
-
-                keyboard.init_session();
-            });
-        }
-        init_phrases(this);
-    }
-    init_session(){
-        console.log(this.session_number, this.session_dates, this.phrase_queue, this.starting_software);
-        var software_name;
-        if (this.starting_software === "nomon"){
-            software_name = "software A";
-        } else {
-            software_name = "software B";
-        }
-        var last_session;
-        if (this.session_dates !== null){
-            last_session = `Your last session was on ${this.session_dates[this.session_dates.length-1]}. `;
-        } else {
-            last_session = "";
-        }
-        var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
-        if (response){
-             window.addEventListener('keydown', function (e) {
-                if (e.keyCode === 13) {
-                    e.preventDefault();
-                    this.phrase_complete();
-                }
-            }.bind(this), false);
-
-            this.in_session = true;
-
-            document.getElementById("info_label").innerHTML =`<i>Copy the phrase in the box below. Press enter for the next phrase.</i>`;
-
-            this.session_button.value = "Finished Typing";
-            this.session_button.onclick = null;
-            this.session_button.className = "btn unclickable";
-
-            this.change_user_button.onclick = null;
-            this.change_user_button.className = "btn unclickable";
-
-            this.checkbox_webcam.checked = true;
-
-            // this.init_webcam_switch();
-            // document.onkeypress = null;
-
-            this.session_length = 60*3;
-            this.session_start_time = Math.round(Date.now() / 1000);
-            this.session_pause_time = 0;
-            this.session_pause_start_time = Infinity;
-
-            this.draw_phrase();
-
-            if (this.session_number === 1){
-
-                this.change_scan_delay(1);
-                this.speed_slider_output.innerHTML = 1;
-                this.speed_slider.value = 1;
-                this.pre_phrase_scan_delay_index = 1;
-
-                this.change_extra_delay(1);
-                this.extra_delay_slider_output.innerHTML = 1;
-                this.extra_delay_slider.value = 1;
-                this.pre_phrase_extra_delay_index = 1;
-
-                this.audio_checkbox.checked = true;
-
-                this.in_info_screen = true;
-                this.init_session_info_screen();
             } else {
-                this.pre_phrase_scan_delay_index = this.scan_delay_index;
-                this.pre_phrase_extra_delay_index = this.extra_delay_index;
-                this.init_webcam_switch();
+                this.session_button.className = "btn clickable";
+                this.change_user_button.className = "btn clickable";
             }
-            // noinspection JSAnnotator
-            function create_session_table(keyboard) { // jshint ignore:line
-                $.ajax({
-                    method: "POST",
-                    url: "../php/start_session.php",
-                    data: {"user_id": keyboard.user_id.toString(), "session": keyboard.session_number.toString(), "software": "rowcol"}
-                }).done(function (data) {
-                    var result = data;
-                    console.log(result);
-                });
-            }
-            create_session_table(this);
         }
-    }
-    allow_session_continue(){
-        this.session_button.value = "Finished Typing";
-        this.session_button.onclick = function () {
-            this.session_continue();
-        }.bind(this);
-        this.session_button.className = "btn clickable";
-        this.allow_session_finish = true;
-
-        document.getElementById("info_label").innerHTML =`<i>This is your last phrase.</i>`;
-    }
-    finish_session(){
-        this.in_finished_screen = true;
-        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
-        this.info_canvas.calculate_size(0);
-
-        this.info_canvas.ctx.beginPath();
-        this.info_canvas.ctx.fillStyle = "rgba(232,232,232, 0.5)";
-        this.info_canvas.ctx.rect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
-        this.info_canvas.ctx.fill();
-
-        this.info_button.disabled = true;
-        this.info_button.className = "btn unclickable";
-        document.getElementById("info_label").innerHTML =`<i>press Finished Typing</i>`;
-        this.textbox.draw_text("");
-
-    }
-    session_continue(){
-        var user_id = this.user_id;
-        var sessions = this.session_number;
-
-        var today = new Date();
-        var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-        var dates;
-        if (this.session_dates !== null) {
-            this.session_dates.push(date);
-            dates = JSON.stringify(this.session_dates);
-        } else {
-            dates = JSON.stringify([date]);
-        }
-        var phrase_queue = JSON.stringify(this.unparse_phrases());
-
-        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue, "software": "rowcol"};
-        console.log(post_data);
-
-        function increment_session() { // jshint ignore:line
-            $.ajax({
-                method: "POST",
-                url: "../php/increment_session.php",
-                data: post_data
-            }).done(function (data) {
-                var result = data;
-                console.log(result);
-            });
-        }
-        increment_session();
-
-        var keyboard_url;
-        if (this.partial_session){
-            alert(`You have finished typing for this session. Click to exit.`);
-            keyboard_url = "../index.php";
-            window.open(keyboard_url, '_self');
-        } else {
-            alert(`You have finished typing with Software B in this session. You will now be redirected to Software A to finish this session.`);
-            keyboard_url = "../html/keyboard.html";
-
-            var first_load;
-            if (this.session_number === 1){
-                first_load = "true";
-            } else {
-                first_load = "false";
-            }
-            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load, '&partial_session=true');
-            window.open(keyboard_url, '_self');
-        }
-    }
-    parse_phrases(){
-        var temp_phrase_queue = this.phrase_queue.slice();
-        this.phrase_queue = [];
-        for (var phrase_index in temp_phrase_queue){
-            var phrase = temp_phrase_queue[phrase_index];
-            this.phrase_queue.push(phrase.replace(new RegExp("8", "g"), "'"));
-        }
-        this.phrase_num = 0;
-    }
-    unparse_phrases(){
-        var temp_phrase_queue = [];
-        for (var phrase_index in this.phrase_queue){
-            var phrase = this.phrase_queue[phrase_index];
-            temp_phrase_queue.push(phrase.replace(new RegExp("'", "g"), "8"));
-        }
-        return(temp_phrase_queue);
     }
     draw_phrase(){
         this.typed_versions = [''];
@@ -446,71 +266,9 @@ class Keyboard{
         this.skip_hist = true;
         this.lm.update_cache(this.left_context, this.lm_prefix, null);
 
-        this.cur_phrase = this.phrase_queue.shift();
-        this.textbox.draw_text(this.cur_phrase.concat('\n'));
-        this.phrase_num = this.phrase_num + 1;
-    }
-    phrase_complete(){
-        var time_in = Date.now()/1000;
-
-        var session_paused_time = this.session_pause_time;
-        if (this.session_pause_start_time !== Infinity){
-            session_paused_time += time_in - this.session_pause_start_time;
-        }
-        var session_rem_time = this.session_length - (time_in - this.session_start_time) + session_paused_time;
-        var min_rem = Math.floor((session_rem_time)/60);
-        var sec_rem = Math.floor(session_rem_time) - min_rem*60;
-
-        if ((min_rem <= 0 && sec_rem < 30) || (min_rem < 0)){
-            this.allow_session_continue();
-        } else {
-            this.draw_phrase();
-            this.pre_phrase_scan_delay_index = this.scan_delay_index;
-            this.pre_phrase_extra_delay_index = this.extra_delay_index;
-            this.allow_slider_input = true;
-        }
-
-        if (this.allow_session_finish){
-            this.finish_session();
-        }
-    }
-    save_selection_data(selection){
-        var phrase = this.cur_phrase.replace("'", "8");
-        var phrase_num = this.phrase_num;
-        selection = selection.replace("'", "8");
-        var previous_text = this.textbox.text;
-        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length).replace("'", "8");
-        var timestamp = Date.now()/1000;
-        var scan_delay = this.scan_delay_index;
-        var extra_delay = this.extra_delay_index;
-        var abs_click_times = JSON.stringify(this.abs_click_times);
-        var rel_click_times = JSON.stringify(this.rel_click_times);
-        var click_scan_positions = JSON.stringify(this.click_scan_positions);
-
-        this.abs_click_times = [];
-        this.rel_click_times = [];
-        this.click_scan_positions = [];
-
-        var post_data = {"user_id": this.user_id.toString(), "session": this.session_number.toString(),
-            "software": "rowcol", "phrase": phrase, "phrase_num": phrase_num, "typed_text": typed_text,
-            "timestamp": timestamp, "scan_delay": scan_delay, "extra_delay": extra_delay, "abs_click_times": abs_click_times,
-            "rel_click_times": rel_click_times, "click_scan_pos": click_scan_positions, "selection": selection};
-
-        console.log(post_data);
-
-        // noinspection JSAnnotator
-        function send_click_data(keyboard) { // jshint ignore:line
-            $.ajax({
-                method: "POST",
-                url: "../php/send_click_data.php",
-                data: post_data
-            }).done(function (data) {
-                var result = data;
-                console.log(result);
-            });
-        }
-        send_click_data(this);
-
+        this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
+        this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
+        this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
     }
     change_scan_delay(index){
         var speed_index;
@@ -866,7 +624,7 @@ class Keyboard{
         previous_text = previous_text.replace("|", "");
 
         if (this.in_session) {
-            previous_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
+            previous_text = previous_text.slice(this.study_manager.cur_phrase.length + 1, previous_text.length);
         }
         if (previous_text.length > 0 && previous_text.charAt(previous_text.length - 1) == "_") {
             previous_text = previous_text.slice(0, previous_text.length - 1).concat(" ");
@@ -922,14 +680,14 @@ class Keyboard{
 
                 input_text = new_text;
                 if (this.in_session) {
-                    new_text = this.cur_phrase.concat('\n', new_text);
+                    new_text = this.study_manager.cur_phrase.concat('\n', new_text);
                 }
                 this.textbox.draw_text(new_text);
             }
             else {
                 input_text = "";
                 if (this.in_session) {
-                    input_text = this.cur_phrase.concat('\n', input_text);
+                    input_text = this.study_manager.cur_phrase.concat('\n', input_text);
                 }
             }
         }
@@ -943,7 +701,7 @@ class Keyboard{
                 }
                 input_text = new_text;
                 if (this.in_session) {
-                    new_text = this.cur_phrase.concat('\n', new_text);
+                    new_text = this.study_manager.cur_phrase.concat('\n', new_text);
                 }
                 this.textbox.draw_text(new_text);
             }
@@ -964,7 +722,7 @@ class Keyboard{
             input_text = input_text.replace(" !", "!_");
 
             if (this.in_session) {
-                input_text = this.cur_phrase.concat('\n', input_text);
+                input_text = this.study_manager.cur_phrase.concat('\n', input_text);
             }
             this.textbox.draw_text(input_text);
         }
@@ -1140,7 +898,7 @@ class Keyboard{
         this.is_equalize = is_equalize;
 
         if (this.in_session){
-            this.save_selection_data(selection);
+            this.study_manager.save_selection_data(selection);
         }
         // # update the word prior
 
@@ -1283,24 +1041,7 @@ class Keyboard{
             }
 
             if (this.in_session){
-                var session_paused_time = this.session_pause_time;
-                if (this.session_pause_start_time !== Infinity){
-                    session_paused_time += time_in - this.session_pause_start_time;
-                }
-                var session_rem_time = this.session_length - (time_in - this.session_start_time) + session_paused_time;
-                var min_rem = Math.floor((session_rem_time)/60);
-                var sec_rem = Math.floor(session_rem_time) - min_rem*60;
-
-                if (min_rem >= 0) {
-                    if (sec_rem < 10) {
-                    sec_rem = `0${sec_rem}`;
-                    }
-                    this.session_time_label.innerHTML = `<b>Time remaining: ${min_rem}:${sec_rem}</b>`;
-                }else{
-                    if (!this.allow_session_finish) {
-                        this.allow_session_continue();
-                    }
-                }
+                this.study_manager.update_session_timer(time_in);
             }
         }
     }
@@ -1368,5 +1109,10 @@ function send_login() {
     });
 }
 
-send_login();
+if (user_id) {
+    send_login();
+} else {
+    let keyboard = new Keyboard(user_id, first_load, false, null);
+    setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
+}
 

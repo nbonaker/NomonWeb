@@ -93,6 +93,7 @@ label {
             <label for="speed_slider" class="label toprow"><b>Clock Rotation Speed: </b></label>
             <input type="range" min="1" max="20" value="1" class="slider" id="speed_slider">
             <label for="speed_slider" class="label toprow"><b><span id="speed_slider_value"></span></b></label>
+            <input class='btn clickable' type="button" id = "tutorial_button" value = "Retrain"/>
         </div>
     </div>
     <div>
@@ -233,11 +234,6 @@ Your browser does not support the canvas element.
     const user_id = params.get("user_id");
     document.getElementById("info_label").innerHTML =`<b>Welcome user ${user_id}! Press Start Session to begin.</b>`;
 
-    document.getElementById("send_button").onclick = function(){
-        var login_url = "../index.php";
-        // keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true');
-        window.open(login_url,'_self');
-    };
 </script>
 
 <script type="module" src="../js/nomon/keyboard.js"></script>

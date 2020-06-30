@@ -141,6 +141,7 @@ export class tutorialManager{
     }
     start_tutorial(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.parent.info_canvas = this.info_canvas;
         this.info_canvas.calculate_size(0);
 
         this.x_pos = 0;
@@ -261,5 +262,7 @@ export class tutorialManager{
             this.bc.clock_inf.inc_score_inc(yin);
         }
         this.bc.clock_inf.clock_history = [[]];
+
+        this.parent.end_tutorial();
     }
 }
