@@ -47,7 +47,8 @@ function findAngle(sx, sy, ex, ey) {
 }
 
 export class InfoScreen {
-    constructor(info_canvas, screen_num = 0) {
+    constructor(parent, info_canvas, screen_num = 0) {
+        this.parent = parent;
         this.info_canvas = info_canvas;
         this.x_pos = 0;
         this.y_pos = 0;
@@ -100,10 +101,18 @@ export class InfoScreen {
         var font_height = this.width/17;
         this.info_canvas.ctx.fillStyle = "#404040";
         this.info_canvas.ctx.font = "bold ".concat(font_height.toString(), "px Helvetica");
-        this.info_canvas.ctx.fillText("Welcome to", this.width/3, this.height * 0.22);
+        if (this.parent.user_id) {
+            this.info_canvas.ctx.fillText("Welcome to", this.width / 3, this.height * 0.22);
+        } else {
+            this.info_canvas.ctx.fillText("Welcome to the", this.width / 3.6, this.height * 0.22);
+        }
         font_height = this.width/12.5;
         this.info_canvas.ctx.font = "bold ".concat(font_height.toString(), "px Helvetica");
-        this.info_canvas.ctx.fillText("Keyboard A!", this.width/3.8, this.height*0.6);
+        if (this.parent.user_id) {
+            this.info_canvas.ctx.fillText("Keyboard A!", this.width/3.8, this.height*0.6);
+        } else {
+            this.info_canvas.ctx.fillText("Nomon Keyboard!", this.width/6.2, this.height*0.6);
+        }
 
         var font_height = this.width/70;
         var rect_x = this.width*0.28;
