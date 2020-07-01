@@ -23,11 +23,13 @@ export class WebcamCanvas{
 }
 
 export class WebcamSwitch{
-    constructor(parent=null){
+    constructor(parent=null, show_feed=false){
         this.parent = parent;
         this.skip_update=0;
         this.video_canvas = document.getElementById("video_canvas");
-        this.video_canvas.style.visibility = "hidden";
+        if (!show_feed) {
+            this.video_canvas.style.visibility = "hidden";
+        }
         this.webcam_canvas = new WebcamCanvas("webcam_canvas", 1);
         this.control_switch = false;
         this.trigger_switch = false;
@@ -35,6 +37,7 @@ export class WebcamSwitch{
         this.face_sizes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         this.initial_face_xs = [];
         this.face_x_calibration = 0;
+        this.triger_x_calibration = 0;
 
         this.control_lock = false;
 
@@ -42,7 +45,8 @@ export class WebcamSwitch{
         // this.face_coords = this.face_finder.face_coords;
         // setInterval(this.draw_switch.bind(this), 20);
     }
-    draw_switch(){
+    draw_switch(draw_left=true, draw_right= true){
+        console.log(this.face_finder.face_coords);
         var face_x = 1 - this.face_finder.face_coords[0];
         var cur_face_size = this.face_finder.face_coords[2];
 
@@ -59,7 +63,7 @@ export class WebcamSwitch{
         }
 
         var facebar_x = this.webcam_canvas.screen_width*(face_x-face_size - this.face_x_calibration);
-        var trigger_bar_x = this.webcam_canvas.screen_width*(0.5+face_size*2);
+        var trigger_bar_x = this.webcam_canvas.screen_width*(face_size + this.triger_x_calibration);
         var control_bar_x = this.webcam_canvas.screen_width*(0.5-face_size*1);
 
         if (facebar_x < control_bar_x){
@@ -101,9 +105,11 @@ export class WebcamSwitch{
                 this.highlight_trigger = false;
             }
         }
-        this.webcam_canvas.ctx.rect(trigger_bar_x, 0,
-            this.webcam_canvas.screen_width - trigger_bar_x, this.webcam_canvas.screen_height);
-        this.webcam_canvas.ctx.fill();
+        if (draw_right) {
+            this.webcam_canvas.ctx.rect(trigger_bar_x, 0,
+                this.webcam_canvas.screen_width - trigger_bar_x, this.webcam_canvas.screen_height);
+            this.webcam_canvas.ctx.fill();
+        }
 
         this.webcam_canvas.ctx.beginPath();
         if (this.control_switch || this.control_lock){
@@ -112,9 +118,11 @@ export class WebcamSwitch{
             this.webcam_canvas.ctx.fillStyle = "rgba(0,0,238,0.44)";
         }
 
-        this.webcam_canvas.ctx.rect(0, 0,
-            control_bar_x, this.webcam_canvas.screen_height);
-        this.webcam_canvas.ctx.fill();
+        if (draw_left) {
+            this.webcam_canvas.ctx.rect(0, 0,
+                control_bar_x, this.webcam_canvas.screen_height);
+            this.webcam_canvas.ctx.fill();
+        }
 
         this.webcam_canvas.ctx.beginPath();
         this.webcam_canvas.ctx.fillStyle = "rgba(238,133,0,0.44)";

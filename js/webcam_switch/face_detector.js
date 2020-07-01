@@ -103,6 +103,9 @@ export class FaceFinder{
                     this.face_coords = [dets[i][1] / (640), dets[i][0] / (480), dets[i][2] / 2 / (640)];
                 }
             }
+            if (dets.length === 0){
+                this.face_coords = [-1, -1, -1];
+            }
         }.bind(this);
         this.mycamvas = new camvas(ctx, processfn);
 
