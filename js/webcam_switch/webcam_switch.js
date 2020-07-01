@@ -82,7 +82,9 @@ export class WebcamSwitch{
 
         if (this.trigger_switch && this.control_lock){
             this.control_lock = false;
-            this.parent.on_press();
+            if (this.parent) {
+                this.parent.on_press();
+            }
         }
 
         this.webcam_canvas.ctx.beginPath();
