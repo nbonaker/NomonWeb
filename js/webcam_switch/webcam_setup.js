@@ -35,6 +35,7 @@ class webcamSetup {
         this.draw_left = false;
         this.draw_right = false;
         this.rotate_to_webcam = false;
+        this.allow_save = false;
 
         this.sound_on = false;
 
@@ -189,66 +190,70 @@ class webcamSetup {
             rect_x + font_height, rect_y + font_height*3.7);
     }
     save_resting(){
-        this.person_image.setAttribute("style", "transform: rotate(30deg)");
+        if (this.allow_save) {
+            this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
-        this.resting_pos = this.webcam_switch.face_finder.face_coords[0];
-        this.webcam_switch.face_x_calibration = 0.55 - this.resting_pos;
-        console.log("Resting:", this.resting_pos);
+            this.resting_pos = this.webcam_switch.face_finder.face_coords[0];
+            this.webcam_switch.face_x_calibration = 0.55 - this.resting_pos;
+            console.log("Resting:", this.resting_pos);
 
-        this.start_button.onclick = this.save_trigger.bind(this);
-        this.start_button.value = "Calibrate Trigger";
-        this.draw_left = true;
+            this.start_button.onclick = this.save_trigger.bind(this);
+            this.start_button.value = "Calibrate Trigger";
+            this.draw_left = true;
 
-        this.animation_ctx.beginPath();
-        this.animation_ctx.clearRect(0, 400, 500, 500);
+            this.animation_ctx.beginPath();
+            this.animation_ctx.clearRect(0, 400, 500, 500);
 
-        var rect_x = 0;
-        var rect_y = 470;
-        var font_height = 23;
+            var rect_x = 0;
+            var rect_y = 470;
+            var font_height = 23;
 
-        this.animation_ctx.fillStyle = "rgb(0,195,0)";
-        this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
-        this.animation_ctx.fillText("Move your torso (including your head) about",
-            rect_x + font_height, rect_y + font_height*1.3);
-        this.animation_ctx.fillText("30 degrees to the right. When you are ",
-            rect_x + font_height, rect_y + font_height*2.5);
-        this.animation_ctx.fillText("positioned, click \"Calibrate Trigger\".",
-            rect_x + font_height, rect_y + font_height*3.7);
+            this.animation_ctx.fillStyle = "rgb(0,195,0)";
+            this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
+            this.animation_ctx.fillText("Move your torso (including your head) about",
+                rect_x + font_height, rect_y + font_height * 1.3);
+            this.animation_ctx.fillText("30 degrees to the right. When you are ",
+                rect_x + font_height, rect_y + font_height * 2.5);
+            this.animation_ctx.fillText("positioned, click \"Calibrate Trigger\".",
+                rect_x + font_height, rect_y + font_height * 3.7);
+        }
     }
     save_trigger(){
-        this.person_image.setAttribute("style", "transform: rotate(30deg)");
+        if (this.allow_save) {
+            this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
-        this.trigger_pos = this.webcam_switch.face_finder.face_coords[0];
-        this.webcam_switch.triger_x_calibration = 0.93-this.trigger_pos;
-        console.log("Trigger:", this.trigger_pos);
+            this.trigger_pos = this.webcam_switch.face_finder.face_coords[0];
+            this.webcam_switch.triger_x_calibration = 0.93 - this.trigger_pos;
+            console.log("Trigger:", this.trigger_pos);
 
-        this.rotate_to_webcam = true;
+            this.rotate_to_webcam = true;
 
-        this.start_button.value = "Recalibrate";
-        this.start_button.onclick = this.start_calibration.bind(this);
-        this.save_button.style.display = "inline";
-        this.save_button.onclick = this.save_results.bind(this);
+            this.start_button.value = "Recalibrate";
+            this.start_button.onclick = this.start_calibration.bind(this);
+            this.save_button.style.display = "inline";
+            this.save_button.onclick = this.save_results.bind(this);
 
-        this.draw_right = true;
-        this.sound_on = true;
+            this.draw_right = true;
+            this.sound_on = true;
 
-        this.animation_ctx.beginPath();
-        this.animation_ctx.clearRect(0, 400, 500, 500);
+            this.animation_ctx.beginPath();
+            this.animation_ctx.clearRect(0, 400, 500, 500);
 
-        var rect_x = 0;
-        var rect_y = 470;
-        var font_height = 23;
+            var rect_x = 0;
+            var rect_y = 470;
+            var font_height = 23;
 
-        this.animation_ctx.fillStyle = "#404040";
-        this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
-        this.animation_ctx.fillText("The reset and trigger boxes are activated",
-            rect_x + font_height, rect_y + font_height*1.3);
-        this.animation_ctx.fillText("when the orange box intersects one of them.",
-            rect_x + font_height, rect_y + font_height*2.5);
-        this.animation_ctx.fillText("You must activate the reset box before you",
-            rect_x + font_height, rect_y + font_height*3.7);
-        this.animation_ctx.fillText("can activate the trigger box. Try it!",
-            rect_x + font_height, rect_y + font_height*4.9);
+            this.animation_ctx.fillStyle = "#404040";
+            this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
+            this.animation_ctx.fillText("The reset and trigger boxes are activated",
+                rect_x + font_height, rect_y + font_height * 1.3);
+            this.animation_ctx.fillText("when the orange box intersects one of them.",
+                rect_x + font_height, rect_y + font_height * 2.5);
+            this.animation_ctx.fillText("You must activate the reset box before you",
+                rect_x + font_height, rect_y + font_height * 3.7);
+            this.animation_ctx.fillText("can activate the trigger box. Try it!",
+                rect_x + font_height, rect_y + font_height * 4.9);
+        }
     }
     save_results(){
 
@@ -264,9 +269,11 @@ class webcamSetup {
             this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
             this.animation_ctx.fillText("Your face is out of the Frame!",
                 22, 470);
+            this.allow_save = false;
         } else {
             this.animation_ctx.beginPath();
             this.animation_ctx.clearRect(0, 440, 500, 35);
+            this.allow_save = true;
         }
 
         if (this.rotate_to_webcam){
