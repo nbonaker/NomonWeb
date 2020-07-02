@@ -20,6 +20,11 @@ class Keyboard{
         this.prev_data = prev_data;
         if (this.user_id){
             this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
+            this.webcam_enabled = true;
+            this.delay_webcam_info = true;
+        } else {
+            this.webcam_enabled = false;
+            this.delay_webcam_info = false;
         }
         this.in_session = false;
 
@@ -112,11 +117,13 @@ class Keyboard{
             document.getElementById("checkbox_webcam").disabled = true;
             setTimeout(function(){document.getElementById("checkbox_webcam").disabled = false}, 1500);
             this.ws = new webswitch.WebcamSwitch(this);
-            if (!this.webcam_info_complete) {
+            if (!this.webcam_info_complete && !this.delay_webcam_info) {
                 this.in_webcam_info_screen = true;
                 this.webcam_info_complete = true;
                 this.init_webcam_info_screen();
             }
+            this.ws.face_x_calibration = 0.55 - this.prev_data["webcam_reset"];
+            this.ws.triger_x_calibration = 0.93 - this.prev_data["webcam_trigger"];
         }
     }
     init_ui(){
@@ -244,7 +251,12 @@ class Keyboard{
             this.in_info_screen = false;
             this.in_webcam_info_screen = false;
 
-            if (this.in_session){
+            if (this.delay_webcam_info) {
+                this.delay_webcam_info = false;
+                this.webcam_info_complete = false;
+                document.getElementById("checkbox_webcam").checked = true;
+                this.init_webcam_switch();
+            } else if (this.in_session){
                 this.session_pause_time += Math.round(Date.now() / 1000) - this.session_pause_start_time;
                 this.session_pause_start_time = Infinity;
                 if (!this.webcam_info_complete) {
@@ -1102,6 +1114,18 @@ function send_login() {
                 console.log("Retrieved Sound Checkbox!");
             }
             prev_data["sound"]= sound;
+
+            var webcam_reset = JSON.parse(result.webcam_reset);
+            if (webcam_reset !== null) {
+                console.log("Retrieved Webcam Reset!");
+            }
+            prev_data["webcam_reset"]= webcam_reset;
+
+            var webcam_trigger = JSON.parse(result.webcam_trigger);
+            if (webcam_trigger !== null) {
+                console.log("Retrieved Webcam Trigger!");
+            }
+            prev_data["webcam_trigger"]= webcam_trigger;
         }
 
         let keyboard = new Keyboard(user_id, first_load, partial_session, prev_data);

@@ -24,6 +24,11 @@ class Keyboard{
 
         if (this.user_id){
             this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
+            this.webcam_enabled = true;
+            this.delay_webcam_info = true;
+        } else {
+            this.webcam_enabled = false;
+            this.delay_webcam_info = false;
         }
         this.in_session = false;
 
@@ -32,7 +37,7 @@ class Keyboard{
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.webcam_canvas = document.getElementById("webcam_canvas");
-        this.webcam_enabled = false;
+
         this.webcam_info_complete=false;
         this.in_webcam_info_screen = false;
         this.ws = null;
@@ -101,11 +106,13 @@ class Keyboard{
             document.getElementById("checkbox_webcam").disabled = true;
             setTimeout(function(){document.getElementById("checkbox_webcam").disabled = false}, 1500);
             this.ws = new webswitch.WebcamSwitch(this);
-            if (!this.webcam_info_complete) {
+            if (!this.webcam_info_complete && !this.delay_webcam_info) {
                 this.in_webcam_info_screen = true;
                 this.webcam_info_complete = true;
                 this.init_webcam_info_screen();
             }
+            this.ws.face_x_calibration = 0.55 - this.prev_data["webcam_reset"];
+            this.ws.triger_x_calibration = 0.93 - this.prev_data["webcam_trigger"];
         }
     }
     continue_init(){
@@ -277,7 +284,12 @@ class Keyboard{
             this.in_info_screen = false;
             this.in_webcam_info_screen = false;
 
-            if (this.start_tutorial){
+            if (this.delay_webcam_info){
+                this.delay_webcam_info = false;
+                this.webcam_info_complete = false;
+                document.getElementById("checkbox_webcam").checked = true;
+                this.init_webcam_switch();
+            } else if (this.start_tutorial){
                 this.init_tutorial();
             } else if (this.in_session){
                 this.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
@@ -1147,6 +1159,18 @@ function send_login() {
                 console.log("Retrieved Sound Checkbox!");
             }
             prev_data["sound"]= sound;
+
+            var webcam_reset = JSON.parse(result.webcam_reset);
+            if (webcam_reset !== null) {
+                console.log("Retrieved Webcam Reset!");
+            }
+            prev_data["webcam_reset"]= webcam_reset;
+
+            var webcam_trigger = JSON.parse(result.webcam_trigger);
+            if (webcam_trigger !== null) {
+                console.log("Retrieved Webcam Trigger!");
+            }
+            prev_data["webcam_trigger"]= webcam_trigger;
         }
 
         let keyboard = new Keyboard(user_id, first_load, partial_session, prev_data);

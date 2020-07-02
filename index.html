@@ -97,14 +97,14 @@
         function handle_partial_sessions(nomon_sessions, rowcol_sessions, first_software) {
             var session_num = Math.min(nomon_sessions, rowcol_sessions);
             var partial_session;
-            var keyboard_url;
+            var next_software;
             var cur_info_text = document.getElementById("info_text").textContent;
 
             if (nomon_sessions < rowcol_sessions){
                 document.getElementById("info_text").innerHTML =
                         `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
 
-                keyboard_url = "html/keyboard.html";
+                next_software = "A";
                 partial_session = true;
 
             } else if (rowcol_sessions < nomon_sessions){
@@ -112,7 +112,7 @@
                 document.getElementById("info_text").innerHTML =
                         `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
 
-                keyboard_url = "html/rowcol.html";
+                next_software = "B";
                 partial_session = true;
 
             } else {
@@ -128,14 +128,14 @@
                     }
                 }
                 if (first_software === "nomon"){
-                    keyboard_url = "html/keyboard.html";
+                    next_software = "A";
                 } else {
-                    keyboard_url = "html/rowcol.html";
+                    next_software = "B";
                 }
                 partial_session = false;
             }
 
-            return [session_num, keyboard_url, partial_session];
+            return [session_num, next_software, partial_session];
         }
 
         function init_study(user_id) {
@@ -151,7 +151,7 @@
 
                 var next_session_results = handle_partial_sessions(parseInt(result[0].nomon_sessions), parseInt(result[0].rowcol_sessions), first_software);
                 var session_num = next_session_results[0];
-                var keyboard_url = next_session_results[1];
+                var next_software = next_session_results[1];
                 var partial_session = next_session_results[2];
 
                 var first_load;
@@ -162,20 +162,19 @@
                 }
 
 
-                launch_software(user_id, keyboard_url, partial_session, first_load);
+                launch_software(user_id, next_software, partial_session, first_load);
 
             });
 
         }
 
-        function launch_software(user_id, keyboard_url, partial_session, first_load){
-
-            console.log(keyboard_url);
+        function launch_software(user_id, next_software, partial_session, first_load){
 
             document.getElementById("send_button").value = "Launch Software";
 
             document.getElementById("send_button").onclick = function(){
-                keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,'&partial_session=', partial_session.toString());
+                keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+                    '&partial_session=', partial_session.toString(), '&software=', next_software);
                 window.open(keyboard_url,'_self');
             };
         }

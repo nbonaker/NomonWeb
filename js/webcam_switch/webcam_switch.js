@@ -36,8 +36,8 @@ export class WebcamSwitch{
         this.highlight_trigger = false;
         this.face_sizes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         this.initial_face_xs = [];
-        this.face_x_calibration = 0;
-        this.triger_x_calibration = 0;
+        this.face_x_calibration = -1;
+        this.triger_x_calibration = 1;
 
         this.control_lock = false;
 
