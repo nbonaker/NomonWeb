@@ -17,7 +17,8 @@ function trapesoid_wave(t, period, amplitude){
 
 
 class webcamSetup {
-    constructor(){
+    constructor(forward_url=none){
+        this.forward_url = forward_url;
         this.animation_canvas = document.getElementById("animation_canvas");
         this.scale = 4;
         var w = this.animation_canvas.width;
@@ -256,6 +257,23 @@ class webcamSetup {
         }
     }
     save_results(){
+        var resting_pos = this.resting_pos;
+        var trigger_pos = this.trigger_pos;
+        // noinspection JSAnnotator
+        function send_data(forward_url) { // jshint ignore:line
+            console.log({"user_id": user_id, "webcam_reset": resting_pos, "webcam_trigger": trigger_pos});
+            $.ajax({
+                method: "POST",
+                url: "../php/update_webcam_data.php",
+                data: {"user_id": user_id, "webcam_reset": resting_pos, "webcam_trigger": trigger_pos}
+            }).done(function (data) {
+                console.log("SENT DATA");
+                window.open(forward_url,'_self');
+            });
+        }
+
+        send_data(this.forward_url);
+
 
     }
     update_webcam(){
@@ -291,5 +309,21 @@ class webcamSetup {
     }
 }
 
+const params = new URLSearchParams(document.location.search);
+const user_id = params.get("user_id");
+const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
+const partial_session = params.get("partial_session") === 'true';
+const software = params.get("software");
+console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Software: ", software);
 
-let webcam_setup = new webcamSetup();
+var forward_url;
+if (software === "A"){
+    forward_url = "keyboard.html";
+    forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,'&partial_session=', partial_session.toString());
+} else if (software === "B"){
+    forward_url = "rowcol.html";
+    forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,'&partial_session=', partial_session.toString());
+}
+
+
+let webcam_setup = new webcamSetup(forward_url);
