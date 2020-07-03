@@ -292,7 +292,7 @@ class Keyboard{
             } else if (this.start_tutorial){
                 this.init_tutorial();
             } else if (this.in_session){
-                this.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
+                this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
                 this.study_manager.session_pause_start_time = Infinity;
                 if (!this.webcam_info_complete) {
                     this.init_webcam_switch();
@@ -353,11 +353,11 @@ class Keyboard{
     phrase_complete(){
         var time_in = Date.now()/1000;
 
-        var session_paused_time = this.session_pause_time;
+        var session_paused_time = this.study_manager.session_pause_time;
         if (this.study_manager.session_pause_start_time !== Infinity){
             session_paused_time += time_in - this.study_manager.session_pause_start_time;
         }
-        var session_rem_time = this.session_length - (time_in - this.session_start_time) + session_paused_time;
+        var session_rem_time = this.study_manager.session_length - (time_in - this.study_manager.session_start_time) + session_paused_time;
         var min_rem = Math.floor((session_rem_time)/60);
         var sec_rem = Math.floor(session_rem_time) - min_rem*60;
 
@@ -770,7 +770,11 @@ class Keyboard{
             this.typed_versions.push('');
             input_text = "";
             this.lm_prefix = "";
-            this.textbox.draw_text('');
+            if (this.in_session) {
+                this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
+            } else {
+                this.textbox.draw_text("");
+            }
             this.clear_text = false;
             undo_text = 'Clear';
         }
@@ -1067,6 +1071,8 @@ class Keyboard{
                 clock.draw_face();
             }
         }
+        this.clockgrid.undo_label.draw_text();
+
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.histogram.calculate_size();
         this.histogram.draw_box();

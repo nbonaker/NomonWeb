@@ -46,7 +46,7 @@ export class WebcamSwitch{
         // setInterval(this.draw_switch.bind(this), 20);
     }
     draw_switch(draw_left=true, draw_right= true){
-        console.log(this.face_finder.face_coords);
+        // console.log(this.face_finder.face_coords);
         var face_x = 1 - this.face_finder.face_coords[0];
         var cur_face_size = this.face_finder.face_coords[2];
 
