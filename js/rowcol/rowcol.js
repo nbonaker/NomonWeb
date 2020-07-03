@@ -213,13 +213,13 @@ class Keyboard{
         this.info_screen = new infoscreen.WebcamInfoScreen(this.info_canvas);
 
         if (this.in_session){
-            this.session_pause_start_time = Math.round(Date.now() / 1000);
+            this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
         }
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_screen = new infoscreen.InfoScreen(this.info_canvas);
+        this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
 
         this.session_button.className = "btn unclickable";
         this.change_user_button.className = "btn unclickable";
@@ -230,7 +230,7 @@ class Keyboard{
         this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas);
 
         if (this.in_session){
-            this.session_pause_start_time = Math.round(Date.now() / 1000);
+            this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
         }
     }
     increment_info_screen(){
@@ -257,8 +257,8 @@ class Keyboard{
                 document.getElementById("checkbox_webcam").checked = true;
                 this.init_webcam_switch();
             } else if (this.in_session){
-                this.session_pause_time += Math.round(Date.now() / 1000) - this.session_pause_start_time;
-                this.session_pause_start_time = Infinity;
+                this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
+                this.study_manager.session_pause_start_time = Infinity;
                 if (!this.webcam_info_complete) {
                     this.init_webcam_switch();
                 }
@@ -678,7 +678,11 @@ class Keyboard{
             this.typed_versions.push('');
             input_text = "";
             this.lm_prefix = "";
-            this.textbox.draw_text('');
+            if (this.in_session) {
+                this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
+            } else {
+                this.textbox.draw_text("");
+            }
             this.clear_text = false;
             undo_text = 'Clear';
         }
@@ -1074,7 +1078,7 @@ class Keyboard{
         if (this.in_info_screen){
             this.info_canvas.calculate_size(0);
             var info_screen_num = this.info_screen.screen_num - 1;
-            this.info_screen = new infoscreen.InfoScreen(this.info_canvas, info_screen_num);
+            this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
         }
     }
 }

@@ -285,10 +285,11 @@ export class studyManager {
             sec_rem = `0${sec_rem}`;
             }
             this.parent.session_time_label.innerHTML = `<b>Time remaining: ${min_rem}:${sec_rem}</b>`;
-        }else{
-            if (!this.allow_session_finish) {
-                this.allow_session_continue();
-            }
         }
+        // else{
+        //     if (!this.allow_session_finish) {
+        //         this.allow_session_continue();
+        //     }
+        // }
     }
 }

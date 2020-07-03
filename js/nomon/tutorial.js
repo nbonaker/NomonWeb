@@ -89,7 +89,12 @@ export class tutorialManager{
         this.target_text = null;
         this.target_clock = null;
         this.cur_presses_remaining = 0;
+        this.cur_press = 0;
         this.rel_click_times = [];
+
+        this.circle_x;
+        this.circle_y;
+        this.clock;
 
         this.update_target();
         this.start_tutorial();
@@ -132,6 +137,7 @@ export class tutorialManager{
                 this.target_clock = word_li_index[0] * 4 + word_li_index[1];
             }
             this.cur_presses_remaining = Math.floor(Math.random() * 2) + 2;
+            this.cur_press = 0;
 
             console.log("target clock: ", this.target_clock, "target clock_text:", this.parent.clockgrid.clocks[this.target_clock].text, "num presses:", this.cur_presses_remaining);
             if (this.info_canvas){
@@ -154,8 +160,11 @@ export class tutorialManager{
     }
     change_focus(){
         var clock = this.parent.clockgrid.clocks[this.target_clock];
-        var circle_x = clock.x_pos;
-        var circle_y = clock.y_pos;
+        this.clock = clock;
+        clock.winner = true;
+        clock.draw_face();
+        this.circle_x = clock.x_pos;
+        this.circle_y = clock.y_pos;
         var circle_radius = clock.radius*6;
 
         this.info_canvas.ctx.beginPath();
@@ -167,27 +176,27 @@ export class tutorialManager{
 
         this.info_canvas.ctx.beginPath();
         this.info_canvas.ctx.globalCompositeOperation = 'destination-out';
-        this.info_canvas.ctx.arc(circle_x, circle_y, circle_radius, 0, Math.PI*2, true);
+        this.info_canvas.ctx.arc(this.circle_x, this.circle_y, circle_radius, 0, Math.PI*2, true);
         this.info_canvas.ctx.fill();
 
         this.info_canvas.ctx.beginPath();
         this.info_canvas.ctx.globalCompositeOperation = 'source-over';
         this.info_canvas.ctx.strokeStyle = "rgb(134,134,134)";
         this.info_canvas.ctx.lineWidth = clock.radius / 5;
-        this.info_canvas.ctx.arc(circle_x, circle_y, circle_radius, 0, Math.PI*2, true);
+        this.info_canvas.ctx.arc(this.circle_x, this.circle_y, circle_radius, 0, Math.PI*2, true);
         this.info_canvas.ctx.stroke();
 
-        this.draw_clock_instruction(circle_x, circle_y, clock.radius);
+        this.draw_clock_instruction(this.circle_x, this.circle_y, clock.radius);
 
     }
     draw_clock_instruction(clock_x, clock_y, radius){
 
-        var font_height = radius;
+        var font_height = radius*2;
 
         this.info_canvas.ctx.beginPath();
         this.info_canvas.ctx.fillStyle = "#404040";
         this.info_canvas.ctx.strokeStyle = "#404040";
-        this.info_canvas.ctx.lineWidth = font_height*0.4;
+        this.info_canvas.ctx.lineWidth = font_height*0.2;
 
         var arrow_x_end;
         var arrow_y_end;
@@ -205,7 +214,7 @@ export class tutorialManager{
 
             arrow_x_center = arrow_x_end ;
             arrow_y_center = arrow_y_end + radius*3;
-            drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, -Math.PI/2, font_height*1.2, font_height*1.2);
+            drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, -Math.PI/2, font_height*0.6, font_height*0.6);
         } else {
             arrow_x_end = clock_x - radius * 2;
             arrow_y_end = clock_y + radius * 2;
@@ -216,7 +225,7 @@ export class tutorialManager{
             arrow_x_center = arrow_x_end - radius * 4;
             arrow_y_center = arrow_y_end + radius * 4;
 
-            drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, -Math.PI/4, font_height*1.2, font_height*1.2);
+            drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, -Math.PI/4, font_height*0.6, font_height*0.6);
         }
 
         this.info_canvas.ctx.moveTo(arrow_x_start,arrow_y_start);
@@ -225,16 +234,24 @@ export class tutorialManager{
 
         this.info_canvas.ctx.fillStyle = "#ffffff";
         this.info_canvas.ctx.strokeStyle = "#404040";
-        this.info_canvas.ctx.lineWidth = font_height*0.3;
-        roundRect(this.info_canvas.ctx, arrow_x_start + font_height, arrow_y_start - font_height*1.5, font_height*17.5, font_height*3,
-            20, true, true);
-        this.info_canvas.ctx.fillStyle = "#404040";
-        this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
-        this.info_canvas.ctx.fillText("Press when this clock passes noon", arrow_x_start + font_height*2, arrow_y_start + font_height*0.2 );
+        this.info_canvas.ctx.lineWidth = font_height*0.15;
 
+        this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+        if (this.cur_press < 1) {
+            roundRect(this.info_canvas.ctx, arrow_x_start + font_height, arrow_y_start - font_height*1.5, font_height*17.5, font_height*3,
+            20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.fillText("Press when this clock passes noon", arrow_x_start + font_height * 2, arrow_y_start + font_height * 0.2);
+        } else {
+            roundRect(this.info_canvas.ctx, arrow_x_start + font_height, arrow_y_start - font_height*1.5, font_height*24.5, font_height*3,
+            20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.fillText("You have to press multiple times to select a clock", arrow_x_start + font_height * 2, arrow_y_start + font_height * 0.2);
+        }
     }
     on_press(time_in){
         this.cur_presses_remaining -= 1;
+        this.cur_press += 1;
         var clock_history = this.bc.clock_inf.clock_history[0];
 
         var time_diff_in = time_in - this.bc.latest_time;
@@ -246,6 +263,7 @@ export class tutorialManager{
         var rel_click_time = last_bc_time + lag_time -half_period;
         this.rel_click_times.push(rel_click_time);
 
+        this.draw_clock_instruction(this.circle_x, this.circle_y, this.clock.radius);
 
         if (this.cur_presses_remaining === 0){
             this.bc.clock_inf.win_history[0] = this.target_clock;

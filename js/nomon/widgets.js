@@ -207,30 +207,30 @@ export class ClockGrid{
             }
         }
 
-        if (indexOf_2d(this.target_layout, "SPACEUNIT") !== false){
-            var space_chars = ['_', '\''];
-            space_chars = this.key_chars.filter(value => -1 !== space_chars.indexOf(value));
-
-            var space_unit_indicies = indexOf_2d(this.target_layout, "SPACEUNIT");
-            x_start = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][0];
-            x_end = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][1];
-            y_start = this.keygrid.y_positions[space_unit_indicies[0]][0];
-            y_end = this.keygrid.y_positions[space_unit_indicies[0]][1];
-
-            for (var space_char_index  in space_chars){
-                var space_char = space_chars[space_char_index];
-
-                var space_clock_x = x_start + this.clock_radius * 1.5;
-                var space_clock_y= y_start + (y_end - y_start) / 4 * ((space_char_index % 2)*2 + 1);
-
-                let cur_space_clock = new Clock(this.face_canvas, this.hand_canvas,
-                                        space_clock_x, space_clock_y, this.clock_radius, space_char);
-                this.clocks.push(null);
-                this.clocks.push(null);
-                this.clocks.push(null);
-                this.clocks.push(cur_space_clock);
-            }
-        }
+        // if (indexOf_2d(this.target_layout, "SPACEUNIT") !== false){
+        //     var space_chars = ['_', '\''];
+        //     space_chars = this.key_chars.filter(value => -1 !== space_chars.indexOf(value));
+        //
+        //     var space_unit_indicies = indexOf_2d(this.target_layout, "SPACEUNIT");
+        //     x_start = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][0];
+        //     x_end = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][1];
+        //     y_start = this.keygrid.y_positions[space_unit_indicies[0]][0];
+        //     y_end = this.keygrid.y_positions[space_unit_indicies[0]][1];
+        //
+        //     for (var space_char_index  in space_chars){
+        //         var space_char = space_chars[space_char_index];
+        //
+        //         var space_clock_x = x_start + this.clock_radius * 1.5;
+        //         var space_clock_y= y_start + (y_end - y_start) / 4 * ((space_char_index % 2)*2 + 1);
+        //
+        //         let cur_space_clock = new Clock(this.face_canvas, this.hand_canvas,
+        //                                 space_clock_x, space_clock_y, this.clock_radius, space_char);
+        //         this.clocks.push(null);
+        //         this.clocks.push(null);
+        //         this.clocks.push(null);
+        //         this.clocks.push(cur_space_clock);
+        //     }
+        // }
 
         if (indexOf_2d(this.target_layout, "BACKUNIT") !== false){
             var back_chars = ['#', '$'];
@@ -261,7 +261,6 @@ export class ClockGrid{
         }
 
         if (indexOf_2d(this.target_layout, "UNDOUNIT") !== false){
-            var undo_char = ['@'];
 
             var undo_unit_indicies = indexOf_2d(this.target_layout, "UNDOUNIT");
             x_start = this.keygrid.x_positions[undo_unit_indicies[0]][undo_unit_indicies[1]][0];
@@ -279,8 +278,18 @@ export class ClockGrid{
             this.clocks.push(null);
             this.clocks.push(cur_undo_clock);
 
-            var undo_label_x = x_start + this.clock_radius * 3;
-            var undo_label_y = y_start + (y_end - y_start) * 2 / 3;
+            var space_clock_x = x_start + this.clock_radius * 1.5;
+            var space_clock_y = y_start + (y_end - y_start) / 4*3;
+
+            let cur_space_clock = new Clock(this.face_canvas, this.hand_canvas,
+                                    space_clock_x, space_clock_y, this.clock_radius, "_");
+            this.clocks.push(null);
+            this.clocks.push(null);
+            this.clocks.push(null);
+            this.clocks.push(cur_space_clock);
+
+            var undo_label_x = x_start + this.clock_radius * 8;
+            var undo_label_y = y_start + (y_end - y_start) / 4;
 
             this.undo_label = new Label(this.face_canvas, undo_label_x, undo_label_y, this.clock_radius*2,"");
 
