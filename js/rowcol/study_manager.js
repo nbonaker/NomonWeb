@@ -23,6 +23,7 @@ export class studyManager {
         this.final_survey = false;
         this.short_tlx = false;
         this.full_tlx = false;
+        this.in_survey = false;
 
     }
     request_session_data(){
@@ -73,20 +74,22 @@ export class studyManager {
 
             this.parent.in_session = true;
 
-            document.getElementById("info_label").innerHTML =`<i>Copy the phrase in the box below. Press enter for the next phrase.</i>`;
+            document.getElementById("info_label").innerHTML =`<i>Copy the phrase below. Press enter for the next phrase.</i>`;
 
             this.parent.session_button.value = "End Session";
             this.parent.session_button.onclick = null;
             this.parent.session_button.className = "btn unclickable";
 
-            this.parent.change_user_button.className = "btn unclickable";
+            document.getElementById("checkbox_webcam").disabled = true;
+
+            this.parent.change_user_button.style.display = "none";
 
             this.parent.checkbox_webcam.checked = true;
 
             // this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 60*3;
+            this.session_length = 3*3;
             this.session_start_time = Math.round(Date.now() / 1000);
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
@@ -164,7 +167,6 @@ export class studyManager {
 
         }
 
-        this.parent.pause_checkbox.checked = true;
         this.parent.audio_checkbox.checked = true;
     }
     allow_session_continue(){
@@ -228,7 +230,7 @@ export class studyManager {
         if (this.intermediate_survey){
             alert(`You will now fill out a couple of surveys about your experience using Keyboard B. The survey will open in a new tab. DO NOT CLOSE THIS TAB.`);
 
-            var survey_url = "questionnaire_intermediate.html".concat('?user_id=', this.user_id.toString(), '&condition=B&session=',
+            var survey_url = "../html/questionnaire_intermediate.html".concat('?user_id=', this.user_id.toString(), '&condition=B&session=',
                     this.session_number.toString(), '&partial_session=', this.partial_session.toString());
 
             if (this.full_tlx) {
@@ -245,9 +247,43 @@ export class studyManager {
                 survey_url = survey_url.concat('&final=false');
             }
 
-            var new_win = window.open(survey_url, '_blank');
-            new_win.focus();
+            this.survey_win = window.open(survey_url, '_blank');
+            this.survey_win.focus();
         }
+
+        this.in_survey = true;
+        this.parent.run_on_focus = true;
+    }
+    check_survey_complete(){
+        var get_data = {};
+
+        get_data["user_id"] = this.user_id;
+        get_data["condition"] = "B";
+        get_data["order"] = 1 + (this.partial_session | 0);
+        get_data["session"] = this.session_number;
+
+        console.log(get_data);
+
+        function check_survey(study_manager) { // jshint ignore:line
+            $.ajax({
+                method: "GET",
+                url: "../php/check_survey_data.php",
+                data: get_data
+            }).done(function (data) {
+                var result_arr = $.parseJSON(data);
+                var result = result_arr[0]["COUNT(1)"];
+                console.log(result);
+                if (result >= 1) {
+                    study_manager.survey_complete = true;
+                    study_manager.parent.run_on_focus = true;
+                } else {
+                    alert(`Please complete the surveys before moving on. DO NOT CLOSE THIS TAB.`);
+                    study_manager.survey_win.focus();
+                    // study_manager.parent.run_on_focus = true;
+                }
+            });
+        }
+        check_survey(this);
     }
     launch_next_software(){
         var keyboard_url;

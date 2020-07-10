@@ -160,6 +160,9 @@ class webcamSetup {
     }
     start_calibration(){
         this.webcam_switch = new webswitch.WebcamSwitch(this,false);
+        this.webcam_canvas.canvas.style.height ="60px";
+        this.webcam_canvas.canvas.style.width ="480px";
+
         clearInterval(this.animation_timer);
 
         this.draw_left = false;

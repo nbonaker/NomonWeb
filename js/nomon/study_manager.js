@@ -23,6 +23,8 @@ export class studyManager {
         this.final_survey = false;
         this.short_tlx = false;
         this.full_tlx = false;
+        this.in_survey = false;
+        this.survey_complete = false;
 
 
     }
@@ -74,16 +76,20 @@ export class studyManager {
 
             this.parent.in_session = true;
 
-            document.getElementById("info_label").innerHTML =`<i>Copy the phrase in the box below. Press enter for the next phrase.</i>`;
+            document.getElementById("info_label").innerHTML =`<i>Copy the phrase below. Press enter for the next phrase.</i>`;
 
             this.parent.session_button.value = "End Session";
             this.parent.session_button.onclick = null;
             this.parent.session_button.className = "btn unclickable";
 
-            this.parent.change_user_button.className = "btn unclickable";
+            // this.parent.change_user_button.className = "btn unclickable";
+            this.parent.change_user_button.style.display = "none";
 
             this.parent.learn_checkbox.checked = true;
             this.parent.checkbox_webcam.checked = true;
+
+            this.parent.checkbox_webcam.disabled = true;
+            this.parent.learn_checkbox.disabled = true;
 
             // this.init_webcam_switch();
             // document.onkeypress = null;
@@ -224,30 +230,64 @@ export class studyManager {
         this.launch_surveys();
 
     }
-    launch_surveys(){
-        if (this.intermediate_survey){
+    launch_surveys() {
+        if (this.intermediate_survey) {
             alert(`You will now fill out a couple of surveys about your experience using Keyboard A. The survey will open in a new tab. DO NOT CLOSE THIS TAB.`);
 
-            var survey_url = "questionnaire_intermediate.html".concat('?user_id=', this.user_id.toString(), '&condition=A&session=',
-                    this.session_number.toString(), '&partial_session=', this.partial_session.toString());
+            var survey_url = "../html/questionnaire_intermediate.html".concat('?user_id=', this.user_id.toString(), '&condition=A&session=',
+                this.session_number.toString(), '&partial_session=', this.partial_session.toString());
 
             if (this.full_tlx) {
                 survey_url = survey_url.concat('&tlx=full');
-            } else if (this.short_tlx){
+            } else if (this.short_tlx) {
                 survey_url = survey_url.concat('&tlx=short');
             } else {
                 survey_url = survey_url.concat('&tlx=false');
             }
 
-            if (this.final_survey){
+            if (this.final_survey) {
                 survey_url = survey_url.concat('&final=true');
             } else {
                 survey_url = survey_url.concat('&final=false');
             }
 
-            var new_win = window.open(survey_url, '_blank');
-            new_win.focus();
+            this.survey_win = window.open(survey_url, '_blank');
+            this.survey_win.focus();
+
+            this.in_survey = true;
+            this.parent.run_on_focus = true;
         }
+    }
+    check_survey_complete(){
+        var get_data = {};
+
+        get_data["user_id"] = this.user_id;
+        get_data["condition"] = "A";
+        get_data["order"] = 1 + (this.partial_session | 0);
+        get_data["session"] = this.session_number;
+
+        console.log(get_data);
+
+        function check_survey(study_manager) { // jshint ignore:line
+            $.ajax({
+                method: "GET",
+                url: "../php/check_survey_data.php",
+                data: get_data
+            }).done(function (data) {
+                var result_arr = $.parseJSON(data);
+                var result = result_arr[0]["COUNT(1)"];
+                console.log(result);
+                if (result >= 1) {
+                    study_manager.survey_complete = true;
+                    study_manager.parent.run_on_focus = true;
+                } else {
+                    alert(`Please complete the surveys before moving on. DO NOT CLOSE THIS TAB.`);
+                    study_manager.survey_win.focus();
+                    // study_manager.parent.run_on_focus = true;
+                }
+            });
+        }
+        check_survey(this);
     }
     launch_next_software(){
         var keyboard_url;
