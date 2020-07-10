@@ -19,6 +19,11 @@ export class studyManager {
         this.session_length = null;
         this.session_start_time = null;
 
+        this.intermediate_survey = true;
+        this.final_survey = false;
+        this.short_tlx = false;
+        this.full_tlx = false;
+
     }
     request_session_data(){
         var user_id = parseInt(this.user_id);
@@ -88,27 +93,7 @@ export class studyManager {
 
             this.parent.draw_phrase();
 
-            if (this.session_number === 1){
-
-                this.parent.change_scan_delay(1);
-                this.parent.speed_slider_output.innerHTML = 1;
-                this.parent.speed_slider.value = 1;
-                this.parent.pre_phrase_scan_delay_index = 1;
-
-                this.parent.change_extra_delay(1);
-                this.parent.extra_delay_slider_output.innerHTML = 1;
-                this.parent.extra_delay_slider.value = 1;
-                this.parent.pre_phrase_extra_delay_index = 1;
-
-                this.parent.audio_checkbox.checked = true;
-
-                this.parent.in_info_screen = true;
-                this.parent.init_session_info_screen();
-            } else {
-                this.parent.pre_phrase_scan_delay_index = this.parent.scan_delay_index;
-                this.parent.pre_phrase_extra_delay_index = this.parent.extra_delay_index;
-                this.parent.init_webcam_switch();
-            }
+            this.init_session_specifics();
             // noinspection JSAnnotator
             function create_session_table(study_manager) { // jshint ignore:line
                 $.ajax({
@@ -122,6 +107,65 @@ export class studyManager {
             }
             create_session_table(this);
         }
+    }
+    init_session_specifics(){
+        this.parent.init_webcam_switch();
+
+        if (this.session_number <= 9){
+            if (this.session_number === 1){
+                this.parent.change_scan_delay(1);
+                this.parent.change_extra_delay(1);
+
+                this.parent.pre_phrase_scan_delay_index = 1;
+                this.parent.pre_phrase_extra_delay_index = 1;
+
+                this.parent.in_info_screen = true;
+                this.parent.init_session_info_screen();
+
+            } else if (this.session_number === 2) {
+                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
+                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
+
+                this.parent.in_info_screen = true;
+                this.parent.init_session_info_screen();
+                //tlx full and questionnaire
+                this.intermediate_survey = true;
+                this.full_tlx = true;
+
+            } else if (this.session_number === 5){
+                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
+                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
+                //tlx short and questionnaire
+                this.intermediate_survey = true;
+                this.short_tlx = true;
+
+            } else if (this.session_number === 9){
+                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
+                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
+                //tlx full and questionnaire
+                //final questionnaire
+                this.intermediate_survey = true;
+                this.final_survey = true;
+                this.full_tlx = true;
+
+            } else {
+                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
+                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
+            }
+
+        } else if (this.session_number === 10){
+            this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
+            this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
+            //tlx full and questionnaire
+            //final questionnaire
+            this.intermediate_survey = true;
+            this.final_survey = true;
+            this.full_tlx = true;
+
+        }
+
+        this.parent.pause_checkbox.checked = true;
+        this.parent.audio_checkbox.checked = true;
     }
     allow_session_continue(){
         this.parent.session_button.value = "Finished Typing";
@@ -178,7 +222,34 @@ export class studyManager {
             });
         }
         increment_session();
+        this.launch_surveys();
+    }
+    launch_surveys(){
+        if (this.intermediate_survey){
+            alert(`You will now fill out a couple of surveys about your experience using Keyboard B. The survey will open in a new tab. DO NOT CLOSE THIS TAB.`);
 
+            var survey_url = "questionnaire_intermediate.html".concat('?user_id=', this.user_id.toString(), '&condition=B&session=',
+                    this.session_number.toString(), '&partial_session=', this.partial_session.toString());
+
+            if (this.full_tlx) {
+                survey_url = survey_url.concat('&tlx=full');
+            } else if (this.short_tlx){
+                survey_url = survey_url.concat('&tlx=short');
+            } else {
+                survey_url = survey_url.concat('&tlx=false');
+            }
+
+            if (this.final_survey){
+                survey_url = survey_url.concat('&final=true');
+            } else {
+                survey_url = survey_url.concat('&final=false');
+            }
+
+            var new_win = window.open(survey_url, '_blank');
+            new_win.focus();
+        }
+    }
+    launch_next_software(){
         var keyboard_url;
         if (this.partial_session){
             alert(`You have finished typing for this session. Click to exit.`);

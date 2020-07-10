@@ -5,7 +5,6 @@ export class WebcamCanvas{
         this.canvas = document.getElementById(canvas_id);
         this.canvas.style.zIndex = layer_index;
 
-
         this.calculate_size();
     }
     calculate_size(){
@@ -14,8 +13,20 @@ export class WebcamCanvas{
 
         this.ctx = this.canvas.getContext("2d");
 
+        this.canvas.style.width ='50%';
+        this.canvas.style.height ='35px';
+
+        this.canvas.width  = this.canvas.offsetWidth;
+        this.canvas.height = this.canvas.offsetHeight;
+
         this.screen_width = this.canvas.width;
         this.screen_height = this.canvas.height;
+    }
+    draw_grey(){
+        this.ctx.beginPath();
+        this.ctx.fillStyle = "#ededed";
+        this.ctx.rect(0, 0, this.screen_width, this.screen_height);
+        this.ctx.fill();
     }
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
@@ -30,7 +41,7 @@ export class WebcamSwitch{
         if (!show_feed) {
             this.video_canvas.style.visibility = "hidden";
         }
-        this.webcam_canvas = new WebcamCanvas("webcam_canvas", 1);
+        this.webcam_canvas = this.parent.webcam_canvas;
         this.control_switch = false;
         this.trigger_switch = false;
         this.highlight_trigger = false;

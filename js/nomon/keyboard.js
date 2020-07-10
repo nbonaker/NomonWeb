@@ -36,10 +36,11 @@ class Keyboard{
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
-        this.webcam_canvas = document.getElementById("webcam_canvas");
+        this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
 
         this.webcam_info_complete=false;
         this.in_webcam_info_screen = false;
+        this.in_webcam_calibration = false;
         this.ws = null;
         this.init_webcam_switch();
 
@@ -88,11 +89,7 @@ class Keyboard{
     init_webcam_switch(){
         this.webcam_enabled = document.getElementById("checkbox_webcam").checked;
         if (!this.webcam_enabled){
-            var ctx = this.webcam_canvas.getContext("2d");
-            ctx.beginPath();
-            ctx.fillStyle = "#ededed";
-            ctx.rect(0, 0, this.webcam_canvas.width, this.webcam_canvas.height);
-            ctx.fill();
+            this.webcam_canvas.draw_grey();
             if (this.ws != null) {
                 var stream = this.ws.face_finder.mycamvas.video.srcObject;
                 stream.getTracks().forEach(function(track) {
@@ -114,6 +111,35 @@ class Keyboard{
             this.ws.face_x_calibration = 0.55 - this.prev_data["webcam_reset"];
             this.ws.triger_x_calibration = 0.93 - this.prev_data["webcam_trigger"];
         }
+    }
+    update_webcam_calibration(){
+        function get_data(keyboard) {
+            $.ajax({
+                method: "GET",
+                url: "../php/send_login.php",
+                data: {"user_id": keyboard.user_id}
+            }).done(function (data) {
+                var result = $.parseJSON(data);
+                result = result[0];
+
+                var webcam_reset = JSON.parse(result.webcam_reset);
+                if (webcam_reset !== null) {
+                    console.log("Retrieved Webcam Reset!");
+                }
+                keyboard.prev_data["webcam_reset"]= webcam_reset;
+
+                var webcam_trigger = JSON.parse(result.webcam_trigger);
+                if (webcam_trigger !== null) {
+                    console.log("Retrieved Webcam Trigger!");
+                }
+                keyboard.prev_data["webcam_trigger"]= webcam_trigger;
+
+                document.getElementById("checkbox_webcam").checked = true;
+                keyboard.init_webcam_switch();
+            });
+        }
+        this.in_webcam_calibration = false;
+        get_data(this);
     }
     continue_init(){
         this.init_words();
@@ -199,6 +225,18 @@ class Keyboard{
                     }
                 }
             }
+        }.bind(this);
+
+        this.recalibrate_button = document.getElementById("recalibrate_button");
+        this.recalibrate_button.onclick = function () {
+            this.in_webcam_calibration = true;
+            if (this.webcam_enabled) {
+                document.getElementById("checkbox_webcam").checked = false;
+                this.init_webcam_switch();
+            }
+            var url = "webcam_setup.html".concat('?user_id=', this.user_id.toString());
+            var new_win = window.open(url, '_blank');
+            new_win.focus();
         }.bind(this);
 
         this.learn_checkbox = document.getElementById("checkbox_learn");
@@ -1049,6 +1087,9 @@ class Keyboard{
                 this.study_manager.update_session_timer(time_in);
             }
         }
+        if (this.in_webcam_calibration && document.hasFocus()){
+            this.update_webcam_calibration();
+        }
     }
     play_audio() {
         if (this.audio_checkbox.checked){
@@ -1059,7 +1100,7 @@ class Keyboard{
         this.keygrid_canvas.calculate_size();
         this.keygrid.generate_layout();
         this.keygrid.draw_layout();
-    
+
         this.clockface_canvas.calculate_size();
         this.clockhand_canvas.calculate_size();
         this.clockgrid.clocks = [];
@@ -1078,6 +1119,9 @@ class Keyboard{
         this.histogram.draw_box();
         this.histogram.draw_histogram();
         this.textbox.calculate_size();
+        if (this.webcam_enabled){
+            this.ws.webcam_canvas.calculate_size();
+        }
 
         if (this.in_info_screen){
             this.info_canvas.calculate_size(0);
