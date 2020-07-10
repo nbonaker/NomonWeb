@@ -33,6 +33,8 @@ class webcamSetup {
         this.init_ui();
         this.animation_timer = setInterval(this.rotate.bind(this), 20);
 
+        this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
+
         this.draw_left = false;
         this.draw_right = false;
         this.rotate_to_webcam = false;
