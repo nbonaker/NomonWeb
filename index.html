@@ -174,7 +174,7 @@
 
             document.getElementById("send_button").onclick = function(){
                 keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-                    '&partial_session=', partial_session.toString(), '&software=', next_software);
+                    '&partial_session=', partial_session.toString(), '&software=', next_software, '&forward=true');
                 window.open(keyboard_url,'_self');
             };
         }
