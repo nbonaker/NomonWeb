@@ -39,6 +39,8 @@ class Keyboard{
         this.ws = null;
         this.init_webcam_switch();
 
+        this.run_on_focus = false;
+
         window.addEventListener('keydown', function (e) {
             if (e.keyCode === 32) {
                 e.preventDefault();
@@ -216,6 +218,7 @@ class Keyboard{
         this.recalibrate_button = document.getElementById("recalibrate_button");
         this.recalibrate_button.onclick = function () {
             this.in_webcam_calibration = true;
+            this.run_on_focus = true;
             if (this.webcam_enabled) {
                 document.getElementById("checkbox_webcam").checked = false;
                 this.init_webcam_switch();
@@ -1078,6 +1081,21 @@ class Keyboard{
 
         console.log(this.row_scan, this.col_scan, press, this.next_scan_time);
     }
+    execute_on_focus(){
+        if (this.in_webcam_calibration){
+            this.update_webcam_calibration();
+        }
+        if (this.study_manager && this.study_manager.in_survey){
+
+            if (this.study_manager.survey_complete){
+                this.study_manager.in_survey = false;
+                this.study_manager.launch_next_software();
+            } else {
+                this.study_manager.check_survey_complete();
+            }
+        }
+        this.run_on_focus = false;
+    }
     animate(){
         if (this.full_init) {
             var time_in = Date.now()/1000;
@@ -1099,8 +1117,11 @@ class Keyboard{
                 this.study_manager.update_session_timer(time_in);
             }
         }
-        if (this.in_webcam_calibration && document.hasFocus()){
-            this.update_webcam_calibration();
+        if (this.run_on_focus && document.hasFocus()){
+            this.execute_on_focus();
+        }
+        if (!document.hasFocus() && !this.run_on_focus){
+            this.run_on_focus = true;
         }
     }
     play_audio() {
