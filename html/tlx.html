@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+    <title>Questionnaire Intermediate</title>
+    <link rel="icon"
+    type="image/png"
+    href="../icon.png">
+<head>
+<style>
+p {
+  font-size: 20px;
+}
+.slidecontainer {
+    display: inline;
+    text-align: center;
+    width: 100%;
+}
+.slider {
+    -webkit-appearance: none;
+    width: 35vw ;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #0056ff;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #0056ff;
+  cursor: pointer;
+}
+textarea {
+    font-family: "Lucida Console", Monaco;
+    font-size: 20pt ;
+    width: 60%;
+    height: 200px;
+}
+.btn {
+  border: none;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: Helvetica, sans-serif;
+  font-size: 1.1vw ;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.clickable {
+    background-color: #0056ff;
+}
+.unclickable {
+    background-color: rgba(0, 89, 255, 0.32);
+}
+.large_text {
+    background-color: #0056ff;
+    font-size: 3vw ;
+}
+</style>
+<body>
+    <h1><b>Task Load Index</b></h1>
+    <h2>Participant: <span id="user_id_text">?</span><br>
+        Condition: Keyboard <span id="condition_text">?</span><br>
+        Order: <span id="order_text">?</span><br>
+        Session Number: <span id="session_text">?</span></h2>
+
+    <h3 id="task_heading">The questions on this page refer to the experimental condition you just completed.<br>
+    How much do you feel the following factors contributed to the overall difficulty of typing with this keyboard (on a scale of 0 to 100):</h3>
+
+    <p id="slider1_text"><b>Mental Demand:</b> <i>How mentally demanding was the task?</i></p>
+    <div class="slidecontainer" id="slider1_div">
+        <label for="slider1" class="label toprow">Very Low -- 0</label>
+        <input type="range" min="0" max="20" value="10" class="slider" id="slider1">
+        <label for="slider1" class="label toprow">100 -- Very High</label>
+        <label for="slider1" class="label toprow"><b><span id="slider1_value"></span></b></label>
+    </div>
+
+    <p id="slider2_text"><b>Physical Demand:</b> <i>How physically demanding was the task?</i></p>
+    <div class="slidecontainer" id="slider2_div">
+        <label for="slider2" class="label toprow">Very Low -- 0</label>
+        <input type="range" min="0" max="20" value="10" class="slider" id="slider2">
+        <label for="slider2" class="label toprow">100 -- Very High</label>
+        <label for="slider2" class="label toprow"><b><span id="slider2_value"></span></b></label>
+    </div>
+
+    <p id="slider3_text"><b>Temporal Demand:</b> <i>How hurried or rushed was the pace of the task?</i></p>
+    <div class="slidecontainer" id="slider3_div">
+        <label for="slider3" class="label toprow">Very Low -- 0</label>
+        <input type="range" min="0" max="20" value="10" class="slider" id="slider3">
+        <label for="slider3" class="label toprow">100 -- Very High</label>
+        <label for="slider3" class="label toprow"><b><span id="slider3_value"></span></b></label>
+    </div>
+
+    <p id="slider4_text"><b>Performance:</b> <i>How successful were you in accomplishing what you were asked to do?</i></p>
+    <div class="slidecontainer" id="slider4_div">
+        <label for="slider4" class="label toprow">Very Low -- 0</label>
+        <input type="range" min="0" max="20" value="10" class="slider" id="slider4">
+        <label for="slider4" class="label toprow">100 -- Very High</label>
+        <label for="slider4" class="label toprow"><b><span id="slider4_value"></span></b></label>
+    </div>
+
+    <p id="slider5_text"><b>Effort:</b> <i>How hard did you have to work to accomplish your level of performance?</i></p>
+    <div class="slidecontainer" id="slider5_div">
+        <label for="slider5" class="label toprow">Very Low -- 0</label>
+        <input type="range" min="0" max="20" value="10" class="slider" id="slider5">
+        <label for="slider5" class="label toprow">100 -- Very High</label>
+        <label for="slider5" class="label toprow"><b><span id="slider5_value"></span></b></label>
+    </div>
+
+    <p id="slider6_text"><b>Frustration:</b> <i>How insecure, discouraged, irritated, stressed, and annoyed were you?</i></p>
+    <div class="slidecontainer" id="slider6_div">
+        <label for="slider6" class="label toprow">Very Low -- 0</label>
+        <input type="range" min="0" max="20" value="10" class="slider" id="slider6">
+        <label for="slider6" class="label toprow">100 -- Very High</label>
+        <label for="slider6" class="label toprow"><b><span id="slider6_value"></span></b></label>
+    </div>
+    <div id= "factor_button_div" style="display: none">
+        <input class='btn large_text' type="button" id = "factor1_button" value = ""/>
+        <p> or </p>
+        <input class='btn large_text' type="button" id = "factor2_button" value = ""/>
+    </div>
+    <br><br><br><br>
+    <input class='btn unclickable' type="button" id = "submit_button" value = "Submit"/>
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script type="text/javascript">
+    function shuffle(array) {
+        let counter = array.length;
+
+        // While there are elements in the array
+        while (counter > 0) {
+            // Pick a random index
+            let index = Math.floor(Math.random() * counter);
+
+            // Decrease counter by 1
+            counter--;
+
+            // And swap the last element with it
+            let temp = array[counter];
+            array[counter] = array[index];
+            array[index] = temp;
+        }
+
+        return array;
+    }
+
+    function allow_submit(){
+        if (slider1_changed && slider2_changed && slider3_changed && slider4_changed && slider5_changed
+            && slider6_changed){
+            if (full_tlx){
+                send_button.onclick = init_weight_scoring;
+            } else {
+                send_button.onclick = send_data;
+            }
+            send_button.className = 'btn clickable';
+        }
+    }
+
+    function send_data(){ // jshint ignore:line
+        post_data = {};
+        post_data["user_id"] = user_id;
+        post_data["condition"] = condition;
+        post_data["order"] = order;
+        post_data["session"] = session;
+
+        post_data["q1"] = slider1.value;
+        post_data["q2"] = slider2.value;
+        post_data["q3"] = slider3.value;
+        post_data["q4"] = slider4.value;
+        post_data["q5"] = slider5.value;
+        post_data["q6"] = slider6.value;
+
+        var free_response_text = response_box.value;
+        post_data["fr1"] = free_response_text.replace(new RegExp("'", "g"), "8");
+        console.log(post_data);
+
+        $.ajax({
+            method: "POST",
+            url: "../php/send_survey_int.php",
+            data: post_data
+        }).done(function (data) {
+            var result = data;
+            console.log(result);
+            window.close();
+        });
+    }
+
+    function init_weight_scoring() {
+        document.getElementById("slider1_div").style.display = "none";
+        document.getElementById("slider1_text").style.display = "none";
+        document.getElementById("slider2_div").style.display = "none";
+        document.getElementById("slider2_text").style.display = "none";
+        document.getElementById("slider3_div").style.display = "none";
+        document.getElementById("slider3_text").style.display = "none";
+        document.getElementById("slider4_div").style.display = "none";
+        document.getElementById("slider4_text").style.display = "none";
+        document.getElementById("slider5_div").style.display = "none";
+        document.getElementById("slider5_text").style.display = "none";
+        document.getElementById("slider6_div").style.display = "none";
+        document.getElementById("slider6_text").style.display = "none";
+
+        document.getElementById("task_heading").innerHTML = `The questions on this page refer to the experimental condition you just completed.<br>
+            Click on the factor that you feel contributed more to the overall difficulty of typing with this keyboard:`;
+
+        document.getElementById("factor_button_div").style.display = "inline-block";
+        send_button.className = 'btn unclickable';
+        send_button.value = "Submit";
+
+        increment_weights();
+
+        factor1_button.onclick = function () {
+            weight_values[factor1_button.value] += 1;
+            increment_weights();
+        };
+        factor2_button.onclick = function () {
+            weight_values[factor2_button.value] += 1;
+            increment_weights();
+        };
+    }
+
+    function increment_weights(){
+        if (weight_pairs.length > 0){
+            var cur_weights = weight_pairs.pop();
+            factor1_button.value = cur_weights[0];
+            factor2_button.value = cur_weights[1];
+        } else {
+            send_button.className = 'btn clickable';
+            document.getElementById("task_heading").innerHTML = `You have completed this survey. Click to exit.`;
+            document.getElementById("factor_button_div").style.display = "none";
+            console.log(weight_values);
+        }
+    }
+
+    const params = new URLSearchParams(document.location.search);
+    const user_id = params.get("user_id");
+    const condition = params.get("condition");
+    const session = params.get("session");
+    const partial_session = params.get("partial_session") === 'true';
+    console.log(partial_session);
+    const order = 1 + (partial_session | 0);
+    const full_tlx = params.get("full") === "true";
+
+    var user_id_header = document.getElementById("user_id_text");
+    user_id_header.innerHTML = user_id;
+    var condition_header = document.getElementById("condition_text");
+    condition_header.innerHTML = condition;
+    var order_header = document.getElementById("order_text");
+    order_header.innerHTML = order;
+    var session_header = document.getElementById("session_text");
+    session_header.innerHTML = session;
+
+    var slider1_changed = false;
+    var slider1 = document.getElementById("slider1");
+    var slider1_output = document.getElementById("slider1_value");
+    slider1_output.innerHTML = slider1.value*5;
+    slider1.oninput = function() {
+        slider1_changed = true;
+        slider1_output.innerHTML = slider1.value*5;
+        allow_submit();
+    };
+
+    var slider2_changed = false;
+    var slider2 = document.getElementById("slider2");
+    var slider2_output = document.getElementById("slider2_value");
+    slider2_output.innerHTML = slider2.value*5;
+    slider2.oninput = function() {
+        slider2_changed = true;
+        slider2_output.innerHTML = slider2.value*5;
+        allow_submit();
+    };
+
+    var slider3_changed = false;
+    var slider3 = document.getElementById("slider3");
+    var slider3_output = document.getElementById("slider3_value");
+    slider3_output.innerHTML = slider3.value*5;
+    slider3.oninput = function() {
+        slider3_changed = true;
+        slider3_output.innerHTML = slider3.value*5;
+        allow_submit();
+    };
+
+    var slider4_changed = false;
+    var slider4 = document.getElementById("slider4");
+    var slider4_output = document.getElementById("slider4_value");
+    slider4_output.innerHTML = slider4.value*5;
+    slider4.oninput = function() {
+        slider4_changed = true;
+        slider4_output.innerHTML = slider4.value*5;
+        allow_submit();
+    };
+
+    var slider5_changed = false;
+    var slider5 = document.getElementById("slider5");
+    var slider5_output = document.getElementById("slider5_value");
+    slider5_output.innerHTML = slider5.value*5;
+    slider5.oninput = function() {
+        slider5_changed = true;
+        slider5_output.innerHTML = slider5.value*5;
+        allow_submit();
+    };
+
+    var slider6_changed = false;
+    var slider6 = document.getElementById("slider6");
+    var slider6_output = document.getElementById("slider6_value");
+    slider6_output.innerHTML = slider6.value*5;
+    slider6.oninput = function() {
+        slider6_changed = true;
+        slider6_output.innerHTML = slider6.value*5;
+        allow_submit();
+    };
+
+    var send_button = document.getElementById("submit_button");
+    if (full_tlx){
+        send_button.value = "Next";
+    }
+
+    var factor1_button = document.getElementById("factor1_button");
+    var factor2_button = document.getElementById("factor2_button");
+
+    var weight_pairs = shuffle([["Effort", "Performance"],
+                    ["Temporal Demand", "Effort"],
+                    ["Performance", "Frustration"],
+                    ["Physical Demand", "Performance"],
+                    ["Temporal Demand", "Frustration"],
+                    ["Physical Demand", "Frustration"],
+                    ["Physical Demand", "Temporal Demand"],
+                    ["Temporal Demand", "Mental Demand"],
+                    ["Frustration", "Effort"],
+                    ["Performance", "Temporal Demand"],
+                    ["Mental Demand", "Physical Demand"],
+                    ["Frustration", "Mental Demand"],
+                    ["Performance", "Mental Demand"],
+                    ["Mental Demand", "Effort"],
+                    ["Effort", "Physical Demand"]]);
+    console.log(weight_pairs);
+
+    var weight_values = {"Mental Demand": 0, "Physical Demand": 0, "Temporal Demand": 0, "Performance": 0, "Effort": 0,
+                         "Frustration": 0};
+
+
+
+
+
+</script>
+</body>
+</html>
