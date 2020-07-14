@@ -17,10 +17,17 @@ function log_add_exp(a_1, a_2){
 }
 
 class Keyboard{
-    constructor(user_id, first_load, partial_session, prev_data){
+    constructor(user_id, first_load, emoji, partial_session, prev_data){
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
+        this.emoji_keyboard = emoji;
+
+        if (this.emoji_keyboard){
+            this.n_pred = 0;
+        } else {
+            this.n_pred = kconfig.n_pred;
+        }
 
         if (this.user_id){
             this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
@@ -82,8 +89,13 @@ class Keyboard{
         this.fetched_words = false;
         this.lm = new lm.LanguageModel(this);
 
-        this.in_info_screen = first_load;
-        this.start_tutorial = first_load;
+        if (this.emoji_keyboard){
+            this.start_tutorial = false;
+            this.in_info_screen = false;
+        } else {
+            this.start_tutorial = first_load;
+            this.in_info_screen = first_load;
+        }
         this.in_tutorial = false;
         this.in_finished_screen = false;
         this.init_ui();
@@ -146,11 +158,16 @@ class Keyboard{
     continue_init(){
         this.init_words();
 
+        console.log(this.words_on);
+
+
         this.bc_init = false;
         this.previous_undo_text = '';
         this.previous_winner = 0;
 
-        this.gen_word_prior(false);
+        if (!this.emoji_keyboard) {
+            this.gen_word_prior(false);
+        }
         //
         this.bc = new bc.BroderClocks(this);
         this.full_init=true;
@@ -269,15 +286,24 @@ class Keyboard{
             this.init_webcam_switch();
         }.bind(this);
 
-        this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.alpha_target_layout);
-        this.clockgrid = new widgets.ClockGrid(this.clockface_canvas, this.clockhand_canvas, this.keygrid,
-            kconfig.alpha_target_layout, kconfig.key_chars, kconfig.main_chars, kconfig.n_pred);
+        if (this.emoji_keyboard) {
+            this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.emoji_target_layout);
+            this.clockgrid = new widgets.ClockGrid(this, this.clockface_canvas, this.clockhand_canvas, this.keygrid,
+                kconfig.emoji_target_layout, kconfig.emoji_key_chars, kconfig.emoji_main_chars, this.n_pred);
+        } else {
+            this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.alpha_target_layout);
+            this.clockgrid = new widgets.ClockGrid(this, this.clockface_canvas, this.clockhand_canvas, this.keygrid,
+                kconfig.alpha_target_layout, kconfig.key_chars, kconfig.main_chars, this.n_pred);
+        }
         this.textbox = new widgets.Textbox(this.output_canvas);
 
         this.histogram = new widgets.Histogram(this.output_canvas);
 
         if (this.in_info_screen){
             this.init_info_screen();
+        }
+        if (this.emoji_keyboard){
+            this.continue_init();
         }
     }
     init_webcam_info_screen(){
@@ -448,7 +474,7 @@ class Keyboard{
     }
     on_press(){
         this.play_audio();
-        if (this.fetched_words && !this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
+        if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
             var time_in = Date.now()/1000;
 
             if (this.in_tutorial) {
@@ -507,7 +533,12 @@ class Keyboard{
         }
     }
     init_locs(){
-        var key_chars = kconfig.key_chars;
+        var key_chars;
+        if (this.emoji_keyboard){
+            key_chars = kconfig.emoji_key_chars;
+        } else {
+            key_chars = kconfig.key_chars;
+        }
         this.N_rows = key_chars.length;
         this.N_keys_row = [];
         this.N_keys = 0;
@@ -515,7 +546,12 @@ class Keyboard{
         var row;
         var col;
         for (row = 0; row < this.N_rows; row++){
-            var n_keys = key_chars[row].length;
+
+            if (this.emoji_keyboard){
+                var n_keys = 1;
+            } else {
+                var n_keys = key_chars[row].length;
+            }
             for (col = 0; col < n_keys; col++){
                 if (!(key_chars[row] instanceof Array)){
                     if (kconfig.main_chars.includes(key_chars[row][col]) && (key_chars[row].length == 1)){
@@ -524,8 +560,7 @@ class Keyboard{
                     else if ((key_chars[row] == kconfig.space_char) && (key_chars[row].length == 1)){
                         this.N_alpha_keys = this.N_alpha_keys + 1;
                     }
-                    else if (key_chars[row] == kconfig.break_chars[1] && (
-                            key_chars[row].length == 1)) {
+                    else if (key_chars[row] == kconfig.break_chars[1] && (key_chars[row].length == 1)) {
                         this.N_alpha_keys = this.N_alpha_keys + 1;
                     }
                 }
@@ -556,24 +591,20 @@ class Keyboard{
         for (row = 0; row < this.N_rows; row++){
             this.w_canvas = Math.max([this.w_canvas, this.N_keys_row[row] * (6 * kconfig.clock_rad + kconfig.word_w)]);
             for (col = 0; col < this.N_keys_row[row]; col ++){
-                // predictive words
-                this.clock_centers.push([0, 0]);
-                this.clock_centers.push([0, 0]);
-                this.clock_centers.push([0, 0]);
-                // win diffs
-                this.win_diffs.push(config.win_diff_base);
-                this.win_diffs.push(config.win_diff_base);
-                this.win_diffs.push(config.win_diff_base);
-                // word position
-                this.word_locs.push([0, 0]);
-                this.word_locs.push([0, 0]);
-                this.word_locs.push([0, 0]);
-                // indices
-                this.index_to_wk.push(word);
-                this.index_to_wk.push(word + 1);
-                this.index_to_wk.push(word + 2);
-                index += 3;
-                word += 3;
+
+                for (var i=0; i< this.n_pred; i++){
+                    // predictive words
+                    this.clock_centers.push([0, 0]);
+                    // win diffs
+                    this.win_diffs.push(config.win_diff_base);
+                    // word position
+                    this.word_locs.push([0, 0]);
+                    // indices
+                    this.index_to_wk.push(word);
+                }
+
+                index += this.n_pred;
+                word += this.n_pred;
 
                 // key character
                 // reference to index of key character
@@ -619,7 +650,7 @@ class Keyboard{
         var pred;
         var word_str;
         for (key = 0; key < this.N_alpha_keys; key++){
-            for (pred = 0; pred < kconfig.n_pred; pred++){
+            for (pred = 0; pred < this.n_pred; pred++){
                 word_str = this.words_li[key][pred];
                 var len_word = word_str.length;
 
@@ -639,7 +670,7 @@ class Keyboard{
             index += 1;
         }
         for (key = this.N_alpha_keys; key < this.N_keys; key++){
-            for (pred =0; pred < kconfig.n_pred; pred++) {
+            for (pred =0; pred < this.n_pred; pred++) {
                 word_str = this.words_li[key][pred];
                 this.word_pair.push([key, pred]);
                 this.words_off.push(index);
@@ -670,7 +701,7 @@ class Keyboard{
         var pred;
         var word_str;
         for (key = 0; key < this.N_alpha_keys; key++){
-            for (pred = 0; pred < kconfig.n_pred; pred++){
+            for (pred = 0; pred < this.n_pred; pred++){
                 word_str = this.words_li[key][pred];
                 var len_word = word_str.length;
 
@@ -690,7 +721,7 @@ class Keyboard{
             index += 1;
         }
         for (key = this.N_alpha_keys; key < this.N_keys; key++){
-            for (pred =0; pred < kconfig.n_pred; pred++) {
+            for (pred =0; pred < this.n_pred; pred++) {
                 word_str = this.words_li[key][pred];
                 this.word_pair.push([key, pred]);
                 this.words_off.push(index);
@@ -724,7 +755,11 @@ class Keyboard{
                     this.word_score_prior.push(prob);
                 } else {
                     key = pair[0];
-                    prob = this.key_freq_li[key];
+                    if (this.emoji_keyboard){
+                        prob = Math.log(1/60);
+                    } else {
+                        prob = this.key_freq_li[key];
+                    }
 
                     // prob = prob + Math.log(kconfig.rem_prob);
                     // if (this.keys_li[key] == kconfig.mybad_char) {
@@ -1057,7 +1092,13 @@ class Keyboard{
 
         this.fetched_words = false;
         this.skip_hist = false;
-        this.lm.update_cache(this.left_context, this.lm_prefix, selection);
+
+
+        if (this.emoji_keyboard){
+            this.on_word_load();
+        } else  {
+            this.lm.update_cache(this.left_context, this.lm_prefix, selection);
+        }
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
@@ -1133,7 +1174,9 @@ class Keyboard{
                 clock.draw_face();
             }
         }
-        this.clockgrid.undo_label.draw_text();
+        if (!this.emoji_keyboard) {
+            this.clockgrid.undo_label.draw_text();
+        }
 
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.histogram.calculate_size();
@@ -1163,7 +1206,8 @@ const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
 const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
 const partial_session = params.get("partial_session") === 'true';
-console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session);
+const emoji = params.get("emoji") === 'true';
+console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Emoji: ", emoji);
 
 function send_login() {
     $.ajax({
@@ -1252,6 +1296,6 @@ function send_login() {
 if (user_id) {
     send_login();
 } else {
-    let keyboard = new Keyboard(user_id, first_load, false, null);
+    let keyboard = new Keyboard(user_id, first_load, emoji, false, null);
     setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 }

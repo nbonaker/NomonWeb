@@ -142,7 +142,8 @@ export class KeyGrid {
 }
 
 export class ClockGrid{
-    constructor(face_canvas, hand_canvas, keygrid, target_layout, key_chars, main_chars, n_pred){
+    constructor(parent, face_canvas, hand_canvas, keygrid, target_layout, key_chars, main_chars, n_pred){
+        this.parent = parent;
         this.face_canvas = face_canvas;
         this.hand_canvas = hand_canvas;
         this.keygrid = keygrid;
@@ -153,6 +154,7 @@ export class ClockGrid{
 
         this.clocks = [];
         this.generate_layout();
+        console.log(this.clocks);
     }
     generate_layout() {
 
@@ -200,9 +202,9 @@ export class ClockGrid{
 
                 let cur_break_clock = new Clock(this.face_canvas, this.hand_canvas,
                                         break_clock_x, break_clock_y, this.clock_radius, break_char);
-                this.clocks.push(null);
-                this.clocks.push(null);
-                this.clocks.push(null);
+                for (var i=0; i<this.parent.n_pred; i++) {
+                    this.clocks.push(null);
+                }
                 this.clocks.push(cur_break_clock);
             }
         }
@@ -252,9 +254,9 @@ export class ClockGrid{
                 }
                 let cur_back_clock = new Clock(this.face_canvas, this.hand_canvas,
                                         back_clock_x, back_clock_y, this.clock_radius, back_char);
-                this.clocks.push(null);
-                this.clocks.push(null);
-                this.clocks.push(null);
+                for (var i=0; i<this.parent.n_pred; i++) {
+                    this.clocks.push(null);
+                }
                 this.clocks.push(cur_back_clock);
 
             }
@@ -273,9 +275,9 @@ export class ClockGrid{
 
             let cur_undo_clock = new Clock(this.face_canvas, this.hand_canvas,
                                     undo_clock_x, undo_clock_y, this.clock_radius, "Undo");
-            this.clocks.push(null);
-            this.clocks.push(null);
-            this.clocks.push(null);
+            for (var i=0; i<this.parent.n_pred; i++) {
+                    this.clocks.push(null);
+                }
             this.clocks.push(cur_undo_clock);
 
             var space_clock_x = x_start + this.clock_radius * 1.5;
@@ -283,9 +285,9 @@ export class ClockGrid{
 
             let cur_space_clock = new Clock(this.face_canvas, this.hand_canvas,
                                     space_clock_x, space_clock_y, this.clock_radius, "_");
-            this.clocks.push(null);
-            this.clocks.push(null);
-            this.clocks.push(null);
+            for (var i=0; i<this.parent.n_pred; i++) {
+                    this.clocks.push(null);
+                }
             this.clocks.push(cur_space_clock);
 
             var undo_label_x = x_start + this.clock_radius * 8;
@@ -321,24 +323,25 @@ export class ClockGrid{
         var clock;
         var clock_index;
 
-        for (clock_index in this.clocks){
-            clock = this.clocks[clock_index];
+        if(!this.parent.emoji_keyboard) {
+            for (clock_index in this.clocks) {
+                clock = this.clocks[clock_index];
 
-            var key_index = Math.floor(clock_index / (this.n_pred + 1));
-            var word_index = clock_index % (this.n_pred + 1);
-            if (word_index != 3 && key_index < this.main_chars.length){
-                if (words[key_index][word_index] != ""){
-                    var word = words[key_index][word_index];
-                    clock.text = word;
-                    clock.filler = false;
-                }
-                else{
-                    clock.text = "";
-                    clock.filler = true;
-                    clock.hand_canvas.ctx.clearRect(clock.x_pos - clock.radius, clock.y_pos - clock.radius,
-                    clock.radius * 2, clock.radius * 2);
-                }
+                var key_index = Math.floor(clock_index / (this.n_pred + 1));
+                var word_index = clock_index % (this.n_pred + 1);
+                if (word_index != 3 && key_index < this.main_chars.length) {
+                    if (words[key_index][word_index] != "") {
+                        var word = words[key_index][word_index];
+                        clock.text = word;
+                        clock.filler = false;
+                    } else {
+                        clock.text = "";
+                        clock.filler = true;
+                        clock.hand_canvas.ctx.clearRect(clock.x_pos - clock.radius, clock.y_pos - clock.radius,
+                            clock.radius * 2, clock.radius * 2);
+                    }
 
+                }
             }
         }
 
@@ -349,7 +352,9 @@ export class ClockGrid{
                 clock.draw_hand();
             }
         }
-        this.undo_label.draw_text();
+        if(!this.parent.emoji_keyboard) {
+            this.undo_label.draw_text();
+        }
     }
 }
 
