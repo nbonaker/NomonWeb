@@ -16,6 +16,10 @@ function log_add_exp(a_1, a_2){
     return sum;
 }
 
+function emoji_count(str){
+    return Array.from(str.split(/[\ufe00-\ufe0f]/).join("")).length;
+}
+
 class Keyboard{
     constructor(user_id, first_load, emoji, partial_session, prev_data){
         console.log(prev_data);
@@ -944,7 +948,7 @@ class Keyboard{
 
         var i;
         // # if selected a key
-        if ((index - kconfig.n_pred) % (kconfig.n_pred + 1) == 0){
+        if ((index - this.n_pred) % (this.n_pred + 1) == 0){
             new_char = this.clockgrid.clocks[index].text;
             new_char = new_char.replace("Undo", kconfig.mybad_char);
             new_char = new_char.replace("Backspace", kconfig.back_char);
@@ -1024,6 +1028,13 @@ class Keyboard{
 
                 this.clear_text = true;
             }
+            else if (kconfig.emoji_main_chars.includes(new_char)){
+                console.log("EMOJI");
+                this.old_context_li.push(this.context);
+                this.context.concat(new_char);
+                this.last_add_li.push(new_char.length);
+                this.typed = this.typed.concat(new_char);
+            }
             else if (kconfig.main_chars.includes(new_char)) {
                 this.old_context_li.push(this.context);
                 this.context.concat(new_char);
@@ -1049,7 +1060,7 @@ class Keyboard{
             var key = this.index_to_wk[index];
             var pred = this.index_to_wk[index] % kconfig.n_pred;
             new_word = this.clockgrid.clocks[index].text;
-            if (new_word.charAt(new_word.length - 1) !== "_"){
+            if (!this.emoji_keyboard && new_word.charAt(new_word.length - 1) !== "_"){
                 new_word = new_word.concat("_");
             }
             selection = new_word;
