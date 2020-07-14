@@ -25,7 +25,7 @@ $performance_load = $_POST['performance_load'];
 $effort_load = $_POST['effort_load'];
 $frustration_load = $_POST['frustration_load'];
 
-if ($_POST['mental_weight']) {
+if (isset($_POST['mental_weight'])) {
     $mental_weight = $_POST['mental_weight'];
     $physical_weight = $_POST['physical_weight'];
     $temporal_weight = $_POST['temporal_weight'];
@@ -33,7 +33,7 @@ if ($_POST['mental_weight']) {
     $effort_weight = $_POST['effort_weight'];
     $frustration_weight = $_POST['frustration_weight'];
 
-    $query = "INSERT INTO survey_info (id, software, software_order, session, mental_load, physical_load,
+    $query = "INSERT INTO tlx_info (id, software, software_order, session, mental_load, physical_load,
     temporal_load, performance_load, effort_load, frustration_load, mental_weight, physical_weight,
     temporal_weight, performance_weight, effort_weight, frustration_weight) VALUES ('$user_id', '$condition', '$order',
     '$session', '$mental_load', '$physical_load', '$temporal_load', '$performance_load', '$effort_load',
@@ -41,7 +41,7 @@ if ($_POST['mental_weight']) {
     '$frustration_weight')";
 
 } else {
-    $query = "INSERT INTO survey_info (id, software, software_order, session, mental_load, physical_load,
+    $query = "INSERT INTO tlx_info (id, software, software_order, session, mental_load, physical_load,
     temporal_load, performance_load, effort_load, frustration_load) VALUES ('$user_id', '$condition', '$order',
     '$session', '$mental_load', '$physical_load', '$temporal_load', '$performance_load', '$effort_load',
     '$frustration_load')";
