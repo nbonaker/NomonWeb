@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <title>Questionnaire Intermediate</title>
+    <title>TLX</title>
     <link rel="icon"
     type="image/png"
     href="../icon.png">
@@ -180,20 +180,27 @@ textarea {
         post_data["order"] = order;
         post_data["session"] = session;
 
-        post_data["q1"] = slider1.value;
-        post_data["q2"] = slider2.value;
-        post_data["q3"] = slider3.value;
-        post_data["q4"] = slider4.value;
-        post_data["q5"] = slider5.value;
-        post_data["q6"] = slider6.value;
+        post_data["mental_load"] = slider1.value;
+        post_data["physical_load"] = slider2.value;
+        post_data["temporal_load"] = slider3.value;
+        post_data["performance_load"] = slider4.value;
+        post_data["effort_load"] = slider5.value;
+        post_data["frustration_load"] = slider6.value;
 
-        var free_response_text = response_box.value;
-        post_data["fr1"] = free_response_text.replace(new RegExp("'", "g"), "8");
+        if (full_tlx){
+            post_data["mental_weight"] = weight_values["Mental Demand"];
+            post_data["physical_weight"] = weight_values["Physical Demand"];
+            post_data["temporal_weight"] = weight_values["Temporal Demand"];
+            post_data["performance_weight"] = weight_values["Performance"];
+            post_data["effort_weight"] = weight_values["Effort"];
+            post_data["frustration_weight"] = weight_values["Frustration"];
+        }
+
         console.log(post_data);
 
         $.ajax({
             method: "POST",
-            url: "../php/send_survey_int.php",
+            url: "../php/send_tlx.php",
             data: post_data
         }).done(function (data) {
             var result = data;
@@ -229,6 +236,7 @@ textarea {
             weight_values[factor1_button.value] += 1;
             increment_weights();
         };
+
         factor2_button.onclick = function () {
             weight_values[factor2_button.value] += 1;
             increment_weights();
@@ -245,6 +253,7 @@ textarea {
             document.getElementById("task_heading").innerHTML = `You have completed this survey. Click to exit.`;
             document.getElementById("factor_button_div").style.display = "none";
             console.log(weight_values);
+            send_button.onclick = send_data;
         }
     }
 

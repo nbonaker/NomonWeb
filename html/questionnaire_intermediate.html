@@ -147,6 +147,7 @@ so far.</p>
     const partial_session = params.get("partial_session") === 'true';
     console.log(partial_session);
     const order = 1 + (partial_session | 0);
+    const tlx = params.get("tlx");
 
     var user_id_header = document.getElementById("user_id_text");
     user_id_header.innerHTML = user_id;
@@ -259,7 +260,21 @@ so far.</p>
         }).done(function (data) {
             var result = data;
             console.log(result);
-            window.close();
+
+            var url;
+            if (tlx === "full") {
+                url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
+                    '&condition=B&session=', session.toString(), '&partial_session=',
+                    partial_session.toString(), "&full=true");
+                window.open(url, "_self");
+            } else if (tlx === "short"){
+                url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
+                    '&condition=B&session=', session.toString(), '&partial_session=',
+                    partial_session.toString(), "&full=false");
+                window.open(url, "_self");
+            } else {
+                window.close();
+            }
         });
     }
 
