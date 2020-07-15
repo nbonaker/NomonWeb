@@ -305,7 +305,7 @@ export class studyManager {
                 first_load = "false";
             }
             keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load,
-                '&partial_session=true&emoji=', this.parent.emoji_keyboard.toString()););
+                '&partial_session=true&emoji=', this.parent.emoji_keyboard.toString());
             window.open(keyboard_url, '_self');
         }
     }

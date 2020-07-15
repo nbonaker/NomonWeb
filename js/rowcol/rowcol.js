@@ -21,16 +21,6 @@ class Keyboard{
 
         this.emoji_keyboard = emoji;
 
-        if (this.user_id){
-            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
-            this.webcam_enabled = true;
-            this.delay_webcam_info = true;
-        } else {
-            this.webcam_enabled = false;
-            this.delay_webcam_info = false;
-        }
-        this.in_session = false;
-
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
@@ -40,7 +30,18 @@ class Keyboard{
         this.in_webcam_info_screen = false;
         this.in_webcam_calibration = false;
         this.ws = null;
-        this.init_webcam_switch();
+
+        if (this.user_id){
+            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
+            this.webcam_enabled = true;
+            this.delay_webcam_info = true;
+            this.init_webcam_switch();
+        } else {
+            this.webcam_enabled = false;
+            this.delay_webcam_info = false;
+            document.getElementById("webcam_div").style.display="none";
+        }
+        this.in_session = false;
 
         this.run_on_focus = false;
 
