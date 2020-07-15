@@ -161,20 +161,27 @@
                     first_load = "false";
                 }
 
+                var emoji;
+                if (session_num == 9){
+                    emoji="true";
+                } else {
+                    emoji="false";
+                }
 
-                launch_software(user_id, next_software, partial_session, first_load);
+
+                launch_software(user_id, next_software, partial_session, first_load, emoji);
 
             });
 
         }
 
-        function launch_software(user_id, next_software, partial_session, first_load){
+        function launch_software(user_id, next_software, partial_session, first_load, emoji){
 
             document.getElementById("send_button").value = "Launch Software";
 
             document.getElementById("send_button").onclick = function(){
                 keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-                    '&partial_session=', partial_session.toString(), '&software=', next_software, '&forward=true');
+                    '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
                 window.open(keyboard_url,'_self');
             };
         }
