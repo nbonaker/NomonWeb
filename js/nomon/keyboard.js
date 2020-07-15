@@ -1299,7 +1299,7 @@ function send_login() {
             prev_data["webcam_trigger"]= webcam_trigger;
         }
 
-        let keyboard = new Keyboard(user_id, first_load, partial_session, prev_data);
+        let keyboard = new Keyboard(user_id, first_load, emoji, partial_session, prev_data);
         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
     });
 }
