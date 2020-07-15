@@ -255,6 +255,8 @@ export class studyManager {
 
             this.in_survey = true;
             this.parent.run_on_focus = true;
+        } else {
+            this.launch_next_software();
         }
     }
     check_survey_complete(){

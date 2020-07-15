@@ -861,7 +861,12 @@ class Keyboard{
         }
         else if (is_delete){
             if (this.typed_versions[this.typed_versions.length -1 ] != ''){
-                this.typed_versions.push(previous_text.slice(0, previous_text.length-1));
+                if (this.emoji_keyboard){
+                    var emoji_length = 2;
+                    this.typed_versions.push(previous_text.slice(0, previous_text.length - emoji_length));
+                } else {
+                    this.typed_versions.push(previous_text.slice(0, previous_text.length - 1));
+                }
                 new_text = this.typed_versions[this.typed_versions.length - 1];
                 if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
                     new_text = new_text.slice(0, new_text.lenght-1).concat("_");

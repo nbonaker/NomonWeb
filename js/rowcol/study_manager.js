@@ -19,7 +19,7 @@ export class studyManager {
         this.session_length = null;
         this.session_start_time = null;
 
-        this.intermediate_survey = true;
+        this.intermediate_survey = false;
         this.final_survey = false;
         this.short_tlx = false;
         this.full_tlx = false;
@@ -249,10 +249,12 @@ export class studyManager {
 
             this.survey_win = window.open(survey_url, '_blank');
             this.survey_win.focus();
+            this.in_survey = true;
+            this.parent.run_on_focus = true;
+        } else {
+            this.launch_next_software();
         }
 
-        this.in_survey = true;
-        this.parent.run_on_focus = true;
     }
     check_survey_complete(){
         var get_data = {};
