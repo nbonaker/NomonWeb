@@ -37,73 +37,83 @@ export class LanguageModel{
         return url;
     }
     update_cache(left, prefix, selection=null){
-        this.lm_prefix = prefix;
-        this.left_context = left;
+        if (!this.parent.emoji_keyboard) {
+            this.lm_prefix = prefix;
+            this.left_context = left;
 
-        var lm_params = {"left": left, "prefix": prefix};
-        var cache_type;
-        var api_url;
+            var lm_params = {"left": left, "prefix": prefix};
+            var cache_type;
+            var api_url;
 
-        // if first init and no words fetched
-        if (this.word_predictions.length == 0) {
-            this.word_update_complete = false;
-            //get base word predictions
-            cache_type = "word_base";
-            api_url = this.construct_url(this.word_predict_base_url, {"left": left, "prefix": prefix});
-            makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
-
-        }else{
-            var undo_word_predictions = this.word_predictions;
-            var undo_word_prediction_probs = this.word_prediction_probs;
-            var undo_key_probs = this.key_probs;
-
-            var undo_cache_list = this.word_cache[kconfig.mybad_char];
-
-            if (selection == kconfig.mybad_char && undo_cache_list.length > 0){
-                console.log("pulling from undo cache...");
-                var undo_cache_values = undo_cache_list.pop();
-                this.word_predictions = undo_cache_values.words.words;
-                this.word_prediction_probs = undo_cache_values.words.probs;
-                this.key_probs = undo_cache_values.keys;
-
-                this.word_cache = {};
-                this.word_cache[kconfig.mybad_char] = undo_cache_list;
-                this.parent.on_word_load();
-            }
-            else if (selection in this.word_cache && selection != kconfig.mybad_char &&
-                    "words" in this.word_cache[selection]){
-                console.log("pulling from word cache...");
-                this.word_predictions = this.word_cache[selection].words.words;
-                this.word_prediction_probs = this.word_cache[selection].words.probs;
-
-                this.word_cache = {};
-                undo_cache_list.push({"words": {"words": undo_word_predictions, "probs": undo_word_prediction_probs}});
-                this.word_cache[kconfig.mybad_char] = undo_cache_list;
-                this.parent.on_word_load(false);
-            }
-            else{
-                console.log("pulling from api...");
+            // if first init and no words fetched
+            if (this.word_predictions.length == 0) {
                 this.word_update_complete = false;
-
-                this.word_cache = {};
-                undo_cache_list.push({"words": {"words": undo_word_predictions, "probs": undo_word_prediction_probs}});
-                this.word_cache[kconfig.mybad_char] = undo_cache_list;
-
                 //get base word predictions
                 cache_type = "word_base";
                 api_url = this.construct_url(this.word_predict_base_url, {"left": left, "prefix": prefix});
                 makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
 
+            } else {
+                var undo_word_predictions = this.word_predictions;
+                var undo_word_prediction_probs = this.word_prediction_probs;
+                var undo_key_probs = this.key_probs;
+
+                var undo_cache_list = this.word_cache[kconfig.mybad_char];
+
+                if (selection == kconfig.mybad_char && undo_cache_list.length > 0) {
+                    console.log("pulling from undo cache...");
+                    var undo_cache_values = undo_cache_list.pop();
+                    this.word_predictions = undo_cache_values.words.words;
+                    this.word_prediction_probs = undo_cache_values.words.probs;
+                    this.key_probs = undo_cache_values.keys;
+
+                    this.word_cache = {};
+                    this.word_cache[kconfig.mybad_char] = undo_cache_list;
+                    this.parent.on_word_load();
+                } else if (selection in this.word_cache && selection != kconfig.mybad_char &&
+                    "words" in this.word_cache[selection]) {
+                    console.log("pulling from word cache...");
+                    this.word_predictions = this.word_cache[selection].words.words;
+                    this.word_prediction_probs = this.word_cache[selection].words.probs;
+
+                    this.word_cache = {};
+                    undo_cache_list.push({
+                        "words": {
+                            "words": undo_word_predictions,
+                            "probs": undo_word_prediction_probs
+                        }
+                    });
+                    this.word_cache[kconfig.mybad_char] = undo_cache_list;
+                    this.parent.on_word_load(false);
+                } else {
+                    console.log("pulling from api...");
+                    this.word_update_complete = false;
+
+                    this.word_cache = {};
+                    undo_cache_list.push({
+                        "words": {
+                            "words": undo_word_predictions,
+                            "probs": undo_word_prediction_probs
+                        }
+                    });
+                    this.word_cache[kconfig.mybad_char] = undo_cache_list;
+
+                    //get base word predictions
+                    cache_type = "word_base";
+                    api_url = this.construct_url(this.word_predict_base_url, {"left": left, "prefix": prefix});
+                    makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
+
+                }
             }
+
+            cache_type = "word_future_char";
+            api_url = this.construct_url(this.word_predict_char_future_url, {"left": left, "prefix": prefix});
+            makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
+
+            cache_type = "word_future_word";
+            api_url = this.construct_url(this.word_predict_word_future_url, {"left": left, "prefix": prefix});
+            makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
         }
-
-        cache_type = "word_future_char";
-        api_url = this.construct_url(this.word_predict_char_future_url, {"left": left, "prefix": prefix});
-        makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
-
-        cache_type = "word_future_word";
-        api_url = this.construct_url(this.word_predict_word_future_url, {"left": left, "prefix": prefix});
-        makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
 
     }
     on_cor_load_function(output, cache_type){
