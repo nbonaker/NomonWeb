@@ -19,7 +19,7 @@ export class studyManager {
         this.session_length = null;
         this.session_start_time = null;
 
-        this.intermediate_survey = true;
+        this.intermediate_survey = false;
         this.final_survey = false;
         this.short_tlx = false;
         this.full_tlx = false;
@@ -196,7 +196,6 @@ export class studyManager {
         this.parent.info_button.className = "btn unclickable";
         document.getElementById("info_label").innerHTML =`<i>press Finished Typing</i>`;
         this.parent.textbox.draw_text("");
-
     }
     session_continue(){
         var user_id = this.user_id;
@@ -305,7 +304,8 @@ export class studyManager {
             } else {
                 first_load = "false";
             }
-            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load, '&partial_session=true');
+            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load,
+                '&partial_session=true&emoji=', this.parent.emoji_keyboard.toString()););
             window.open(keyboard_url, '_self');
         }
     }
