@@ -7,43 +7,17 @@
 <head>
 <style>
 p {
-  font-size: 20px;
-}
-.slidecontainer {
-    display: inline;
-    text-align: center;
-    width: 100%;
-}
-.slider {
-    -webkit-appearance: none;
-    width: 35vw ;
-    height: 25px;
-    background: #d3d3d3;
-    outline: none;
-    opacity: 0.7;
-    -webkit-transition: .2s;
-    transition: opacity .2s;
+    font-size: 20px;
 }
 
-.slider:hover {
-  opacity: 1;
+.likert li {
+  float: left;
+  list-style-type: none;
+  text-align: center;
+  margin-right: 30px;
+  margin-left: 30px;
 }
 
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  background: #0056ff;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  background: #0056ff;
-  cursor: pointer;
-}
 textarea {
     font-family: "Lucida Console", Monaco;
     font-size: 20pt ;
@@ -78,62 +52,148 @@ textarea {
         Session Number: <span id="session_text">?</span></h2>
 
     <h3>The questions on this page refer to the experimental condition you just completed.<br>
-    How much do you agree or disagree with the following statements (on a scale of 1 to 7):</h3>
+    How much do you agree or disagree with the following statements:</h3>
+
 
     <p><b>1)</b> In this part of the study, I thought I entered text <b>quickly</b> using the experimental interface.</p>
-    <div class="slidecontainer">
-        <label for="slider1" class="label toprow">Strongly Disagree -- 1</label>
-        <input type="range" min="1" max="7" value="4" class="slider" id="slider1">
-        <label for="slider1" class="label toprow">7 -- Strongly Agree</label>
-        <label for="slider1" class="label toprow"><b><span id="slider1_value"></span></b></label>
-    </div>
+    <ul class="likert">
+        <li><input type="radio" onclick="allow_submit();" name="q1" value="1" /><br>
+        Strongly<br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q1" value="2" /><br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q1" value="3" /><br>
+        Neutral</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q1" value="4" /><br>
+        Agree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q1" value="5" /><br>
+        Strongly<br>
+        Agree</li>
+        <br>
+    </ul>
+    <br>
 
     <p><b>2)</b>  In this part of the study, I thought I entered text <b>accurately</b> using the experimental interface.</p>
-    <div class="slidecontainer">
-        <label for="slider2" class="label toprow">Strongly Disagree -- 1</label>
-        <input type="range" min="1" max="7" value="4" class="slider" id="slider2">
-        <label for="slider2" class="label toprow">7 -- Strongly Agree</label>
-        <label for="slider2" class="label toprow"><b><span id="slider2_value"></span></b></label>
-    </div>
+    <ul class="likert">
+        <li><input type="radio" onclick="allow_submit();" name="q2" value="1" /><br>
+        Strongly<br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q2" value="2" /><br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q2" value="3" /><br>
+        Neutral</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q2" value="4" /><br>
+        Agree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q2" value="5" /><br>
+        Strongly<br>
+        Agree</li>
+        <br>
+    </ul>
+    <br>
 
     <p><b>3)</b>  In this part of the study, I felt that I made many <b>incorrect</b> selections.</p>
-    <div class="slidecontainer">
-        <label for="slider3" class="label toprow">Strongly Disagree -- 1</label>
-        <input type="range" min="1" max="7" value="4" class="slider" id="slider3">
-        <label for="slider3" class="label toprow">7 -- Strongly Agree</label>
-        <label for="slider3" class="label toprow"><b><span id="slider3_value"></span></b></label>
-    </div>
+    <ul class="likert">
+        <li><input type="radio" onclick="allow_submit();" name="q3" value="1" /><br>
+        Strongly<br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q3" value="2" /><br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q3" value="3" /><br>
+        Neutral</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q3" value="4" /><br>
+        Agree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q3" value="5" /><br>
+        Strongly<br>
+        Agree</li>
+        <br>
+    </ul>
+    <br>
 
     <p><b>4)</b>  In this part of the study, I felt it was <b>easy to correct</b> any erroneous selections.</p>
-    <div class="slidecontainer">
-        <label for="slider4" class="label toprow">Strongly Disagree -- 1</label>
-        <input type="range" min="1" max="7" value="4" class="slider" id="slider4">
-        <label for="slider4" class="label toprow">7 -- Strongly Agree</label>
-        <label for="slider4" class="label toprow"><b><span id="slider4_value"></span></b></label>
-    </div>
+    <ul class="likert">
+        <li><input type="radio" onclick="allow_submit();" name="q4" value="1" /><br>
+        Strongly<br>
+        Disagree</li>
 
-    <p><b>5)</b>  In this part of the study, I felt it was easy to select the word I intended to type if the initial recognition
-was incorrect.</p>
-    <div class="slidecontainer">
-        <label for="slider5" class="label toprow">Strongly Disagree -- 1</label>
-        <input type="range" min="1" max="7" value="4" class="slider" id="slider5">
-        <label for="slider5" class="label toprow">7 -- Strongly Agree</label>
-        <label for="slider5" class="label toprow"><b><span id="slider5_value"></span></b></label>
-    </div>
+        <li><input type="radio" onclick="allow_submit();" name="q4" value="2" /><br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q4" value="3" /><br>
+        Neutral</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q4" value="4" /><br>
+        Agree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q4" value="5" /><br>
+        Strongly<br>
+        Agree</li>
+        <br>
+    </ul>
+    <br>
+
+    <p><b>5)</b>  In this part of the study, I felt it was easy to select the word I intended to type if i started off with a mistake.</p>
+    <ul class="likert">
+        <li><input type="radio" onclick="allow_submit();" name="q5" value="1" /><br>
+        Strongly<br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q5" value="2" /><br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q5" value="3" /><br>
+        Neutral</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q5" value="4" /><br>
+        Agree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q5" value="5" /><br>
+        Strongly<br>
+        Agree</li>
+        <br>
+    </ul>
+    <br>
 
     <p><b>6)</b>  In this part of the study, I found the audio feedback (bell sound) useful in determining what I had typed
 so far.</p>
-    <div class="slidecontainer">
-        <label for="slider6" class="label toprow">Strongly Disagree -- 1</label>
-        <input type="range" min="1" max="7" value="4" class="slider" id="slider6">
-        <label for="slider6" class="label toprow">7 -- Strongly Agree</label>
-        <label for="slider6" class="label toprow"><b><span id="slider6_value"></span></b></label>
-    </div>
+    <ul class="likert">
+        <li><input type="radio" onclick="allow_submit();" name="q6" value="1" /><br>
+        Strongly<br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q6" value="2" /><br>
+        Disagree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q6" value="3" /><br>
+        Neutral</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q6" value="4" /><br>
+        Agree</li>
+
+        <li><input type="radio" onclick="allow_submit();" name="q6" value="5" /><br>
+        Strongly<br>
+        Agree</li>
+    </ul>
+    <br><br>
 
     <div>
-        <br><p>In the space below, please share any comments you have about this part of the study <br>or your
-        experience with the typing interface:</p>
-        <textarea id="output_textbox"></textarea>
+        <br><p>What did you like and/or dislike about typing with this interface? <i>*required*</i></p>
+        <textarea id="fr_1"></textarea>
+    </div>
+    <div>
+        <br><p>You can use the space below to share any comments you have about this part of the study:</p>
+        <textarea id="fr_2"></textarea>
     </div>
 
     <input class='btn unclickable' type="button" id = "submit_button" value = "Submit"/>
@@ -160,76 +220,24 @@ so far.</p>
 
 
 
-    var slider1_changed = false;
-    var slider1 = document.getElementById("slider1");
-    var slider1_output = document.getElementById("slider1_value");
-    slider1_output.innerHTML = slider1.value;
-    slider1.oninput = function() {
-        slider1_changed = true;
-        slider1_output.innerHTML = slider1.value;
-        allow_submit();
-    };
-
-    var slider2_changed = false;
-    var slider2 = document.getElementById("slider2");
-    var slider2_output = document.getElementById("slider2_value");
-    slider2_output.innerHTML = slider2.value;
-    slider2.oninput = function() {
-        slider2_changed = true;
-        slider2_output.innerHTML = slider2.value;
-        allow_submit();
-    };
-
-    var slider3_changed = false;
-    var slider3 = document.getElementById("slider3");
-    var slider3_output = document.getElementById("slider3_value");
-    slider3_output.innerHTML = slider3.value;
-    slider3.oninput = function() {
-        slider3_changed = true;
-        slider3_output.innerHTML = slider3.value;
-        allow_submit();
-    };
-
-    var slider4_changed = false;
-    var slider4 = document.getElementById("slider4");
-    var slider4_output = document.getElementById("slider4_value");
-    slider4_output.innerHTML = slider4.value;
-    slider4.oninput = function() {
-        slider4_changed = true;
-        slider4_output.innerHTML = slider4.value;
-        allow_submit();
-    };
-
-    var slider5_changed = false;
-    var slider5 = document.getElementById("slider5");
-    var slider5_output = document.getElementById("slider5_value");
-    slider5_output.innerHTML = slider5.value;
-    slider5.oninput = function() {
-        slider5_changed = true;
-        slider5_output.innerHTML = slider5.value;
-        allow_submit();
-    };
-
-    var slider6_changed = false;
-    var slider6 = document.getElementById("slider6");
-    var slider6_output = document.getElementById("slider6_value");
-    slider6_output.innerHTML = slider6.value;
-    slider6.oninput = function() {
-        slider6_changed = true;
-        slider6_output.innerHTML = slider6.value;
-        allow_submit();
-    };
-
-    var response_box = document.getElementById("output_textbox");
-    response_box.oninput = function() {
+    var response_box_1 = document.getElementById("fr_1");
+    var response_box_2 = document.getElementById("fr_2");
+    response_box_1.oninput = function() {
         allow_submit();
     }
 
     send_button = document.getElementById("submit_button");
 
     function allow_submit(){
-        if (slider1_changed && slider2_changed && slider3_changed && slider4_changed && slider5_changed
-            && slider6_changed && response_box.value !== ""){
+        var q1_checked = document.querySelector('input[name="q1"]:checked') != null;
+        var q2_checked = document.querySelector('input[name="q2"]:checked') != null;
+        var q3_checked = document.querySelector('input[name="q3"]:checked') != null;
+        var q4_checked = document.querySelector('input[name="q4"]:checked') != null;
+        var q5_checked = document.querySelector('input[name="q5"]:checked') != null;
+        var q6_checked = document.querySelector('input[name="q6"]:checked') != null;
+
+        if (q1_checked && q2_checked && q3_checked && q4_checked && q5_checked
+            && q6_checked && response_box_1.value !== ""){
             send_button.onclick = send_data;
             send_button.className = 'btn clickable'
         }
@@ -242,15 +250,17 @@ so far.</p>
         post_data["order"] = order;
         post_data["session"] = session;
 
-        post_data["q1"] = slider1.value;
-        post_data["q2"] = slider2.value;
-        post_data["q3"] = slider3.value;
-        post_data["q4"] = slider4.value;
-        post_data["q5"] = slider5.value;
-        post_data["q6"] = slider6.value;
+        post_data["q1"] = document.querySelector('input[name="q1"]:checked').value;
+        post_data["q2"] = document.querySelector('input[name="q2"]:checked').value;
+        post_data["q3"] = document.querySelector('input[name="q3"]:checked').value;
+        post_data["q4"] = document.querySelector('input[name="q4"]:checked').value;
+        post_data["q5"] = document.querySelector('input[name="q5"]:checked').value;
+        post_data["q6"] = document.querySelector('input[name="q6"]:checked').value;
 
-        var free_response_text = response_box.value;
-        post_data["fr1"] = free_response_text.replace(new RegExp("'", "g"), "8");
+        var fr_1_text = response_box_1.value;
+        post_data["fr1"] = fr_1_text.replace(new RegExp("'", "g"), "8");
+        var fr_2_text = response_box_2.value;
+        post_data["fr2"] = fr_2_text.replace(new RegExp("'", "g"), "8");
         console.log(post_data);
 
         $.ajax({
@@ -273,7 +283,7 @@ so far.</p>
                     partial_session.toString(), "&full=false");
                 window.open(url, "_self");
             } else {
-                window.close();
+                // window.close();
             }
         });
     }
