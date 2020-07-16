@@ -410,15 +410,24 @@ class Keyboard{
     }
     draw_phrase(){
         this.typed_versions = [''];
-        this.lm_prefix = "";
-        this.left_context = "";
-        this.fetched_words = false;
-        this.is_undo = false;
-        this.is_equalize = false;
-        this.skip_hist = true;
-        this.lm.update_cache(this.left_context, this.lm_prefix, null);
+        if (this.emoji_keyboard){
+            this.study_manager.cur_phrase = "";
+            for (var i = 0; i<5; i++) {
+                var emoji_index = Math.floor(Math.random() * kconfig.emoji_main_chars.length);
+                var emoji = kconfig.emoji_main_chars[emoji_index];
+                this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
+            }
+        } else {
+            this.lm_prefix = "";
+            this.left_context = "";
+            this.fetched_words = false;
+            this.is_undo = false;
+            this.is_equalize = false;
+            this.skip_hist = true;
+            this.lm.update_cache(this.left_context, this.lm_prefix, null);
 
-        this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
+            this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
+        }
         this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
         this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
     }
