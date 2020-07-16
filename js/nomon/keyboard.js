@@ -33,16 +33,6 @@ class Keyboard{
             this.n_pred = kconfig.n_pred;
         }
 
-        if (this.user_id){
-            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
-            this.webcam_enabled = true;
-            this.delay_webcam_info = true;
-        } else {
-            this.webcam_enabled = false;
-            this.delay_webcam_info = false;
-        }
-        this.in_session = false;
-
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
@@ -53,7 +43,18 @@ class Keyboard{
         this.in_webcam_info_screen = false;
         this.in_webcam_calibration = false;
         this.ws = null;
-        this.init_webcam_switch();
+
+        if (this.user_id){
+            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
+            this.webcam_enabled = true;
+            this.delay_webcam_info = true;
+            this.init_webcam_switch();
+        } else {
+            this.webcam_enabled = false;
+            this.delay_webcam_info = false;
+            document.getElementById("webcam_div").style.display="none";
+        }
+        this.in_session = false;
 
         this.run_on_focus = false;
 
@@ -409,15 +410,24 @@ class Keyboard{
     }
     draw_phrase(){
         this.typed_versions = [''];
-        this.lm_prefix = "";
-        this.left_context = "";
-        this.fetched_words = false;
-        this.is_undo = false;
-        this.is_equalize = false;
-        this.skip_hist = true;
-        this.lm.update_cache(this.left_context, this.lm_prefix, null);
+        if (this.emoji_keyboard){
+            this.study_manager.cur_phrase = "";
+            for (var i = 0; i<5; i++) {
+                var emoji_index = Math.floor(Math.random() * kconfig.emoji_main_chars.length);
+                var emoji = kconfig.emoji_main_chars[emoji_index];
+                this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
+            }
+        } else {
+            this.lm_prefix = "";
+            this.left_context = "";
+            this.fetched_words = false;
+            this.is_undo = false;
+            this.is_equalize = false;
+            this.skip_hist = true;
+            this.lm.update_cache(this.left_context, this.lm_prefix, null);
 
-        this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
+            this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
+        }
         this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
         this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
     }
@@ -860,7 +870,12 @@ class Keyboard{
         }
         else if (is_delete){
             if (this.typed_versions[this.typed_versions.length -1 ] != ''){
-                this.typed_versions.push(previous_text.slice(0, previous_text.length-1));
+                if (this.emoji_keyboard){
+                    var emoji_length = 2;
+                    this.typed_versions.push(previous_text.slice(0, previous_text.length - emoji_length));
+                } else {
+                    this.typed_versions.push(previous_text.slice(0, previous_text.length - 1));
+                }
                 new_text = this.typed_versions[this.typed_versions.length - 1];
                 if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
                     new_text = new_text.slice(0, new_text.lenght-1).concat("_");
