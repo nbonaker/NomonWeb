@@ -1,5 +1,5 @@
 import * as widgets from "./widgets.js";
-
+import * as kconfig from './kconfig.js';
 
 export class studyManager {
     constructor(parent, user_id, first_load, partial_session, prev_data){
@@ -353,12 +353,34 @@ export class studyManager {
         this.parent.pre_phrase_rotate_index = this.parent.rotate_index;
         this.parent.allow_slider_input = true;
     }
+    parse_emojis(text){
+        var output_text = "";
+        var emoji_arr = Array.from(text);
+        for (var index in emoji_arr){
+            var emoji = emoji_arr[index];
+            output_text = output_text.concat(kconfig.emoji_conversion_dict[emoji]);
+        }
+        return output_text;
+    }
     save_selection_data(selection){
-        var phrase = this.cur_phrase.replace("'", "8");
-        var phrase_num = this.phrase_num;
-        selection = selection.replace("'", "8");
         var previous_text = this.parent.textbox.text;
-        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length).replace("'", "8");
+        var phrase;
+        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
+
+        if (this.parent.emoji_keyboard){
+            phrase = this.parse_emojis(this.cur_phrase);
+            typed_text = this.parse_emojis(typed_text);
+            selection = this.parse_emojis(selection);
+        } else {
+            phrase = this.cur_phrase.replace("'", "8");
+            typed_text = typed_text.replace("'", "8");
+            selection = selection.replace("'", "8");
+        }
+
+        var phrase_num = this.phrase_num;
+
+
+
         var timestamp = Date.now()/1000;
         var rotate_ind = this.parent.rotate_index;
         var abs_click_times = JSON.stringify(this.parent.bc.abs_click_times);

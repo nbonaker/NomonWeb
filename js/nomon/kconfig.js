@@ -43,7 +43,22 @@ export var emoji_target_layout = [  [`😀`,`😃`,`😄`,`😁`,`😆`,`😅`,`
                                     [`🤕`,`🤢`,`🤧`,`😵`,`😦`,`😢`,`😱`,`😣`],
                                     [`🤠`,`😎`,`🤓`,`😖`,`😤`,`🥶`,'BACKUNIT', 'UNDOUNIT']];
 
+// convert emojis to unicode for server
+var conversion_dict = {};
+var letter_index = 0;
+var num_index = 0;
+for (var index in emoji_main_chars){
+    var emoji_char = emoji_main_chars[index];
 
+    conversion_dict[emoji_char] = num_index.toString().concat(main_chars[letter_index]);
+
+    letter_index += 1;
+    if (letter_index >= 26){
+        letter_index = 0;
+        num_index += 1;
+    }
+}
+export var emoji_conversion_dict = conversion_dict;
 
 
 export var pause_length = 1000;

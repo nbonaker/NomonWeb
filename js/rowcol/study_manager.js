@@ -1,4 +1,5 @@
 import * as widgets from "./widgets.js";
+import * as kconfig from "./kconfig.js";
 
 
 export class studyManager {
@@ -89,7 +90,7 @@ export class studyManager {
             // this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 3*3;
+            this.session_length = 10*60;
             this.session_start_time = Math.round(Date.now() / 1000);
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
@@ -349,12 +350,32 @@ export class studyManager {
             this.finish_session();
         }
     }
+    parse_emojis(text){
+        var output_text = "";
+        var emoji_arr = Array.from(text);
+        for (var index in emoji_arr){
+            var emoji = emoji_arr[index];
+            output_text = output_text.concat(kconfig.emoji_conversion_dict[emoji]);
+        }
+        return output_text;
+    }
     save_selection_data(selection){
-        var phrase = this.cur_phrase.replace("'", "8");
-        var phrase_num = this.phrase_num;
-        selection = selection.replace("'", "8");
         var previous_text = this.parent.textbox.text;
-        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length).replace("'", "8");
+        var phrase;
+        var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
+
+        if (this.parent.emoji_keyboard){
+            phrase = this.parse_emojis(this.cur_phrase);
+            typed_text = this.parse_emojis(typed_text);
+            selection = this.parse_emojis(selection);
+        } else {
+            phrase = this.cur_phrase.replace("'", "8");
+            typed_text = typed_text.replace("'", "8");
+            selection = selection.replace("'", "8");
+        }
+
+        var phrase_num = this.phrase_num;
+
         var timestamp = Date.now()/1000;
         var scan_delay = this.parent.scan_delay_index;
         var extra_delay = this.parent.extra_delay_index;
