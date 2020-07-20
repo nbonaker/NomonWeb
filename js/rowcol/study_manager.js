@@ -126,6 +126,10 @@ export class studyManager {
                 this.parent.in_info_screen = true;
                 this.parent.init_session_info_screen();
 
+                //remove after beta testing:
+                this.intermediate_survey = true;
+                this.full_tlx = true;
+
             } else if (this.session_number === 2) {
                 this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
                 this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
