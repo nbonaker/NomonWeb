@@ -1,6 +1,6 @@
 export var period_li = [];
 for (var i=0; i < 21; i++){
-    period_li.push(3*Math.exp((-i)/12));
+    period_li.push(4*Math.exp((-i)/10));
 }
 
 export var default_rotate_ind = 1;

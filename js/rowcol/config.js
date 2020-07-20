@@ -1,6 +1,6 @@
 export var scan_delay_li = [];
 for (var i=0; i < 21; i++){
-    scan_delay_li.push(3*Math.exp((-i)/11));
+    scan_delay_li.push(2*Math.exp((-i)/14));
 }
 
 export var default_scan_delay_index = 1;
