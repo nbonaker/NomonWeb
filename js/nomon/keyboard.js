@@ -94,13 +94,9 @@ class Keyboard{
         this.fetched_words = false;
         this.lm = new lm.LanguageModel(this);
 
-        if (this.emoji_keyboard){
-            this.start_tutorial = false;
-            this.in_info_screen = false;
-        } else {
-            this.start_tutorial = first_load;
-            this.in_info_screen = first_load;
-        }
+        this.start_tutorial = first_load;
+        this.in_info_screen = first_load;
+
         this.in_tutorial = false;
         this.in_finished_screen = false;
         this.init_ui();
@@ -410,6 +406,7 @@ class Keyboard{
     }
     draw_phrase(){
         this.typed_versions = [''];
+        this.typed = "";
         if (this.emoji_keyboard){
             this.study_manager.cur_phrase = "";
             for (var i = 0; i<5; i++) {
@@ -417,6 +414,12 @@ class Keyboard{
                 var emoji = kconfig.emoji_main_chars[emoji_index];
                 this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
             }
+
+            var phrase_arr = Array.from(this.study_manager.cur_phrase);
+            this.cur_emoji_target = phrase_arr[0];
+
+            this.keygrid.draw_layout();
+            this.highlight_emoji();
         } else {
             this.lm_prefix = "";
             this.left_context = "";
@@ -455,6 +458,15 @@ class Keyboard{
 
         this.pre_phrase_rotate_index = this.rotate_index;
         this.allow_slider_input = true;
+    }
+    highlight_emoji(){
+        console.log("CUR TARGET: ", this.cur_emoji_target);
+
+        var indicies = widgets.indexOf_2d(kconfig.emoji_target_layout, this.cur_emoji_target);
+        if (indicies !== false) {
+            this.keygrid.highlight_square(indicies[0], indicies[1])
+        }
+
     }
     change_speed(index){
         var speed_index;
@@ -515,6 +527,9 @@ class Keyboard{
         this.keygrid.in_pause = false;
         this.keygrid.draw_layout();
         this.clockgrid.undo_label.draw_text();
+        if(this.emoji_keyboard && this.in_session){
+            this.highlight_emoji();
+        }
     }
     highlight_winner(clock_index){
         this.winner_clock = this.clockgrid.clocks[clock_index];
@@ -1122,6 +1137,17 @@ class Keyboard{
 
         if (this.emoji_keyboard){
             this.on_word_load();
+            if (this.in_session) {
+                var phrase_arr = Array.from(this.study_manager.cur_phrase);
+                var typed_arr = Array.from(this.typed);
+                if (typed_arr.length < phrase_arr.length) {
+                    this.cur_emoji_target = phrase_arr[typed_arr.length];
+                    this.highlight_emoji();
+                } else {
+                    this.cur_emoji_target = null;
+                    this.highlight_emoji();
+                }
+            }
         } else  {
             this.lm.update_cache(this.left_context, this.lm_prefix, selection);
         }
@@ -1200,8 +1226,11 @@ class Keyboard{
                 clock.draw_face();
             }
         }
-        if (!this.emoji_keyboard) {
-            this.clockgrid.undo_label.draw_text();
+
+        this.clockgrid.undo_label.draw_text();
+
+        if(this.emoji_keyboard && this.in_session){
+            this.highlight_emoji();
         }
 
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);

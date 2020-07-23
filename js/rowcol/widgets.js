@@ -72,6 +72,7 @@ export class KeyGrid {
         this.target_layout = target_layout;
 
         this.in_pause = false;
+        this.highlighted_indices = [-1, -1];
         this.generate_layout();
         this.draw_layout();
     }
@@ -139,19 +140,37 @@ export class KeyGrid {
 
                 if (col_highlight === parseInt(col) && row_highlight === parseInt(row)){
                     if (cell_text !== "") {
-                        this.keygrid_canvas.ctx.fillStyle = "rgb(113,160,255)";
+                        if (this.highlighted_indices[0] === parseInt(row) &&
+                            this.highlighted_indices[1] === parseInt(col)){
+
+                            this.keygrid_canvas.ctx.fillStyle = "rgb(145,242,194)";
+                        } else {
+                            this.keygrid_canvas.ctx.fillStyle = "rgb(113,160,255)";
+                        }
                     } else {
                         this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
                     }
                 } else if (row_highlight === parseInt(row)){
                     if (cell_text !== "") {
-                        this.keygrid_canvas.ctx.fillStyle = "rgb(197,219,255)";
+                        if (this.highlighted_indices[0] === parseInt(row) &&
+                            this.highlighted_indices[1] === parseInt(col)) {
+
+                            this.keygrid_canvas.ctx.fillStyle = "rgb(197,240,224)";
+                        } else {
+                            this.keygrid_canvas.ctx.fillStyle = "rgb(197,219,255)";
+                        }
                     } else {
                         this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
                     }
                 } else {
                     if (cell_text !== "") {
-                        this.keygrid_canvas.ctx.fillStyle = "#ffffff";
+                        if (this.highlighted_indices[0] === parseInt(row) &&
+                            this.highlighted_indices[1] === parseInt(col)) {
+
+                            this.keygrid_canvas.ctx.fillStyle = "#bfeec2";
+                        } else {
+                            this.keygrid_canvas.ctx.fillStyle = "#ffffff";
+                        }
                     } else {
                         this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
                     }
@@ -194,19 +213,37 @@ export class KeyGrid {
             this.keygrid_canvas.ctx.beginPath();
             if (col_highlight === parseInt(col) && row_highlight === 0){
                 if (cell_text !== "") {
-                    this.keygrid_canvas.ctx.fillStyle = "rgb(113,160,255)";
+                    if (this.highlighted_indices[0] === parseInt(row) &&
+                        this.highlighted_indices[1] === parseInt(col)){
+
+                        this.keygrid_canvas.ctx.fillStyle = "rgb(145,242,194)";
+                    } else {
+                        this.keygrid_canvas.ctx.fillStyle = "rgb(113,160,255)";
+                    }
                 } else {
                     this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
                 }
             } else if (row_highlight === 0){
                 if (cell_text !== "") {
-                    this.keygrid_canvas.ctx.fillStyle = "rgb(197,219,255)";
+                    if (this.highlighted_indices[0] === parseInt(row) &&
+                        this.highlighted_indices[1] === parseInt(col)) {
+
+                        this.keygrid_canvas.ctx.fillStyle = "rgb(197,240,224)";
+                    } else {
+                        this.keygrid_canvas.ctx.fillStyle = "rgb(197,219,255)";
+                    }
                 } else {
                     this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
                 }
             } else {
                 if (cell_text !== "") {
-                    this.keygrid_canvas.ctx.fillStyle = "#ffffff";
+                    if (this.highlighted_indices[0] === parseInt(row) &&
+                        this.highlighted_indices[1] === parseInt(col)) {
+
+                        this.keygrid_canvas.ctx.fillStyle = "#bfeec2";
+                    } else {
+                        this.keygrid_canvas.ctx.fillStyle = "#ffffff";
+                    }
                 } else {
                     this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
                 }
