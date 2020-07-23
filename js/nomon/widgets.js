@@ -139,6 +139,21 @@ export class KeyGrid {
         }
 
     }
+
+    highlight_square(row, col){
+        var y_start = this.y_positions[row][0];
+        var y_end = this.y_positions[row][1];
+
+        var x_start = this.x_positions[row][col][0];
+        var x_end = this.x_positions[row][col][1];
+
+        this.keygrid_canvas.ctx.beginPath();
+        this.keygrid_canvas.ctx.fillStyle = "#bfeec2";
+        this.keygrid_canvas.ctx.strokeStyle = "#000000";
+        this.keygrid_canvas.ctx.rect(x_start, y_start, x_end - x_start, y_end - y_start);
+        this.keygrid_canvas.ctx.fill();
+        this.keygrid_canvas.ctx.stroke();
+    }
 }
 
 export class ClockGrid{

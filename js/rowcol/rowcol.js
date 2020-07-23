@@ -325,6 +325,7 @@ class Keyboard{
     }
     draw_phrase(){
         this.typed_versions = [''];
+        this.typed = "";
         if (this.emoji_keyboard){
             this.study_manager.cur_phrase = "";
             for (var i = 0; i<5; i++) {
@@ -332,6 +333,11 @@ class Keyboard{
                 var emoji = kconfig.emoji_main_chars[emoji_index];
                 this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
             }
+
+            var phrase_arr = Array.from(this.study_manager.cur_phrase);
+            this.cur_emoji_target = phrase_arr[0];
+            this.highlight_emoji();
+
         } else {
             this.lm_prefix = "";
             this.left_context = "";
@@ -345,6 +351,18 @@ class Keyboard{
         }
         this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
         this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
+    }
+    highlight_emoji(){
+        console.log("CUR TARGET: ", this.cur_emoji_target);
+
+        var indicies = widgets.indexOf_2d(kconfig.emoji_target_layout, this.cur_emoji_target);
+        if (indicies !== false) {
+            this.keygrid.highlighted_indices = indicies;
+        } else {
+            this.keygrid.highlighted_indices = [-1, -1];
+        }
+
+
     }
     change_scan_delay(index){
         var speed_index;
@@ -1000,6 +1018,19 @@ class Keyboard{
         if (this.emoji_keyboard) {
             this.fetched_words = true;
             this.update_scan_time(false);
+
+            if (this.in_session) {
+                var phrase_arr = Array.from(this.study_manager.cur_phrase);
+                var typed_arr = Array.from(this.typed);
+                if (typed_arr.length < phrase_arr.length) {
+                    this.cur_emoji_target = phrase_arr[typed_arr.length];
+                    this.highlight_emoji();
+                } else {
+                    this.cur_emoji_target = null;
+                    this.highlight_emoji();
+                }
+            }
+
             this.keygrid.draw_layout(this.row_scan, this.col_scan);
         } else {
             this.fetched_words = false;

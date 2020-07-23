@@ -99,6 +99,9 @@ export class studyManager {
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
 
+            this.parent.bc.abs_click_times = [];
+            this.parent.bc.rel_click_times = [];
+
             this.parent.draw_phrase();
 
             this.init_session_specifics();
