@@ -4,9 +4,7 @@
       href="../icon.png">
 <head>
    <title>Webcam Switch Setup</title>
-    <script src="../js/webcam_switch/camvas.js"></script>
-    <script src="../js/webcam_switch/pico.js"></script>
-    <script src="../js/webcam_switch/lploc.js"></script>
+    <script defer src="../js/webcam_switch/face-api.min.js"></script>
 </head>
 <style>
     #container{
@@ -55,7 +53,7 @@
 <div id = "container" >
     <h1>Webcam Switch Interface</h1>
 </div>
-<canvas width=640 height=480 id="video_canvas"></canvas>
+<video id="video_canvas" width="500" height="560" autoplay muted></video>
 
 <img src="../resources/1F9D1_color.png" alt="Girl in a jacket" width="500" height="640" id="rotater" class="image1">
 <img src="../resources/webcam_person_bottom.png" alt="Girl in a jacket" width="500" height="130" id="bottom_line" class="image2">

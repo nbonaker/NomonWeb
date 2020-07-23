@@ -31,7 +31,7 @@ class webcamSetup {
         this.animation_ctx = this.animation_canvas.getContext("2d");
         this.animation_canvas.getContext("2d").setTransform(this.scale, 0, 0, this.scale, 0, 0);
         this.init_ui();
-        this.animation_timer = setInterval(this.rotate.bind(this), 20);
+        this.animation_timer = setInterval(this.rotate.bind(this), 50);
 
         this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
 
@@ -169,7 +169,7 @@ class webcamSetup {
         this.draw_right = false;
         this.rotate_to_webcam = false;
         this.webcam_switch.face_x_calibration = 0;
-        this.webcam_switch.triger_x_calibration = 0;
+        this.webcam_switch.triger_x_calibration = 1;
         this.sound_on = false;
         this.save_button.style.display = "none";
 
@@ -199,7 +199,7 @@ class webcamSetup {
         if (this.allow_save) {
             this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
-            this.resting_pos = this.webcam_switch.face_finder.face_coords[0];
+            this.resting_pos = this.webcam_switch.face_x;
             this.webcam_switch.face_x_calibration = 0.55 - this.resting_pos;
             console.log("Resting:", this.resting_pos);
 
@@ -228,8 +228,8 @@ class webcamSetup {
         if (this.allow_save) {
             this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
-            this.trigger_pos = this.webcam_switch.face_finder.face_coords[0];
-            this.webcam_switch.triger_x_calibration = 0.93 - this.trigger_pos;
+            this.trigger_pos = this.webcam_switch.face_x;
+            this.webcam_switch.triger_x_calibration = 0.85-this.trigger_pos;
             console.log("Trigger:", this.trigger_pos);
 
             this.rotate_to_webcam = true;
@@ -286,10 +286,10 @@ class webcamSetup {
 
     }
     update_webcam(){
-        this.webcam_switch.face_finder.mycamvas.update();
+        this.webcam_switch.detect_face();
         this.webcam_switch.draw_switch(this.draw_left, this.draw_right);
 
-        if (this.webcam_switch.face_finder.face_coords[0] === -1) {
+        if (!this.webcam_switch.in_frame) {
             var font_height = 30;
             this.animation_ctx.beginPath();
             this.animation_ctx.fillStyle = "rgb(0,0,0)";
@@ -304,8 +304,9 @@ class webcamSetup {
         }
 
         if (this.rotate_to_webcam){
-            var face_x = this.webcam_switch.face_finder.face_coords[0];
-            var angle = (this.resting_pos - face_x)/(this.resting_pos - this.trigger_pos)*30;
+            var face_x = this.webcam_switch.face_x;
+            var angle = (this.resting_pos - face_x)/
+                (this.resting_pos - this.trigger_pos + this.webcam_switch.face_width)*30;
             // console.log(angle);
             this.rotate_to_angle(angle);
 
