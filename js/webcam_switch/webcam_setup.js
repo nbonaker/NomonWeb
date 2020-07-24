@@ -16,24 +16,56 @@ function trapesoid_wave(t, period, amplitude){
 }
 
 
+export class WebcamCanvas{
+    constructor(canvas_id, layer_index) {
+        this.canvas = document.getElementById(canvas_id);
+        this.canvas.style.zIndex = layer_index;
+
+        this.calculate_size();
+    }
+    calculate_size(){
+        this.window_width = window.innerWidth;
+        this.window_height = window.innerHeight;
+
+        this.canvas.style.position = "absolute";
+        this.ctx = this.canvas.getContext("2d");
+
+        this.resolution_factor = 2;
+        this.screen_fill_factor = 0.035;
+
+        this.canvas.width = this.window_width * this.resolution_factor;
+        this.canvas.height = this.canvas.width * 0.1;
+        this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("vh");
+        this.canvas.style.height = ((this.window_width * 0.1)  * this.screen_fill_factor).toString().concat("vh");
+
+        this.screen_width = this.window_width * this.resolution_factor;
+        this.screen_height = (this.window_height - 50) * this.resolution_factor;
+    }
+    clear(){
+        this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
+    }
+}
+
+
 class webcamSetup {
     constructor(forward_url=null){
         this.forward_url = forward_url;
         this.animation_canvas = document.getElementById("animation_canvas");
-        this.scale = 4;
+        this.scale = 18;
+        this.shrink_factor = 1/9;
         var w = this.animation_canvas.width;
         var h = this.animation_canvas.height;
 
         this.animation_canvas.width *= this.scale;
         this.animation_canvas.height *= this.scale;
-        this.animation_canvas.style.width = w + "px";
-        this.animation_canvas.style.height = h + "px";
+        this.animation_canvas.style.width = w + "vh";
+        this.animation_canvas.style.height = h + "vh";
         this.animation_ctx = this.animation_canvas.getContext("2d");
         this.animation_canvas.getContext("2d").setTransform(this.scale, 0, 0, this.scale, 0, 0);
         this.init_ui();
         this.animation_timer = setInterval(this.rotate.bind(this), 50);
 
-        this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
+        this.webcam_canvas = new WebcamCanvas("webcam_canvas", 1);
 
         this.draw_left = false;
         this.draw_right = false;
@@ -59,40 +91,42 @@ class webcamSetup {
 
         this.animation_ctx.beginPath();
         this.animation_ctx.fillStyle = "rgba(0,0,238,0.44)";
-        this.animation_ctx.lineWidth = 10;
+        this.animation_ctx.lineWidth = 10*this.shrink_factor;
         this.animation_ctx.strokeStyle = "rgba(0,0,238,0.71)";
-        this.animation_ctx.rect(10, 10, 170, 310);
+        this.animation_ctx.rect(10*this.shrink_factor, 10*this.shrink_factor, 170*this.shrink_factor, 310*this.shrink_factor);
         this.animation_ctx.fill();
         this.animation_ctx.stroke();
 
-        var font_height = 30;
+        var font_height = 30*this.shrink_factor;
         this.animation_ctx.fillStyle = "rgb(255,255,255)";
         this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
         this.animation_ctx.fillText("Reset Box",
-            22, 50);
+            22*this.shrink_factor, 50*this.shrink_factor);
         
         this.animation_ctx.beginPath();
         this.animation_ctx.fillStyle = "rgba(0,238,0,0.29)";
-        this.animation_ctx.lineWidth = 10;
+        this.animation_ctx.lineWidth = 10*this.shrink_factor;
         this.animation_ctx.strokeStyle = "rgba(0,238,0,0.84)";
-        this.animation_ctx.rect(390, 10, 100, 310);
+        this.animation_ctx.rect(390*this.shrink_factor, 10*this.shrink_factor, 100*this.shrink_factor, 310*this.shrink_factor);
         this.animation_ctx.fill();
         this.animation_ctx.stroke();
 
-        var font_height = 30;
+        var font_height = 30*this.shrink_factor;
         this.animation_ctx.fillStyle = "rgb(0,0,0)";
         this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
         this.animation_ctx.fillText("Trigger",
-            390, 50);this.animation_ctx.fillText("Box",
-            430, 50 + font_height*1.2);
+            390*this.shrink_factor, 50*this.shrink_factor);this.animation_ctx.fillText("Box",
+            430*this.shrink_factor, 50*this.shrink_factor + font_height*1.2);
 
     }
     draw_webcam_bar(head_pos, period_time){
         this.animation_ctx.beginPath();
+        this.animation_ctx.clearRect(10*this.shrink_factor, 380*this.shrink_factor, 500*this.shrink_factor, 600*this.shrink_factor);
+
         this.animation_ctx.fillStyle = "#ededed";
-        this.animation_ctx.lineWidth = 10;
+        this.animation_ctx.lineWidth = 10*this.shrink_factor;
         this.animation_ctx.strokeStyle = "rgba(0,0,0,0)";
-        this.animation_ctx.rect(10, 380, 480, 60);
+        this.animation_ctx.rect(10*this.shrink_factor, 380*this.shrink_factor, 480*this.shrink_factor, 60*this.shrink_factor);
         this.animation_ctx.fill();
         this.animation_ctx.stroke();
     
@@ -102,8 +136,8 @@ class webcamSetup {
         } else {
             this.animation_ctx.fillStyle = "rgba(0,0,238,0.44)";
         }
-        this.animation_ctx.lineWidth = 10;
-        this.animation_ctx.rect(10, 380, 170, 60);
+        this.animation_ctx.lineWidth = 10*this.shrink_factor;
+        this.animation_ctx.rect(10*this.shrink_factor, 380*this.shrink_factor, 170*this.shrink_factor, 60*this.shrink_factor);
         this.animation_ctx.fill();
         this.animation_ctx.stroke();
     
@@ -113,26 +147,26 @@ class webcamSetup {
         } else {
             this.animation_ctx.fillStyle = "rgba(0,238,0,0.84)";
         }
-        this.animation_ctx.lineWidth = 10;
-        this.animation_ctx.rect(390, 380, 100, 60);
+        this.animation_ctx.lineWidth = 10*this.shrink_factor;
+        this.animation_ctx.rect(390*this.shrink_factor, 380*this.shrink_factor, 100*this.shrink_factor, 60*this.shrink_factor);
         this.animation_ctx.fill();
         this.animation_ctx.stroke();
     
         this.animation_ctx.beginPath();
         this.animation_ctx.fillStyle = "rgba(238,133,0,0.44)";
-        this.animation_ctx.lineWidth = 10;
-        this.animation_ctx.rect((150+120*head_pos), 380, 150, 60);
+        this.animation_ctx.lineWidth = 10*this.shrink_factor;
+        this.animation_ctx.rect((150+120*head_pos)*this.shrink_factor, 380*this.shrink_factor, 150*this.shrink_factor, 60*this.shrink_factor);
         this.animation_ctx.fill();
         this.animation_ctx.stroke();
 
-        var rect_x = 0;
-        var rect_y = 450;
-        var font_height = 20;
+        var rect_x = 0*this.shrink_factor;
+        var rect_y = 450*this.shrink_factor;
+        var font_height = 20*this.shrink_factor;
         
         this.animation_ctx.fillStyle = "#404040";
         this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
         this.animation_ctx.fillText("The Webcam Switch tracks your face to send inputs",
-            rect_x + font_height, rect_y + font_height*1.3);
+            rect_x*this.shrink_factor + font_height, rect_y + font_height*1.3);
         this.animation_ctx.fillText("into the keyboard. You can activate the switch by",
             rect_x + font_height, rect_y + font_height*2.5);
         this.animation_ctx.fillText("moving your body to the right.",
@@ -159,9 +193,9 @@ class webcamSetup {
         this.person_image.setAttribute("style", "transform: rotate(" + rotate_angle + "deg)");
     }
     start_calibration(){
-        this.webcam_switch = new webswitch.WebcamSwitch(this,false);
-        this.webcam_canvas.canvas.style.height ="60px";
-        this.webcam_canvas.canvas.style.width ="480px";
+        this.webcam_switch = new webswitch.WebcamSwitch(this);
+        // this.webcam_canvas.canvas.style.height ="60px";
+        // this.webcam_canvas.canvas.style.width ="480px";
 
         clearInterval(this.animation_timer);
 
@@ -180,11 +214,11 @@ class webcamSetup {
         this.start_button.value = "Calibrate Reset";
 
         this.animation_ctx.beginPath();
-        this.animation_ctx.clearRect(0, 400, 500, 500);
+        this.animation_ctx.clearRect(10*this.shrink_factor, 380*this.shrink_factor, 500*this.shrink_factor, 600*this.shrink_factor);
 
-        var rect_x = 0;
-        var rect_y = 470;
-        var font_height = 23;
+        var rect_x = 0*this.shrink_factor;
+        var rect_y = 470*this.shrink_factor;
+        var font_height = 23*this.shrink_factor;
 
         this.animation_ctx.fillStyle = "rgba(0,0,238,1)";
         this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
@@ -208,11 +242,11 @@ class webcamSetup {
             this.draw_left = true;
 
             this.animation_ctx.beginPath();
-            this.animation_ctx.clearRect(0, 400, 500, 500);
+            this.animation_ctx.clearRect(0, 400*this.shrink_factor, 500*this.shrink_factor, 500*this.shrink_factor);
 
-            var rect_x = 0;
-            var rect_y = 470;
-            var font_height = 23;
+            var rect_x = 0*this.shrink_factor;
+            var rect_y = 470*this.shrink_factor;
+            var font_height = 23*this.shrink_factor;
 
             this.animation_ctx.fillStyle = "rgb(0,195,0)";
             this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
@@ -243,11 +277,11 @@ class webcamSetup {
             this.sound_on = true;
 
             this.animation_ctx.beginPath();
-            this.animation_ctx.clearRect(0, 400, 500, 500);
+            this.animation_ctx.clearRect(0, 400*this.shrink_factor, 500*this.shrink_factor, 500*this.shrink_factor);
 
-            var rect_x = 0;
-            var rect_y = 470;
-            var font_height = 23;
+            var rect_x = 0*this.shrink_factor;
+            var rect_y = 470*this.shrink_factor;
+            var font_height = 23*this.shrink_factor;
 
             this.animation_ctx.fillStyle = "#404040";
             this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
@@ -290,16 +324,16 @@ class webcamSetup {
         this.webcam_switch.draw_switch(this.draw_left, this.draw_right);
 
         if (!this.webcam_switch.in_frame) {
-            var font_height = 30;
+            var font_height = 30*this.shrink_factor;
             this.animation_ctx.beginPath();
             this.animation_ctx.fillStyle = "rgb(0,0,0)";
             this.animation_ctx.font = "".concat(font_height.toString(), "px Helvetica");
             this.animation_ctx.fillText("Your face is out of the Frame!",
-                22, 470);
+                22*this.shrink_factor, 470*this.shrink_factor);
             this.allow_save = false;
         } else {
             this.animation_ctx.beginPath();
-            this.animation_ctx.clearRect(0, 440, 500, 35);
+            this.animation_ctx.clearRect(0, 440*this.shrink_factor, 500*this.shrink_factor, 35*this.shrink_factor);
             this.allow_save = true;
         }
 

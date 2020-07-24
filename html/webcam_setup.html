@@ -8,42 +8,43 @@
 </head>
 <style>
     #container{
-       text-align: center;
+        text-align: center;
+        font-size: 2vh;
      }
     #center_container{
         margin: auto;
         text-align: center;
         position: absolute;
-        top: 60px; left: 0; bottom: 0; right: 0;
+        top: 7%; left: 0; bottom: 0; right: 0;
     }
     .image1 {
         margin: auto;
         position: absolute;
-        top: 120px; left: 0; bottom: 0; right: 0;
+        top: 10%; left: 0; bottom: 0; right: 0;
     }
     .image2 {
         margin: auto;
         position: absolute;
-        top: 220px; left: 0; bottom: 0; right: 0;
+        top: 17%; left: 0; bottom: 0; right: 0;
     }
     .canvas1 {
         margin: auto;
         position: absolute;
-        top: 180px; left: 0; bottom: 0; right: 0;
+        top: 32%; left: 0; bottom: 0; right: 0;
     }
     .canvas2 {
         margin: auto;
         position: absolute;
-        top: 200px; left: 0; bottom: 0; right: 0;
+        top: 22%; left: 0; bottom: 0; right: 0;
     }
     .btn {
         background-color: #0056ff;
         border: none;
         color: white;
-        padding: 15px 32px;
+        padding: 1vh 2vh;
         text-align: center;
         text-decoration: none;
-        font-size: 16px;
+        font-size: 2vh;
         cursor: pointer;
         border-radius: 4px;
 
@@ -55,10 +56,10 @@
 </div>
 <video id="video_canvas" width="500" height="560" autoplay muted></video>
 
-<img src="../resources/1F9D1_color.png" alt="Girl in a jacket" width="500" height="640" id="rotater" class="image1">
-<img src="../resources/webcam_person_bottom.png" alt="Girl in a jacket" width="500" height="130" id="bottom_line" class="image2">
-<canvas id="webcam_canvas" class="canvas2" height="60px" width="480px"></canvas>
-<canvas id="animation_canvas" class="canvas1" width="500" height="800"></canvas>
+<img src="../resources/1F9D1_color.png" height="60%" id="rotater" class="image1">
+<img src="../resources/webcam_person_bottom.png" height="10%" id="bottom_line" class="image2">
+<canvas id="webcam_canvas" class="canvas2" height="50vh" width="10vh"></canvas>
+<canvas id="animation_canvas" class="canvas1" width="55vh" height="100vh"></canvas>
 
 <div id = "center_container" >
 <input class='btn' type="button" id = "start_button" value = "Start Calibration">
