@@ -106,12 +106,12 @@ class Keyboard{
         if (!this.webcam_enabled){
             this.webcam_canvas.draw_grey();
             if (this.ws != null) {
-                var stream = this.ws.face_finder.mycamvas.video.srcObject;
+                var stream = document.getElementById('video_canvas').srcObject;
                 stream.getTracks().forEach(function(track) {
                   track.stop();
                 });
-                this.ws.face_finder.mycamvas = null;
-                this.ws.face_finder = null;
+                // this.ws.face_finder.mycamvas = null;
+                // this.ws.face_finder = null;
                 this.ws = null;
             }
         }else {
@@ -1187,8 +1187,7 @@ class Keyboard{
             this.bc.clock_inf.clock_util.increment(this.words_on);
             if (this.webcam_enabled) {
                 if (this.ws.skip_update == 0) {
-                    this.ws.face_finder.mycamvas.update();
-                    this.ws.draw_switch();
+                    this.ws.detect_face();
                     this.ws.skip_update = true;
                 }
                 this.ws.skip_update = (this.ws.skip_update + 1) % 2;

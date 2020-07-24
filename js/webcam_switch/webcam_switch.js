@@ -47,8 +47,11 @@ export class WebcamSwitch {
             faceapi.matchDimensions(this.canvas, displaySize);
         });
 
-        this.webcam_canvas = new WebcamCanvas("webcam_canvas", 1);
-
+        if (this.parent){
+            this.webcam_canvas = this.parent.webcam_canvas;
+        } else {
+            this.webcam_canvas = new WebcamCanvas("webcam_canvas", 1);
+        }
         this.face_requested = false;
 
         this.control_switch = false;
@@ -82,7 +85,7 @@ export class WebcamSwitch {
             async function run_faceapi(ws) { // jshint ignore:line
 
                 let detection = await faceapi.detectSingleFace(ws.video_canvas, // jshint ignore:line
-                    new faceapi.TinyFaceDetectorOptions({inputSize: 160}));
+                    new faceapi.TinyFaceDetectorOptions({inputSize: 192, scoreThreshold: 0.35}));
 
                 if (detection != null) {
                     const face_box = detection.box; // jshint ignore:line
@@ -121,8 +124,14 @@ export class WebcamSwitch {
         }
         this.face_width = this.face_width_values.reduce(function(a, b){ return a + b;}, 0) / this.face_width_values.length;
 
-        console.log(this.face_x, this.face_width);
+        // console.log(this.face_x, this.face_width);
         this.draw_switch();
+    }
+    draw_grey(){
+        this.webcam_canvas.ctx.beginPath();
+        this.webcam_canvas.ctx.fillStyle = "#d2d2d2";
+        this.webcam_canvas.ctx.rect(0, 0, this.webcam_canvas.screen_width, this.webcam_canvas.screen_height);
+        this.webcam_canvas.ctx.fill();
     }
     draw_switch(){
         var face_x = 1 - this.face_x;
