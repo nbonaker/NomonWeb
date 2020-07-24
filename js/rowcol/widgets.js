@@ -213,7 +213,7 @@ export class KeyGrid {
             this.keygrid_canvas.ctx.beginPath();
             if (col_highlight === parseInt(col) && row_highlight === 0){
                 if (cell_text !== "") {
-                    if (this.highlighted_indices[0] === parseInt(row) &&
+                    if (this.highlighted_indices[0] === 0 &&
                         this.highlighted_indices[1] === parseInt(col)){
 
                         this.keygrid_canvas.ctx.fillStyle = "rgb(145,242,194)";
@@ -225,7 +225,7 @@ export class KeyGrid {
                 }
             } else if (row_highlight === 0){
                 if (cell_text !== "") {
-                    if (this.highlighted_indices[0] === parseInt(row) &&
+                    if (this.highlighted_indices[0] === 0 &&
                         this.highlighted_indices[1] === parseInt(col)) {
 
                         this.keygrid_canvas.ctx.fillStyle = "rgb(197,240,224)";
@@ -237,7 +237,7 @@ export class KeyGrid {
                 }
             } else {
                 if (cell_text !== "") {
-                    if (this.highlighted_indices[0] === parseInt(row) &&
+                    if (this.highlighted_indices[0] === 0 &&
                         this.highlighted_indices[1] === parseInt(col)) {
 
                         this.keygrid_canvas.ctx.fillStyle = "#bfeec2";

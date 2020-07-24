@@ -9,24 +9,20 @@ export class WebcamCanvas{
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
-        this.canvas.style.position = "absolute";
-        this.canvas.style.top = "0px";
-        this.canvas.style.left = "0px";
         this.ctx = this.canvas.getContext("2d");
 
-        this.resolution_factor = 2;
-        this.screen_fill_factor = 0.4;
+        this.screen_width =  this.canvas.width;
+        this.screen_height = this.canvas.height;
 
-        this.canvas.width = this.window_width * this.resolution_factor;
-        this.canvas.height = this.canvas.width * 0.1;
-        this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("px");
-        this.canvas.style.height = ((this.window_width * 0.1)  * this.screen_fill_factor).toString().concat("px");
-
-        this.screen_width = this.window_width * this.resolution_factor;
-        this.screen_height = (this.window_height - 50) * this.resolution_factor;
     }
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
+    }
+    draw_grey(){
+        this.ctx.beginPath();
+        this.ctx.fillStyle = "#d2d2d2";
+        this.ctx.rect(0, 0, this.screen_width, this.screen_height);
+        this.ctx.fill();
     }
 }
 
@@ -35,10 +31,11 @@ export class WebcamSwitch {
         this.parent = parent;
         this.video_canvas = document.getElementById('video_canvas');
         this.video_canvas.style.visibility = "hidden";
+        this.face_requested = true;
 
         Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri('../js/webcam_switch/models'),
-        ]).then(this.startVideo);
+        ]).then(this.startVideo.bind(this));
 
         video_canvas.addEventListener('play', () => {
             this.canvas = faceapi.createCanvasFromMedia(video_canvas);
@@ -52,7 +49,7 @@ export class WebcamSwitch {
         } else {
             this.webcam_canvas = new WebcamCanvas("webcam_canvas", 1);
         }
-        this.face_requested = false;
+        this.skip_update = 0;
 
         this.control_switch = false;
         this.trigger_switch = false;
@@ -72,11 +69,13 @@ export class WebcamSwitch {
 
     }
     startVideo() {
+        this.face_requested = false;
         navigator.getUserMedia(
             {video: {}},
             stream => document.getElementById('video_canvas').srcObject = stream, // jshint ignore:line
             err => console.error(err) // jshint ignore:line
         );
+
     }
     detect_face(){
         if (!this.face_requested) {
@@ -126,12 +125,6 @@ export class WebcamSwitch {
 
         // console.log(this.face_x, this.face_width);
         this.draw_switch();
-    }
-    draw_grey(){
-        this.webcam_canvas.ctx.beginPath();
-        this.webcam_canvas.ctx.fillStyle = "#d2d2d2";
-        this.webcam_canvas.ctx.rect(0, 0, this.webcam_canvas.screen_width, this.webcam_canvas.screen_height);
-        this.webcam_canvas.ctx.fill();
     }
     draw_switch(){
         var face_x = 1 - this.face_x;

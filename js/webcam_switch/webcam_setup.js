@@ -34,9 +34,9 @@ export class WebcamCanvas{
         this.screen_fill_factor = 0.035;
 
         this.canvas.width = this.window_width * this.resolution_factor;
-        this.canvas.height = this.canvas.width * 0.1;
-        this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("vh");
-        this.canvas.style.height = ((this.window_width * 0.1)  * this.screen_fill_factor).toString().concat("vh");
+        this.canvas.height = this.window_height * 0.1;
+        this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("vw");
+        // this.canvas.style.height = ((this.window_width * 0.1)  * this.screen_fill_factor).toString().concat("vh");
 
         this.screen_width = this.window_width * this.resolution_factor;
         this.screen_height = (this.window_height - 50) * this.resolution_factor;
