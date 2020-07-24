@@ -1214,6 +1214,8 @@ class Keyboard{
         }
     }
     displayWindowSize(){
+        this.webcam_canvas.calculate_size();
+
         this.keygrid_canvas.calculate_size();
         this.keygrid.generate_layout();
         this.keygrid.draw_layout();
@@ -1224,9 +1226,6 @@ class Keyboard{
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.textbox.calculate_size();
 
-        if (this.webcam_enabled){
-            this.ws.webcam_canvas.calculate_size();
-        }
 
         if (this.in_info_screen){
             this.info_canvas.calculate_size(0);

@@ -33,11 +33,13 @@ class Keyboard{
             this.n_pred = kconfig.n_pred;
         }
 
+
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
+
 
         this.webcam_info_complete=false;
         this.in_webcam_info_screen = false;
@@ -1210,6 +1212,8 @@ class Keyboard{
         }
     }
     displayWindowSize(){
+        this.webcam_canvas.calculate_size();
+
         this.keygrid_canvas.calculate_size();
         this.keygrid.generate_layout();
         this.keygrid.draw_layout();
@@ -1237,9 +1241,6 @@ class Keyboard{
         this.histogram.draw_box();
         this.histogram.draw_histogram();
         this.textbox.calculate_size();
-        if (this.webcam_enabled){
-            this.ws.webcam_canvas.calculate_size();
-        }
 
         if (this.in_info_screen){
             this.info_canvas.calculate_size(0);
