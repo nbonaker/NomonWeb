@@ -217,7 +217,11 @@ class Keyboard{
                 }
             }.bind(this);
         } else {
-            this.change_user_button.style.display = "none";
+            this.change_user_button.value = "RCS Keyboard";
+            this.change_user_button.onclick = function () {
+                var keyboard_url = "../rowcol/index.html?emoji=".concat(this.emoji_keyboard.toString());
+                window.open(keyboard_url, '_self');
+            }.bind(this);
         }
 
         this.session_button = document.getElementById("session_button");
@@ -229,7 +233,16 @@ class Keyboard{
             }.bind(this);
             this.session_time_label = document.getElementById("session_timer");
         } else {
-            this.session_button.style.display = "none";
+            if (this.emoji_keyboard) {
+                this.session_button.value = "ABC";
+            } else {
+                this.session_button.value = `😃😮😒`;
+            }
+
+            this.session_button.onclick = function () {
+                var keyboard_url = "index.html?emoji=".concat((this.emoji_keyboard === false).toString());
+                window.open(keyboard_url, '_self');
+            }.bind(this);
             document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
         }
 
