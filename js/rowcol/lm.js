@@ -12,9 +12,9 @@ function log_add_exp(a_1, a_2){
 export class LanguageModel{
     constructor(parent){
         this.parent=parent;
-        this.word_predict_base_url = "https://api.imagineville.org/word/predict?";
-        this.word_predict_char_future_url = "https://api.imagineville.org/word/predict/future?";
-        this.word_predict_word_future_url = "https://api.imagineville.org/word/predict/next/future?";
+        this.word_predict_base_url = "https://nomonlm.csail.mit.edu/LM/word/predict?";
+        this.word_predict_char_future_url = "https://nomonlm.csail.mit.edu/LM/word/predict/future?";
+        this.word_predict_word_future_url = "https://nomonlm.csail.mit.edu/LM/word/predict/next/future?";
 
         this.word_predictions = [];
         this.word_prediction_probs = [];
