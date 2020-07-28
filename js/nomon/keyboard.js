@@ -1351,6 +1351,6 @@ function send_login() {
 if (user_id) {
     send_login();
 } else {
-    let keyboard = new Keyboard(user_id, first_load, emoji, false, null);
+    let keyboard = new Keyboard(user_id, false, emoji, false, null);
     setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 }
