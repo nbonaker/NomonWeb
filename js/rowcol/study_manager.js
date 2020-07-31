@@ -90,7 +90,6 @@ export class studyManager {
             // this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 10*60;
             this.session_start_time = Math.round(Date.now() / 1000);
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
@@ -121,6 +120,7 @@ export class studyManager {
 
         if (this.session_number <= 9){
             if (this.session_number === 1){
+                this.session_length = 10*60;
                 this.parent.change_scan_delay(1);
                 this.parent.change_extra_delay(1);
 
@@ -131,10 +131,11 @@ export class studyManager {
                 this.parent.init_session_info_screen();
 
                 //remove after beta testing:
-                this.intermediate_survey = true;
-                this.full_tlx = true;
+                // this.intermediate_survey = true;
+                // this.full_tlx = true;
 
             } else if (this.session_number === 2) {
+                this.session_length = 20*60;
                 this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
                 this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
 
@@ -145,6 +146,7 @@ export class studyManager {
                 this.full_tlx = true;
 
             } else if (this.session_number === 5){
+                this.session_length = 20*60;
                 this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
                 this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
                 //tlx short and questionnaire
@@ -152,6 +154,7 @@ export class studyManager {
                 this.short_tlx = true;
 
             } else if (this.session_number === 9){
+                this.session_length = 20*60;
                 this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
                 this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
                 //tlx full and questionnaire
@@ -161,11 +164,13 @@ export class studyManager {
                 this.full_tlx = true;
 
             } else {
+                this.session_length = 20*60;
                 this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
                 this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
             }
 
         } else if (this.session_number === 10){
+            this.session_length = 20*60;
             this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
             this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
             //tlx full and questionnaire
@@ -345,7 +350,7 @@ export class studyManager {
         var min_rem = Math.floor((session_rem_time)/60);
         var sec_rem = Math.floor(session_rem_time) - min_rem*60;
 
-        if ((min_rem <= 0 && sec_rem < 30) || (min_rem < 0)){
+        if (min_rem < 1){
             this.allow_session_continue();
         } else {
             this.parent.draw_phrase();

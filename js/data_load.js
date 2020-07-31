@@ -256,23 +256,52 @@ class dataScreen {
 
         var session_avg_data = [];
         var session_std_data = [];
+        var session_sample_sizes = [];
         for (var user in graph_datas){
             for (var session in (graph_datas[user][0])){
                 if (session_avg_data.length <= session){
                     session_avg_data.push([]);
                     session_std_data.push([]);
+                    session_sample_sizes.push([]);
                 }
                 var avg = graph_datas[user][1][session];
                 var std = graph_datas[user][2][session] - avg;
+                var sample_size = graph_datas[user][4][session];
                 session_avg_data[session].push(avg);
                 session_std_data[session].push(std);
+                session_sample_sizes[session].push(sample_size)
             }
         }
         for (session in session_avg_data) {
-            average_data.push(session_avg_data[session].reduce((a, b) => (a + b)) / session_avg_data[session].length);
-            std_data.push(Math.sqrt(session_std_data[session].reduce((a, b) => (Math.pow(a, 2) + Math.pow(b, 2)))) / session_std_data[session].length)
+            var cur_average = 0;
+            var cur_sample_size = 0;
+            for (var user in session_avg_data[session]){
+                cur_average += session_avg_data[session][user] * session_sample_sizes[session][user];
+                cur_sample_size += session_sample_sizes[session][user];
+            }
+            average_data.push(cur_average / cur_sample_size);
         }
         console.log("avg:", average_data);
+
+        for (session in session_avg_data) {
+            var cur_var = 0;
+            var cur_sample_size = 0;
+            for (var i in session_std_data[session]) {
+                // qi = (ni-1)*var(xi) + ni*mean(xi)^2
+
+                cur_var += Math.pow(session_std_data[session][i], 2) * (session_sample_sizes[session][user] - 1);
+                cur_var += Math.pow(session_avg_data[session][i], 2) * session_sample_sizes[session][user];
+
+                cur_sample_size += session_sample_sizes[session][user];
+            }
+            // qc = sum(q_i)
+            // sc = sqrt( (qc - sum(ni)*mean(x)^2)/(sum(ni)-1))
+
+            cur_average = average_data[session];
+            var cur_std = Math.sqrt((cur_var - cur_sample_size*Math.pow(cur_average, 2)/ (cur_sample_size - 1)));
+
+            std_data.push(cur_std);
+        }
         console.log("std:", std_data);
 
         return [average_data, std_data];
@@ -286,6 +315,7 @@ class dataScreen {
 
         var values_avg_data = [];
         var values_std_data = [];
+        var values_sample_size = [];
         for (var i in sessions) {
             if (sessions[i] !== "timestamp") {
                 x_labels.push(sessions[i]);
@@ -316,6 +346,8 @@ class dataScreen {
                 var values_avg = phrase_values.reduce((a, b) => (a + b)) / phrase_values.length;
                 values_avg_data.push(values_avg);
 
+                values_sample_size.push(phrase_values.length);
+
                 var wpm_std = Math.sqrt(phrase_values.map(x => Math.pow(x - values_avg, 2)).reduce((a, b) => a + b) / phrase_values.length);
                 values_std_data.push(wpm_std);
             }
@@ -329,7 +361,7 @@ class dataScreen {
         }
 
 
-        return [x_labels, values_avg_data, values_std_upper, values_std_lower];
+        return [x_labels, values_avg_data, values_std_upper, values_std_lower, values_sample_size];
     }
     generate_dataset(graph_datas, users) {
         var num_users = users.length;
@@ -392,13 +424,17 @@ class dataScreen {
             var nomon_graph_datas = [];
 
             Object.keys(this.rowcol_user_data).forEach(function (user_key) {
-                var graph_data = this.get_graph_data(this.rowcol_user_data, user_key, type);
-                rowcol_graph_datas.push(graph_data);
+                if (parseInt(user_key) >= 91){
+                    var graph_data = this.get_graph_data(this.rowcol_user_data, user_key, type);
+                    rowcol_graph_datas.push(graph_data);
+                }
             }.bind(this));
 
             Object.keys(this.nomon_user_data).forEach(function (user_key) {
-                var graph_data = this.get_graph_data(this.nomon_user_data, user_key, type);
-                nomon_graph_datas.push(graph_data);
+                if (parseInt(user_key) >= 91) {
+                    var graph_data = this.get_graph_data(this.nomon_user_data, user_key, type);
+                    nomon_graph_datas.push(graph_data);
+                }
             }.bind(this));
 
             var rowcol_avg_results = this.compute_average_data(rowcol_graph_datas);
@@ -414,7 +450,7 @@ class dataScreen {
             var rowcol_values_std_lower = [];
             for (i in rowcol_values_avg_data){
                 rowcol_values_std_upper.push(rowcol_values_avg_data[i] + rowcol_values_std_data[i]);
-                rowcol_values_std_lower.push(rowcol_values_avg_data[i] - rowcol_values_std_data[i]);
+                rowcol_values_std_lower.push(Math.max(0, rowcol_values_avg_data[i] - rowcol_values_std_data[i]));
             }
             
             var nomon_avg_results = this.compute_average_data(nomon_graph_datas);
@@ -430,7 +466,7 @@ class dataScreen {
             var nomon_values_std_lower = [];
             for (i in nomon_values_avg_data) {
                 nomon_values_std_upper.push(nomon_values_avg_data[i] + nomon_values_std_data[i]);
-                nomon_values_std_lower.push(nomon_values_avg_data[i] - nomon_values_std_data[i]);
+                nomon_values_std_lower.push(Math.max(0, nomon_values_avg_data[i] - nomon_values_std_data[i]));
             }
 
             graph_datas = [[nomon_labels, nomon_values_avg_data, nomon_values_std_upper, nomon_values_std_lower],
@@ -445,9 +481,11 @@ class dataScreen {
             var users = [];
 
             Object.keys(user_data).forEach(function (user_key) {
-                var graph_data = this.get_graph_data(user_data, user_key, type);
-                graph_datas.push(graph_data);
-                users.push(user_key);
+                if (parseInt(user_key) >= 91) {
+                    var graph_data = this.get_graph_data(user_data, user_key, type);
+                    graph_datas.push(graph_data);
+                    users.push(user_key);
+                }
             }.bind(this));
 
             results = this.generate_dataset(graph_datas, users);
