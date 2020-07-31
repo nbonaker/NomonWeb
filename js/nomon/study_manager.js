@@ -94,7 +94,6 @@ export class studyManager {
             // this.init_webcam_switch();
             // document.onkeypress = null;
 
-            this.session_length = 10*60;
             this.session_start_time = Math.round(Date.now() / 1000);
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
@@ -125,6 +124,8 @@ export class studyManager {
 
         if (this.session_number <= 9){
             if (this.session_number === 1){
+                this.session_length = 10*60;
+
                 this.parent.change_speed(1);
                 this.parent.pre_phrase_rotate_index = 1;
 
@@ -132,10 +133,11 @@ export class studyManager {
                 this.parent.init_session_info_screen();
 
                 //remove after beta testing:
-                this.intermediate_survey = true;
-                this.full_tlx = true;
+                // this.intermediate_survey = true;
+                // this.full_tlx = true;
 
             } else if (this.session_number === 2) {
+                this.session_length = 20*60;
                 this.parent.change_speed(this.parent.pre_phrase_rotate_index);
 
                 this.parent.in_info_screen = true;
@@ -145,12 +147,14 @@ export class studyManager {
                 this.full_tlx = true;
 
             } else if (this.session_number === 5){
+                this.session_length = 20*60;
                 this.parent.change_speed(this.parent.pre_phrase_rotate_index);
                 //tlx short and questionnaire
                 this.intermediate_survey = true;
                 this.short_tlx = true;
 
             } else if (this.session_number === 9){
+                this.session_length = 20*60;
                 this.parent.change_speed(this.parent.pre_phrase_rotate_index);
                 //tlx full and questionnaire
                 //final questionnaire
@@ -159,10 +163,12 @@ export class studyManager {
                 this.full_tlx = true;
 
             } else {
+                this.session_length = 20*60;
                 this.parent.change_speed(this.parent.pre_phrase_rotate_index);
             }
 
         } else if (this.session_number === 10){
+            this.session_length = 20*60;
             this.parent.change_speed(this.parent.pre_phrase_rotate_index);
             //tlx full and questionnaire
             //final questionnaire
@@ -345,7 +351,7 @@ export class studyManager {
         var sec_rem = Math.floor(session_rem_time) - min_rem*60;
 
         console.log(min_rem, sec_rem);
-        if ((min_rem <= 0 && sec_rem < 30) || (min_rem < 0)){
+        if (min_rem < 1){
             this.allow_session_continue();
         } else {
             this.parent.draw_phrase();

@@ -240,7 +240,7 @@ class Keyboard{
             }
 
             this.session_button.onclick = function () {
-                var keyboard_url = "index.html?emoji=".concat((this.emoji_keyboard === false).toString());
+                var keyboard_url = "keyboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
             document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
@@ -448,31 +448,6 @@ class Keyboard{
         }
         this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
         this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
-    }
-    phrase_complete(){
-        var time_in = Date.now()/1000;
-
-        var session_paused_time = this.study_manager.session_pause_time;
-        if (this.study_manager.session_pause_start_time !== Infinity){
-            session_paused_time += time_in - this.study_manager.session_pause_start_time;
-        }
-        var session_rem_time = this.study_manager.session_length - (time_in - this.study_manager.session_start_time) + session_paused_time;
-        var min_rem = Math.floor((session_rem_time)/60);
-        var sec_rem = Math.floor(session_rem_time) - min_rem*60;
-
-        console.log(min_rem, sec_rem);
-        if ((min_rem <= 0 && sec_rem < 30) || (min_rem < 0)){
-            this.allow_session_continue();
-        } else {
-            this.draw_phrase();
-        }
-
-        if (this.allow_session_finish){
-            this.finish_session();
-        }
-
-        this.pre_phrase_rotate_index = this.rotate_index;
-        this.allow_slider_input = true;
     }
     highlight_emoji(){
         console.log("CUR TARGET: ", this.cur_emoji_target);

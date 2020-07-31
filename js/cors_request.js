@@ -23,7 +23,7 @@ export function makeCorsRequest(url, on_load_function=null, cache_type=null) {
 
     var xhr = createCORSRequest('GET', url);
         if (!xhr) {
-        // console.log('CORS not supported');
+        console.log('CORS not supported');
         return;
     }
 
@@ -40,7 +40,7 @@ export function makeCorsRequest(url, on_load_function=null, cache_type=null) {
     };
 
     xhr.onerror = function() {
-        // console.log('Woops, there was an error making the request.');
+        console.log('Woops, there was an error making the request.');
     };
     xhr.send();
 }

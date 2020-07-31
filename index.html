@@ -164,12 +164,13 @@
                 var emoji;
                 if (session_num == 9){
                     emoji="true";
+                    launch_software(user_id, next_software, partial_session, first_load, emoji);
+                } else if (session_num >= 10){
+                    alert("You have completed all sessions in this study. Please contact us at mitkbstudy@gmail.com to discuss payment. Thank you for participating!")
                 } else {
-                    emoji="true";
+                    emoji="false";
+                    launch_software(user_id, next_software, partial_session, first_load, emoji);
                 }
-
-
-                launch_software(user_id, next_software, partial_session, first_load, emoji);
 
             });
 
@@ -207,6 +208,7 @@
                         if (Number.isNaN(user_id)){
                             user_id = 0;
                         }
+                        document.getElementById("send_button").onclick = null;
                         console.log("given_id:", user_id);
                         document.getElementById("info_text").innerHTML =
                             `<strong>Your ID will be: ${user_id}. Press "Create User".</strong>`;
