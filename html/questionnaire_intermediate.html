@@ -274,12 +274,12 @@ so far.</p>
             var url;
             if (tlx === "full") {
                 url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
-                    '&condition=B&session=', session.toString(), '&partial_session=',
+                    '&condition=', condition,'&session=', session.toString(), '&partial_session=',
                     partial_session.toString(), "&full=true");
                 window.open(url, "_self");
             } else if (tlx === "short"){
                 url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
-                    '&condition=B&session=', session.toString(), '&partial_session=',
+                    '&condition=', condition, '&session=', session.toString(), '&partial_session=',
                     partial_session.toString(), "&full=false");
                 window.open(url, "_self");
             } else {

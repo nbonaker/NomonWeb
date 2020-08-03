@@ -20,8 +20,8 @@ $q3 = $_POST['q3'];
 $q4 = $_POST['q4'];
 $q5 = $_POST['q5'];
 $q6 = $_POST['q6'];
-$fr = $_POST['fr1'];
-$fr = $_POST['fr2'];
+$fr1 = $_POST['fr1'];
+$fr2 = $_POST['fr2'];
 
 $query = "INSERT INTO survey_info (id, software, software_order, session, type_quick, type_accurate, many_errors, corr_ease,
  recovery, audio, free_response_1, free_response_2) VALUES ('$user_id', '$condition', '$order', '$session', '$q1', '$q2', '$q3', '$q4',

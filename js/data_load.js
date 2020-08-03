@@ -286,11 +286,11 @@ class dataScreen {
         for (session in session_avg_data) {
             var cur_var = 0;
             var cur_sample_size = 0;
-            for (var i in session_std_data[session]) {
+            for (var user in session_std_data[session]) {
                 // qi = (ni-1)*var(xi) + ni*mean(xi)^2
 
-                cur_var += Math.pow(session_std_data[session][i], 2) * (session_sample_sizes[session][user] - 1);
-                cur_var += Math.pow(session_avg_data[session][i], 2) * session_sample_sizes[session][user];
+                cur_var += Math.pow(session_std_data[session][user], 2) * (session_sample_sizes[session][user] - 1);
+                cur_var += Math.pow(session_avg_data[session][user], 2) * session_sample_sizes[session][user];
 
                 cur_sample_size += session_sample_sizes[session][user];
             }
@@ -298,7 +298,7 @@ class dataScreen {
             // sc = sqrt( (qc - sum(ni)*mean(x)^2)/(sum(ni)-1))
 
             cur_average = average_data[session];
-            var cur_std = Math.sqrt((cur_var - cur_sample_size*Math.pow(cur_average, 2)/ (cur_sample_size - 1)));
+            var cur_std = Math.sqrt((cur_var - cur_sample_size*Math.pow(cur_average, 2))/ (cur_sample_size - 1));
 
             std_data.push(cur_std);
         }
@@ -348,7 +348,12 @@ class dataScreen {
 
                 values_sample_size.push(phrase_values.length);
 
-                var wpm_std = Math.sqrt(phrase_values.map(x => Math.pow(x - values_avg, 2)).reduce((a, b) => a + b) / phrase_values.length);
+                var wpm_std;
+                if (phrase_values.length > 1) {
+                    wpm_std = Math.sqrt(phrase_values.map(x => Math.pow(x - values_avg, 2)).reduce((a, b) => a + b) / (phrase_values.length - 1));
+                } else {
+                    wpm_std = 0;
+                }
                 values_std_data.push(wpm_std);
             }
         }
