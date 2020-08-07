@@ -71,8 +71,6 @@ export class WebcamSwitch {
     startVideo() {
         const constraints = {
             video: true,
-            width: 560,
-            height: 420
         };
 
         this.face_requested = false;
