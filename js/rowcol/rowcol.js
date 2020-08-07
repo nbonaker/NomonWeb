@@ -1309,7 +1309,7 @@ function send_login() {
             }
             prev_data["sound"]= sound;
 
-            var webcam_type = JSON.parse(result.webcam_type);
+            var webcam_type = result.webcam_type;
             if (webcam_type !== null) {
                 console.log("Retrieved Webcam Type!");
             }

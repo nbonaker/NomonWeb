@@ -29,7 +29,7 @@ export class WebcamCanvas{
 export class WebcamSwitch {
     constructor(parent) {
         this.parent = parent;
-        this.video_canvas = document.getElementById('video_canvas');
+        this.video_canvas = document.getElementById('video');
         this.video_canvas.style.visibility = "hidden";
         this.face_requested = true;
 

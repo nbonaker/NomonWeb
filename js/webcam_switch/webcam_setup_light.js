@@ -2,6 +2,7 @@ import * as webswitch from "./webcam_switch_light.js";
 
 class webcamSetup {
     constructor(forward_url=null) {
+        this.forward_url = forward_url;
         this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
         this.webcam_canvas.canvas.width = 560;
         this.webcam_canvas.canvas.height = 50;
