@@ -147,8 +147,11 @@ export class WebcamSwitch {
         this.video.style.visibility = "hidden";
         navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
             this.video.srcObject = stream;
-
         });
+
+        this.video.setAttribute('autoplay', '');
+        this.video.setAttribute('muted', '');
+        this.video.setAttribute('playsinline', '');
     }
     grab_stream(){
         this.video_canvas.width = this.video.videoWidth;
