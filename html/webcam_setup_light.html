@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <script defer src="../../js/webcam_switch/webcam_switch_light.js"></script>
     <style>
         body {
             margin: 0;
@@ -39,6 +38,7 @@
     <div >
         <div style="text-align: center; width:auto; height:auto; padding:0px;">
             <input class='btn' type="button" id = "start_button" value = "Start Calibration">
+            <input class='btn' type="button" id = "save_button" value = "Save and Return">
             <p id="info_text">Use your mouse to click on your chin. This will move the red line up to this position.
                 <br> Press Start Calibration to Begin</p>
         </div>
@@ -51,7 +51,8 @@
 
         </div>
     </div>
-
-
+    <span id="peak_text"></span>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script type="module" src="../js/webcam_switch/webcam_setup_light.js"></script>
 </body>
 </html>

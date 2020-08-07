@@ -1,4 +1,4 @@
-function pixel_distance(pixel_1, pixel_2, threshold=30) {
+export function pixel_distance(pixel_1, pixel_2, threshold=30) {
     var distance = Math.max(0, Math.abs(pixel_2 - pixel_1)-threshold);
     if (distance > 0){
         distance += threshold;
@@ -6,8 +6,8 @@ function pixel_distance(pixel_1, pixel_2, threshold=30) {
     return distance;
 }
 
-function mirror_image(data, width, height){
-    data_og = data.slice();
+export function mirror_image(data, width, height){
+    var data_og = data.slice();
 
     for (var row = 0; row < height; row += 1){
         for (var col = 0; col < width; col += 1){
@@ -18,10 +18,10 @@ function mirror_image(data, width, height){
     }
 }
 
-function convolve(arr1, arr2){
+export function convolve(arr1, arr2){
     var conv_arr = [];
-    n = arr1.length;
-    m = arr2.length;
+    var n = arr1.length;
+    var m = arr2.length;
     for (var i = m; i < n; i += 1){
         var conv_value = 0;
         for (var j = 0; j < m; j += 1){
@@ -32,7 +32,7 @@ function convolve(arr1, arr2){
     return conv_arr
 }
 
-function detectPeaks(data) {
+export function detectPeaks(data) {
 
     var smoothed_data = convolve(data, [1/5, 1/5, 1/5, 1/5, 1/5]);
 
@@ -63,7 +63,7 @@ function detectPeaks(data) {
 }
 
 
-class WebcamCanvas{
+export class WebcamCanvas{
     constructor(canvas_id, layer_index) {
         this.canvas = document.getElementById(canvas_id);
         this.canvas.style.zIndex = layer_index;
@@ -91,14 +91,14 @@ class WebcamCanvas{
     }
 }
 
-class WebcamSwitch {
+export class WebcamSwitch {
     constructor(parent) {
         this.parent = parent;
 
         this.init_ui();
         this.skip_update = 0;
 
-        this.bottom_offset = 100;
+        this.bottom_offset = 100/420;
 
         this.center_avg_length = 3;
         this.center_values = [];
@@ -135,31 +135,6 @@ class WebcamSwitch {
             this.webcam_canvas.draw_grey();
         }
 
-        function getMousePosition(canvas, event) {
-            let rect = canvas.getBoundingClientRect();
-            let x = event.clientX - rect.left;
-            let y = event.clientY - rect.top;
-            return [x, y]
-        }
-        this.video_canvas.addEventListener("mousedown", function(e)
-        {
-            var coords = getMousePosition(this.video_canvas, e);
-            this.bottom_offset = Math.floor(this.video_canvas.height - coords[1]);
-
-        }.bind(this));
-
-
-        if (this.parent){
-            this.webcam_canvas = this.parent.webcam_canvas;
-        } else {
-            this.webcam_canvas = new WebcamCanvas("webcam_canvas", 1);
-        }
-
-        this.start_button = document.getElementById("start_button");
-        this.start_button.onclick = function (){this.start_calibration();}.bind(this);
-
-        this.info_text = document.getElementById("info_text")
-
     }
     startVideo() {
         const constraints = {
@@ -174,12 +149,6 @@ class WebcamSwitch {
             this.video.srcObject = stream;
 
         });
-
-        setInterval(async () => {
-            this.grab_stream();
-            this.draw_switch();
-        }, 100);
-
     }
     grab_stream(){
         this.video_canvas.width = this.video.videoWidth;
@@ -233,7 +202,7 @@ class WebcamSwitch {
 
             if (this.in_calibration || this.finished_calibration){
                 if (this.peak_num > 0){
-                    for (row = 0; row < this.video_canvas.height - this.bottom_offset; row+= 1) {
+                    for (row = 0; row < Math.floor(this.video_canvas.height*(1-this.bottom_offset)); row+= 1) {
                         for (col = 0; col < 5; col += 1) {
                             current_frame[row * this.video_canvas.width * 4 +
                                 (Math.floor(this.trigger_pos*this.video_canvas.width)+col) * 4 + 2] = 0;
@@ -246,7 +215,7 @@ class WebcamSwitch {
                     }
                 }
                 if (this.trough_num > 0){
-                    for (row = 0; row < this.video_canvas.height - this.bottom_offset; row+= 1) {
+                    for (row = 0; row < Math.floor(this.video_canvas.height*(1-this.bottom_offset)); row+= 1) {
                         for (col = 0; col < 5; col += 1) {
                             current_frame[row * this.video_canvas.width * 4 +
                                 (Math.floor(this.reset_pos*this.video_canvas.width)+col) * 4 + 2] =
@@ -265,7 +234,7 @@ class WebcamSwitch {
             var row;
             var col;
 
-            for (row = 0; row < this.video_canvas.height - this.bottom_offset; row+= 1) {
+            for (row = 0; row < Math.floor(this.video_canvas.height*(1-this.bottom_offset)); row+= 1) {
                 var avg_col_index = row_averages[row];
 
                 // draw average for each row in red
@@ -282,7 +251,7 @@ class WebcamSwitch {
             }
 
             for (col = 0; col < this.video_canvas.width; col+= 1) {
-                var bottom_row = this.video_canvas.height - this.bottom_offset;
+                var bottom_row = Math.floor(this.video_canvas.height*(1-this.bottom_offset));
 
                 for (row = 0; row < 5; row += 1) {
                     current_frame[(bottom_row + row) * this.video_canvas.width * 4 + col * 4] = 255;
@@ -317,7 +286,7 @@ class WebcamSwitch {
 
         var col_avg = 0;
         var total_sum = 0;
-        for (row = 0; row < this.video_canvas.height - this.bottom_offset; row+= 1){
+        for (row = 0; row < Math.floor(this.video_canvas.height*(1-this.bottom_offset)); row+= 1){
             col_avg += row_averages[row]*row_sums[row];
             total_sum += row_sums[row];
         }
@@ -342,16 +311,21 @@ class WebcamSwitch {
         this.in_calibration = true;
         this.finished_calibration = false;
 
-        this.start_button.value = "Restart Calibration";
-        this.info_text.innerHTML  = `Start in a centered, neutral position. Move your torso to the right, <br>
+        this.parent.start_button.value = "Restart Calibration";
+        this.parent.save_button.style.display = "none";
+        this.parent.info_text.innerHTML  = `Start in a centered, neutral position. Move your torso to the right, <br>
             and then back to the center. Repeat <span id="peak_text">10</span> more times`
     }
     finish_calibration(){
         this.in_calibration = false;
         this.finished_calibration = true;
 
-        this.start_button.value = "Recalibrate";
-        this.info_text.innerHTML  = `You have finished calibrating!`
+        this.parent.start_button.value = "Recalibrate";
+        this.parent.info_text.innerHTML  = `You have finished calibrating!`;
+        // this.video_canvas.style.visibility = "hidden";
+        this.parent.save_button.style.display = "inline";
+        this.parent.save_button.onclick = function (){this.save_results();}.bind(this.parent);
+        this.parent.sound_on = true;
     }
     draw_switch(){
         this.webcam_canvas.ctx.beginPath();
@@ -426,4 +400,4 @@ class WebcamSwitch {
     }
 }
 
-let ws = new WebcamSwitch();
+// let ws = new WebcamSwitch();

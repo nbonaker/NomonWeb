@@ -7,6 +7,7 @@ import * as tm from './tutorial.js';
 import * as sm from './study_manager.js';
 import * as lm from './lm.js';
 import * as webswitch from "../webcam_switch/webcam_switch.js";
+import * as webswitchlight from "../webcam_switch/webcam_switch_light.js";
 
 import {makeCorsRequest} from "../cors_request.js";
 
@@ -40,6 +41,8 @@ class Keyboard{
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
 
+
+        this.webcam_type = this.prev_data.webcam_type;
 
         this.webcam_info_complete=false;
         this.in_webcam_info_screen = false;
@@ -119,14 +122,29 @@ class Keyboard{
         }else {
             document.getElementById("checkbox_webcam").disabled = true;
             setTimeout(function(){document.getElementById("checkbox_webcam").disabled = false}, 1500);
-            this.ws = new webswitch.WebcamSwitch(this);
-            if (!this.webcam_info_complete && !this.delay_webcam_info) {
-                this.in_webcam_info_screen = true;
-                this.webcam_info_complete = true;
-                this.init_webcam_info_screen();
+            if (this.webcam_type === "face") {
+                this.ws = new webswitch.WebcamSwitch(this);
+                if (!this.webcam_info_complete && !this.delay_webcam_info) {
+                    this.in_webcam_info_screen = true;
+                    this.webcam_info_complete = true;
+                    this.init_webcam_info_screen();
+                }
+                this.ws.face_x_calibration = 0.55 - this.prev_data["webcam_reset"];
+                this.ws.triger_x_calibration = 0.93 - this.prev_data["webcam_trigger"];
+            } else {
+                this.ws = new webswitchlight.WebcamSwitch(this);
+
+                this.ws.video_canvas.style.visibility = "hidden";
+
+                if (!this.webcam_info_complete && !this.delay_webcam_info) {
+                    this.in_webcam_info_screen = true;
+                    this.webcam_info_complete = true;
+                    this.init_webcam_info_screen();
+                }
+                this.ws.reset_pos = this.prev_data["webcam_reset"];
+                this.ws.trigger_pos = this.prev_data["webcam_trigger"];
+                this.ws.bottom_offset = this.prev_data["webcam_bottom"];
             }
-            this.ws.face_x_calibration = 0.55 - this.prev_data["webcam_reset"];
-            this.ws.triger_x_calibration = 0.93 - this.prev_data["webcam_trigger"];
         }
     }
     update_webcam_calibration(){
@@ -1176,11 +1194,16 @@ class Keyboard{
             var time_in = Date.now()/1000;
             this.bc.clock_inf.clock_util.increment(this.words_on);
             if (this.webcam_enabled) {
-                if (this.ws.skip_update == 0) {
-                    this.ws.detect_face();
-                    this.ws.skip_update = true;
+                if (this.webcam_type === "face") {
+                    if (this.ws.skip_update === 0) {
+                        this.ws.detect_face();
+                        this.ws.skip_update = true;
+                    }
+                    this.ws.skip_update = (this.ws.skip_update + 1) % 2;
+                } else {
+                    this.ws.grab_stream();
+                    this.ws.draw_switch();
                 }
-                this.ws.skip_update = (this.ws.skip_update + 1) % 2;
             }
 
             if (this.in_session){
@@ -1318,6 +1341,12 @@ function send_login() {
             }
             prev_data["sound"]= sound;
 
+            var webcam_type = JSON.parse(result.webcam_type);
+            if (webcam_type !== null) {
+                console.log("Retrieved Webcam Type!");
+            }
+            prev_data["webcam_type"]= webcam_type;
+
             var webcam_reset = JSON.parse(result.webcam_reset);
             if (webcam_reset !== null) {
                 console.log("Retrieved Webcam Reset!");
@@ -1329,6 +1358,12 @@ function send_login() {
                 console.log("Retrieved Webcam Trigger!");
             }
             prev_data["webcam_trigger"]= webcam_trigger;
+
+            var webcam_bottom = JSON.parse(result.webcam_bottom);
+            if (webcam_bottom !== null) {
+                console.log("Retrieved Webcam Bottom!");
+            }
+            prev_data["webcam_bottom"]= webcam_bottom;
         }
 
         let keyboard = new Keyboard(user_id, first_load, emoji, partial_session, prev_data);
