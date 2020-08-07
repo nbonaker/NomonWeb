@@ -37,7 +37,7 @@ export class WebcamSwitch {
             faceapi.nets.tinyFaceDetector.loadFromUri('../js/webcam_switch/models'),
         ]).then(this.startVideo.bind(this));
 
-        video_canvas.addEventListener('play', () => {
+        this.video_canvas.addEventListener('play', () => {
             this.canvas = faceapi.createCanvasFromMedia(video_canvas);
             // document.body.append(canvas)
             const displaySize = {width: this.video_canvas.width, height: this.video_canvas.height};
@@ -69,12 +69,20 @@ export class WebcamSwitch {
 
     }
     startVideo() {
+        const constraints = {
+            video: true,
+            width: 560,
+            height: 420
+        };
+
         this.face_requested = false;
-        navigator.getUserMedia(
-            {video: {}},
-            stream => document.getElementById('video_canvas').srcObject = stream, // jshint ignore:line
-            err => console.error(err) // jshint ignore:line
-        );
+        navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+            this.video_canvas.srcObject = stream;
+        });
+
+        this.video_canvas.setAttribute('autoplay', '');
+        this.video_canvas.setAttribute('muted', '');
+        this.video_canvas.setAttribute('playsinline', '');
 
     }
     detect_face(){

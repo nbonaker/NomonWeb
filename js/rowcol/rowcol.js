@@ -6,7 +6,7 @@ import * as sm from './study_manager.js';
 import * as webswitch from "../webcam_switch/webcam_switch.js";
 import {makeCorsRequest} from "../cors_request.js";
 import * as infoscreen from './info_screens.js';
-import * as webswitchlight from "../webcam_switch/webcam_switch_light";
+import * as webswitchlight from "../webcam_switch/webcam_switch_light.js";
 
 function log_add_exp(a_1, a_2){
     var b = Math.max(a_1, a_2);
