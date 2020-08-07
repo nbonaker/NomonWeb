@@ -138,20 +138,15 @@ export class WebcamSwitch {
     }
     startVideo() {
         const constraints = {
-            video: true,
-            width: 560,
-            height: 420
+            video: true
         };
 
         this.video = document.querySelector('video');
-        this.video.style.visibility = "hidden";
-        navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
-            this.video.srcObject = stream;
-        });
+        // this.video.style.visibility = "hidden";
+        navigator.mediaDevices.getUserMedia({video: {}}) .then((stream)=> {document.querySelector('video').srcObject = stream;}, (err)=> console.error(err));
 
         this.video.setAttribute('autoplay', '');
         this.video.setAttribute('muted', '');
-        this.video.setAttribute('playsinline', '');
     }
     grab_stream(){
         this.video_canvas.width = this.video.videoWidth;
@@ -316,15 +311,15 @@ export class WebcamSwitch {
 
         this.parent.start_button.value = "Restart Calibration";
         this.parent.save_button.style.display = "none";
-        this.parent.info_text.innerHTML  = `Start in a centered, neutral position. Move your torso to the right, <br>
-            and then back to the center. Repeat <span id="peak_text">10</span> more times`
+        this.parent.info_text.innerHTML  = `Start in a centered, neutral position. Move your torso to the right, 
+            and then back to<br> the center. Repeat <span id="peak_text">10</span> more times`
     }
     finish_calibration(){
         this.in_calibration = false;
         this.finished_calibration = true;
 
         this.parent.start_button.value = "Recalibrate";
-        this.parent.info_text.innerHTML  = `You have finished calibrating!`;
+        this.parent.info_text.innerHTML  = `You've finished calibrating! Press recalibrate if you want to adjust, or save and return.`;
         // this.video_canvas.style.visibility = "hidden";
         this.parent.save_button.style.display = "inline";
         this.parent.save_button.onclick = function (){this.save_results();}.bind(this.parent);

@@ -32,6 +32,13 @@
             cursor: pointer;
             border-radius: 4px;
         }
+        .visuallyhidden {
+          position: absolute;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          height: 1px; width: 1px;
+          margin: -1px; padding: 0; border: 0;
+        }
     </style>
 </head>
 <body>
@@ -42,15 +49,15 @@
             <p id="info_text">Use your mouse to click on your chin. This will move the red line up to this position.
                 <br> Press Start Calibration to Begin</p>
         </div>
-        <div style="text-align: center; width:auto; height:auto; padding:10px;">
+        <div style="width:auto; height:500px; padding:10px;">
             <canvas id="video_canvas"></canvas>
-            <video id="video"></video>
         </div>
         <div style="">
             <canvas id="webcam_canvas" style="margin: auto; left: 0; right:0"></canvas>
 
         </div>
     </div>
+    <video id="video" class="visuallyhidden"></video>
     <span id="peak_text"></span>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script type="module" src="../js/webcam_switch/webcam_setup_light.js"></script>
