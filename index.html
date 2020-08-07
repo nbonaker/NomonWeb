@@ -138,7 +138,7 @@
             return [session_num, next_software, partial_session];
         }
 
-        function init_study(user_id) {
+        function init_study(user_id, webcam_type) {
             $.ajax({
                 method: "POST",
                 url: "../php/init_study.php",
@@ -164,27 +164,35 @@
                 var emoji;
                 if (session_num == 9){
                     emoji="true";
-                    launch_software(user_id, next_software, partial_session, first_load, emoji);
+                    launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
                 } else if (session_num >= 10){
                     alert("You have completed all sessions in this study. Please contact us at mitkbstudy@gmail.com to discuss payment. Thank you for participating!")
                 } else {
                     emoji="false";
-                    launch_software(user_id, next_software, partial_session, first_load, emoji);
+                    launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
                 }
 
             });
 
         }
 
-        function launch_software(user_id, next_software, partial_session, first_load, emoji){
+        function launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type){
 
             document.getElementById("send_button").value = "Launch Software";
 
-            document.getElementById("send_button").onclick = function(){
-                keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-                    '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-                window.open(keyboard_url,'_self');
-            };
+            if (webcam_type === "motion"){
+                document.getElementById("send_button").onclick = function () {
+                    keyboard_url = "html/webcam_setup_light.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+                        '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
+                    window.open(keyboard_url, '_self');
+                };
+            } else {
+                document.getElementById("send_button").onclick = function () {
+                    keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+                        '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
+                    window.open(keyboard_url, '_self');
+                };
+            }
         }
 
         function send_login() {
@@ -198,6 +206,7 @@
                 console.log(result);
                 var user_id;
                 var click_dist;
+                var webcam_type = "face";
                 if (result.length > 0) {
                     result = result[0];
                 }
@@ -217,7 +226,7 @@
                         create_user(user_id);
                         document.getElementById("info_text").innerHTML =
                         `<strong>Created user with ID ${user_id}!</strong>`;
-                        init_study(user_id);
+                        init_study(user_id, webcam_type);
                     }
                 } else if ("id" in result) {  // Load previous user
                     user_id = requested_user_id;
@@ -229,8 +238,9 @@
                         document.getElementById("info_text").innerHTML =
                             `<strong>Loading User ${user_id}... User preferences loaded!</strong>`;
                     }
-                    console.log("given_id:", user_id);
-                    init_study(user_id);
+                    webcam_type = result.webcam_type;
+                    console.log("given_id:", user_id, "webcam switch:", webcam_type);
+                    init_study(user_id, webcam_type);
                 }
                 else {  //  User not found
                     document.getElementById("info_text").innerHTML =
