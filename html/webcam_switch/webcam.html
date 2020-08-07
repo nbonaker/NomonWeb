@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <script defer src="../../js/webcam_switch/face-api.min.js"></script>
-    <script defer src="../../js/webcam_switch/webcam_switch.js"></script>
+    <script defer src="../../js/webcam_switch/webcam_switch_light.js"></script>
     <style>
         body {
             margin: 0;
@@ -17,14 +16,42 @@
             justify-content: center;
             align-items: center;
         }
-
+        p {
+            font-size: 20px;
+        }
         canvas {
             position: absolute;
+        }
+        .btn {
+            background-color: #0056ff;
+            border: none;
+            color: white;
+            padding: 1vh 2vh;
+            text-align: center;
+            text-decoration: none;
+            font-size: 2vh;
+            cursor: pointer;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <canvas id="webcam_canvas"></canvas>
-    <video id="video_canvas" width="500" height="560" autoplay muted></video>
+    <div >
+        <div style="text-align: center; width:auto; height:auto; padding:0px;">
+            <input class='btn' type="button" id = "start_button" value = "Start Calibration">
+            <p id="info_text">Use your mouse to click on your chin. This will move the red line up to this position.
+                <br> Press Start Calibration to Begin</p>
+        </div>
+        <div style="text-align: center; width:auto; height:auto; padding:10px;">
+            <canvas id="video_canvas"></canvas>
+            <video id="video" autoplay muted></video>
+        </div>
+        <div style="">
+            <canvas id="webcam_canvas" style="margin: auto; left: 0; right:0"></canvas>
+
+        </div>
+    </div>
+
+
 </body>
 </html>
