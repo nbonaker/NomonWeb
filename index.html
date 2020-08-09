@@ -162,7 +162,12 @@
                 }
 
                 var emoji;
-                if (session_num == 9){
+
+                if (user_id == 84){
+                    emoji="true";
+                    launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
+                }
+                else if (session_num == 9){
                     emoji="true";
                     launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
                 } else if (session_num >= 10){
