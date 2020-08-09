@@ -94,7 +94,7 @@ export class studyManager {
             this.session_pause_time = 0;
             this.session_pause_start_time = Infinity;
 
-            this.rel_click_times = [];
+            this.parent.rel_click_times = [];
             this.parent.abs_click_times = [];
             this.parent.click_scan_positions = [];
 

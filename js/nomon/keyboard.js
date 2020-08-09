@@ -111,7 +111,7 @@ class Keyboard{
         if (!this.webcam_enabled){
             this.webcam_canvas.draw_grey();
             if (this.ws != null) {
-                var stream = document.getElementById('video_canvas').srcObject;
+                var stream = document.getElementById('video').srcObject;
                 stream.getTracks().forEach(function(track) {
                   track.stop();
                 });
@@ -168,6 +168,12 @@ class Keyboard{
                     console.log("Retrieved Webcam Trigger!");
                 }
                 keyboard.prev_data["webcam_trigger"]= webcam_trigger;
+
+                var webcam_bottom = JSON.parse(result.webcam_bottom);
+                if (webcam_trigger !== null) {
+                    console.log("Retrieved Webcam Bottom!");
+                }
+                keyboard.prev_data["webcam_bottom"]= webcam_bottom;
 
                 document.getElementById("checkbox_webcam").checked = true;
                 keyboard.init_webcam_switch();
@@ -288,7 +294,12 @@ class Keyboard{
                 document.getElementById("checkbox_webcam").checked = false;
                 this.init_webcam_switch();
             }
-            var url = "webcam_setup.html".concat('?user_id=', this.user_id.toString());
+            var url;
+            if (this.webcam_type === "face") {
+                url = "webcam_setup.html".concat('?user_id=', this.user_id.toString());
+            } else {
+                url = "webcam_setup_light.html".concat('?user_id=', this.user_id.toString());
+            }
             var new_win = window.open(url, '_blank');
             new_win.focus();
         }.bind(this);
@@ -1187,6 +1198,10 @@ class Keyboard{
                 this.study_manager.check_survey_complete();
             }
         }
+        if (this.in_session){
+            this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
+            this.study_manager.session_pause_start_time = Infinity;
+        }
         this.run_on_focus = false;
     }
     animate(){
@@ -1215,6 +1230,9 @@ class Keyboard{
         }
         if (!document.hasFocus() && !this.run_on_focus){
             this.run_on_focus = true;
+            if (this.in_session){
+                this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
+            }
         }
     }
     play_audio(){
