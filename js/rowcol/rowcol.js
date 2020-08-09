@@ -265,6 +265,11 @@ class Keyboard{
                 document.getElementById("checkbox_webcam").checked = false;
                 this.init_webcam_switch();
             }
+
+            if (this.in_session){
+                this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
+            }
+
             var url;
             if (this.webcam_type === "face") {
                 url = "webcam_setup.html".concat('?user_id=', this.user_id.toString());
@@ -453,14 +458,16 @@ class Keyboard{
 
     }
     on_press(){
-        this.play_audio();
-        if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_webcam_info_screen  && !this.in_finished_screen) {
-            if (this.in_session){
-                this.allow_slider_input = false;
-                this.pre_phrase_scan_delay_index = this.scan_delay_index;
-                this.pre_phrase_extra_delay_index = this.extra_delay_index;
+        if (document.hasFocus()) {
+            this.play_audio();
+            if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
+                if (this.in_session) {
+                    this.allow_slider_input = false;
+                    this.pre_phrase_scan_delay_index = this.scan_delay_index;
+                    this.pre_phrase_extra_delay_index = this.extra_delay_index;
+                }
+                this.update_scan_time(true);
             }
-            this.update_scan_time(true);
         }
     }
     start_pause(){
@@ -1208,9 +1215,6 @@ class Keyboard{
         console.log(this.row_scan, this.col_scan, press, this.next_scan_time);
     }
     execute_on_focus(){
-        if (this.in_webcam_calibration){
-            this.update_webcam_calibration();
-        }
         if (this.study_manager && this.study_manager.in_survey){
 
             if (this.study_manager.survey_complete){
@@ -1220,11 +1224,15 @@ class Keyboard{
                 this.study_manager.check_survey_complete();
             }
         }
-        if (this.in_session){
+        if (this.in_session && this.study_manager.session_pause_start_time !== Infinity){
             this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
             this.study_manager.session_pause_start_time = Infinity;
         }
         this.run_on_focus = false;
+
+        if (this.in_webcam_calibration){
+            this.update_webcam_calibration();
+        }
     }
     animate(){
         if (this.full_init) {

@@ -57,7 +57,7 @@ foreach($user_ids as $user_id) {
 
                 $typed_text = end($phrase_data)["typed_text"];
                 $phrase_text = end($phrase_data)["phrase"];
-                $num_words = count(explode(" ", $typed_text));
+                $num_words = strlen($typed_text)/5;
 
                 $num_chars = strlen($typed_text);
                 $num_press = 0;
