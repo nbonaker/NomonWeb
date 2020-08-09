@@ -153,7 +153,9 @@ export class WebcamSwitch {
         this.video_canvas.height = this.video.videoHeight;
         this.video_canvas_ctx.drawImage(this.video, 0, 0, this.video.videoWidth, this.video.videoHeight);
 
-        this.calculate_motion();
+        if (this.video_canvas.width !== 0){
+            this.calculate_motion();
+        }
 
     }
     calculate_motion(){
