@@ -307,10 +307,13 @@ export class ClockInference{
             var selection_index = -config.learn_delay;
             var n_press = this.clock_history[-selection_index].length;
             var win_index = this.win_history[-selection_index];
+
             for (var press = 0; press < n_press; press++) {
                 var value = this.clock_history[-selection_index][press][win_index];
+                this.bc.rel_click_times.push(value);
                 this.inc_score_inc(this.clock_history[-selection_index][press][win_index]);
             }
+
             var click_data_json = JSON.stringify(this.kde.dens_li);
             var y_li = JSON.stringify(this.kde.y_li);
             var user_id = this.parent.user_id;
