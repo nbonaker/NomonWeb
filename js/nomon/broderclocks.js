@@ -37,7 +37,7 @@ export class BroderClocks{
         var ind_in_histo = this.clock_inf.reverse_index_gsi(this.clock_inf.cscores[top_score_clock]);
 
         this.abs_click_times.push(time_in);
-        this.rel_click_times.push(ind_in_histo);
+        // this.rel_click_times.push(ind_in_histo);
 
         var last_gap_time = (time_in - this.last_press_time) % this.time_rotate;
 

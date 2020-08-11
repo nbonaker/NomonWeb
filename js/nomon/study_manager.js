@@ -100,6 +100,7 @@ export class studyManager {
 
             this.parent.bc.abs_click_times = [];
             this.parent.bc.rel_click_times = [];
+            this.parent.last_selection = null;
 
             this.parent.draw_phrase();
 

@@ -42,14 +42,13 @@ class Keyboard{
         this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
 
 
-        this.webcam_type = this.prev_data.webcam_type;
-
         this.webcam_info_complete=false;
         this.in_webcam_info_screen = false;
         this.in_webcam_calibration = false;
         this.ws = null;
 
         if (this.user_id){
+            this.webcam_type = this.prev_data.webcam_type;
             this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
             this.webcam_enabled = true;
             this.delay_webcam_info = true;
@@ -94,6 +93,7 @@ class Keyboard{
         this.old_context_li = [""];
         this.last_add_li = [0];
         this.skip_hist = false;
+        this.last_selection;
 
         this.full_init=false;
         this.fetched_words = false;
@@ -584,6 +584,10 @@ class Keyboard{
             if (this.in_tutorial){
                 this.tutorial_manager.update_target();
             }
+        }
+
+        if (this.in_session && this.last_selection != null){
+            this.study_manager.save_selection_data(this.last_selection);
         }
     }
     init_locs(){
@@ -1151,14 +1155,12 @@ class Keyboard{
         this.is_undo = is_undo;
         this.is_equalize = is_equalize;
 
-        if (this.in_session){
-            this.study_manager.save_selection_data(selection);
-        }
         // # update the word prior
 
         this.fetched_words = false;
         this.skip_hist = false;
 
+        this.last_selection = selection;
 
         if (this.emoji_keyboard){
             this.on_word_load();
