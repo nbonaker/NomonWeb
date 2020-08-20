@@ -113,7 +113,7 @@ export class KernelDensityEstimation{
         }
         var y2sum = 0;
         for (var y_ind = 0; y_ind < yLenEff; y_ind++){
-            ysum += this.y_li[y_ind]**2;
+            y2sum += this.y_li[y_ind]**2;
         }
         var ave_sigma_sq = (this.n_ksigma - yLenEff) * this.ksigma0 * this.ksigma0;
         if (yLenEff > 0) {
@@ -126,8 +126,8 @@ export class KernelDensityEstimation{
     calc_ksigma(eff_num_points, yLenEff){
         var ave_sigma_sq = this.ave_sigma_sq(eff_num_points, yLenEff);
 
-        this.ksigma = this.ns_factor * Math.sqrt(Math.max(0.001, ave_sigma_sq));
-        this.ksigma = this.ksigma0;
+        this.ksigma = this.ns_factor * Math.sqrt(Math.max(0.0001, ave_sigma_sq));
+        // this.ksigma = this.ksigma0;
         // console.log(this.ksigma);
         // console.log(this.ksigma0);
         return this.ksigma;

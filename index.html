@@ -163,10 +163,10 @@
 
                 var emoji;
 
-                if (session_num == 6){
+                if (session_num == 5){
                     emoji="false";
                     launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, true);
-                } else if (session_num == 7){
+                } else if (session_num == 6){
                     emoji="false";
                     launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, false);
                 } else if (session_num == 9){
@@ -192,7 +192,7 @@
                     keyboard_url = "html/webcam_setup_light.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
                         '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
                     if (webcam != null){
-                        keyboard_url = keyboard_url.concat("webcam", webcam);
+                        keyboard_url = keyboard_url.concat("&webcam=", webcam);
                     }
                     window.open(keyboard_url, '_self');
                 };
@@ -201,7 +201,7 @@
                     keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
                         '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
                     if (webcam != null){
-                        keyboard_url = keyboard_url.concat("webcam", webcam);
+                        keyboard_url = keyboard_url.concat("&webcam=", webcam);
                     }
                     window.open(keyboard_url, '_self');
                 };

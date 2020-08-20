@@ -28,12 +28,7 @@ class Keyboard{
         this.prev_data = prev_data;
         this.emoji_keyboard = emoji;
 
-        if (this.emoji_keyboard){
-            this.n_pred = 0;
-        } else {
-            this.n_pred = kconfig.n_pred;
-        }
-
+        this.n_pred = 0;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
@@ -352,9 +347,9 @@ class Keyboard{
         if (this.in_info_screen){
             this.init_info_screen();
         }
-        if (this.emoji_keyboard){
-            this.continue_init();
-        }
+
+        this.continue_init();
+
     }
     init_webcam_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -453,36 +448,6 @@ class Keyboard{
         this.info_button.className = "btn clickable";
         this.tutorial_button.value = "Retrain";
     }
-    draw_phrase(){
-        this.typed_versions = [''];
-        this.typed = "";
-        if (this.emoji_keyboard){
-            this.study_manager.cur_phrase = "";
-            for (var i = 0; i<5; i++) {
-                var emoji_index = Math.floor(Math.random() * kconfig.emoji_main_chars.length);
-                var emoji = kconfig.emoji_main_chars[emoji_index];
-                this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
-            }
-
-            var phrase_arr = Array.from(this.study_manager.cur_phrase);
-            this.cur_emoji_target = phrase_arr[0];
-
-            this.keygrid.draw_layout();
-            this.highlight_emoji();
-        } else {
-            this.lm_prefix = "";
-            this.left_context = "";
-            this.fetched_words = false;
-            this.is_undo = false;
-            this.is_equalize = false;
-            this.skip_hist = true;
-            this.lm.update_cache(this.left_context, this.lm_prefix, null);
-
-            this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
-        }
-        this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
-        this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
-    }
     highlight_emoji(){
         console.log("CUR TARGET: ", this.cur_emoji_target);
 
@@ -525,14 +490,8 @@ class Keyboard{
     on_press(){
         if (document.hasFocus()) {
             this.play_audio();
-            if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
+            if (!this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
                 var time_in = Date.now() / 1000;
-
-                if (this.in_tutorial) {
-                    console.log("cur_hour", this.bc.clock_inf.clock_util.cur_hours[this.tutorial_manager.target_clock]);
-                    this.tutorial_manager.on_press(time_in);
-
-                }
 
                 this.bc.select(time_in);
                 if (this.in_session) {
@@ -568,7 +527,6 @@ class Keyboard{
     }
     on_word_load(){
         this.fetched_words = true;
-        this.clockgrid.update_word_clocks(this.lm.word_predictions);
 
         if (!this.full_init) {
             this.continue_init();
@@ -1087,13 +1045,6 @@ class Keyboard{
 
                 this.clear_text = true;
             }
-            else if (kconfig.emoji_main_chars.includes(new_char)){
-                console.log("EMOJI");
-                this.old_context_li.push(this.context);
-                this.context.concat(new_char);
-                this.last_add_li.push(new_char.length);
-                this.typed = this.typed.concat(new_char);
-            }
             else if (kconfig.main_chars.includes(new_char)) {
                 this.old_context_li.push(this.context);
                 this.context.concat(new_char);
@@ -1162,22 +1113,7 @@ class Keyboard{
 
         this.last_selection = selection;
 
-        if (this.emoji_keyboard){
-            this.on_word_load();
-            if (this.in_session) {
-                var phrase_arr = Array.from(this.study_manager.cur_phrase);
-                var typed_arr = Array.from(this.typed);
-                if (typed_arr.length < phrase_arr.length) {
-                    this.cur_emoji_target = phrase_arr[typed_arr.length];
-                    this.highlight_emoji();
-                } else {
-                    this.cur_emoji_target = null;
-                    this.highlight_emoji();
-                }
-            }
-        } else  {
-            this.lm.update_cache(this.left_context, this.lm_prefix, selection);
-        }
+        this.on_word_load();
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
@@ -1260,7 +1196,6 @@ class Keyboard{
         this.clockhand_canvas.calculate_size();
         this.clockgrid.clocks = [];
         this.clockgrid.generate_layout();
-        this.clockgrid.update_word_clocks(this.words_li);
         for (var clock_ind in this.clockgrid.clocks){
             var clock = this.clockgrid.clocks[clock_ind];
             if (clock != null){
@@ -1270,9 +1205,6 @@ class Keyboard{
 
         this.clockgrid.undo_label.draw_text();
 
-        if(this.emoji_keyboard && this.in_session){
-            this.highlight_emoji();
-        }
 
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.histogram.calculate_size();

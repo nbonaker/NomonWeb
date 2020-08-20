@@ -384,9 +384,9 @@ export class studyManager {
             typed_text = this.parse_emojis(typed_text);
             selection = this.parse_emojis(selection);
         } else {
-            phrase = this.cur_phrase.replace("'", "8");
-            typed_text = typed_text.replace("'", "8");
-            selection = selection.replace("'", "8");
+            phrase = this.cur_phrase.replace(new RegExp("'", "g"), "8");
+            typed_text = typed_text.replace(new RegExp("'", "g"), "8");
+            selection = selection.replace(new RegExp("'", "g"), "8");
         }
 
         var phrase_num = this.phrase_num;
@@ -398,6 +398,9 @@ export class studyManager {
         var abs_click_times = JSON.stringify(this.parent.bc.abs_click_times);
         var rel_click_times = JSON.stringify(this.parent.bc.rel_click_times);
 
+        if (this.parent.bc.rel_click_times.length === 0){
+            return
+        }
         this.parent.bc.abs_click_times = [];
         this.parent.bc.rel_click_times = [];
 

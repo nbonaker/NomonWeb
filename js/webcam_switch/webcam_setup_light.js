@@ -80,27 +80,32 @@ const partial_session = params.get("partial_session") === 'true';
 const software = params.get("software");
 const emoji = params.get("emoji");
 const forward = params.get("forward") === 'true';
-if ("webcam" in params) {
-    const webcam = params.get("webcam") === 'true';
-} else {
-    const webcam = null;
+
+var webcam = params.get("webcam");
+
+if (webcam != null){
+    webcam = webcam === 'true';
 }
+
 console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Software: ", software, " Forward: ", forward);
 
 var forward_url;
 if (forward) {
-    if (software === "A") {
-        forward_url = "keyboard.html";
-        forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-            '&partial_session=', partial_session.toString(), '&emoji=', emoji);
-    } else if (software === "B") {
-        forward_url = "rowcol.html";
-        forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-            '&partial_session=', partial_session.toString(), '&emoji=', emoji);
-    }
-
     if (webcam != null){
-        forward_url = forward_url.concat("webcam", webcam);
+        forward_url = "reaction_measuring.html";
+        forward_url = forward_url.concat('?user_id=', user_id.toString(), '&software=', software, '&first_load=', first_load,
+                '&partial_session=', partial_session.toString(), '&emoji=', emoji);
+        forward_url = forward_url.concat("&webcam=", webcam.toString());
+    } else {
+        if (software === "A") {
+            forward_url = "keyboard.html";
+            forward_url = forward_url.concat('?user_id=', user_id.toString(), '&software=', software, '&first_load=', first_load,
+                '&partial_session=', partial_session.toString(), '&emoji=', emoji);
+        } else if (software === "B") {
+            forward_url = "rowcol.html";
+            forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+                '&partial_session=', partial_session.toString(), '&emoji=', emoji);
+        }
     }
 }
 

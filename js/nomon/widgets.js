@@ -178,11 +178,7 @@ export class ClockGrid{
         var y_start;
         var y_end;
 
-        if(this.parent.emoji_keyboard) {
-            this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 5;
-        } else {
-            this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 7;
-        }
+        this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 4;
 
         for (var i in this.main_chars){
             var main_char = this.main_chars[i];
@@ -228,31 +224,6 @@ export class ClockGrid{
             }
         }
 
-        // if (indexOf_2d(this.target_layout, "SPACEUNIT") !== false){
-        //     var space_chars = ['_', '\''];
-        //     space_chars = this.key_chars.filter(value => -1 !== space_chars.indexOf(value));
-        //
-        //     var space_unit_indicies = indexOf_2d(this.target_layout, "SPACEUNIT");
-        //     x_start = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][0];
-        //     x_end = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][1];
-        //     y_start = this.keygrid.y_positions[space_unit_indicies[0]][0];
-        //     y_end = this.keygrid.y_positions[space_unit_indicies[0]][1];
-        //
-        //     for (var space_char_index  in space_chars){
-        //         var space_char = space_chars[space_char_index];
-        //
-        //         var space_clock_x = x_start + this.clock_radius * 1.5;
-        //         var space_clock_y= y_start + (y_end - y_start) / 4 * ((space_char_index % 2)*2 + 1);
-        //
-        //         let cur_space_clock = new Clock(this.face_canvas, this.hand_canvas,
-        //                                 space_clock_x, space_clock_y, this.clock_radius, space_char);
-        //         this.clocks.push(null);
-        //         this.clocks.push(null);
-        //         this.clocks.push(null);
-        //         this.clocks.push(cur_space_clock);
-        //     }
-        // }
-
         if (indexOf_2d(this.target_layout, "BACKUNIT") !== false){
             var back_chars = ['#', '$'];
             back_chars = this.key_chars.filter(value => -1 !== back_chars.indexOf(value));
@@ -279,6 +250,15 @@ export class ClockGrid{
                 this.clocks.push(cur_back_clock);
 
             }
+        } else {
+            var space_char_indices = indexOf_2d(this.target_layout, "#");
+
+            x_start = this.keygrid.x_positions[space_char_indices[0]][space_char_indices[1]][0];
+            x_end = this.keygrid.x_positions[space_char_indices[0]][space_char_indices[1]][1];
+            y_start = this.keygrid.y_positions[space_char_indices[0]][0];
+            y_end = this.keygrid.y_positions[space_char_indices[0]][1];
+
+            this.generate_main_clock_layout(x_start, y_start, x_end, y_end, "Backspace");
         }
 
         if (indexOf_2d(this.target_layout, "UNDOUNIT") !== false){
@@ -313,7 +293,36 @@ export class ClockGrid{
             var undo_label_y = y_start + (y_end - y_start) / 4;
 
             this.undo_label = new Label(this.face_canvas, undo_label_x, undo_label_y, this.clock_radius*2,"");
+        } else {
+            var undo_unit_indicies = indexOf_2d(this.target_layout, "@");
+            x_start = this.keygrid.x_positions[undo_unit_indicies[0]][undo_unit_indicies[1]][0];
+            x_end = this.keygrid.x_positions[undo_unit_indicies[0]][undo_unit_indicies[1]][1];
+            y_start = this.keygrid.y_positions[undo_unit_indicies[0]][0];
+            y_end = this.keygrid.y_positions[undo_unit_indicies[0]][1];
 
+            var undo_clock_x = x_start + this.clock_radius * 1.5;
+            var undo_clock_y = (y_start + y_end) / 2;
+
+            let cur_undo_clock = new Clock(this.face_canvas, this.hand_canvas,
+                                    undo_clock_x, undo_clock_y, this.clock_radius, "Undo");
+            for (var i=0; i<this.parent.n_pred; i++) {
+                    this.clocks.push(null);
+                }
+            this.clocks.push(cur_undo_clock);
+
+            var undo_label_x = x_start + this.clock_radius * 8;
+            var undo_label_y = (y_start + y_end) / 2;
+
+            this.undo_label = new Label(this.face_canvas, undo_label_x, undo_label_y, this.clock_radius*2,"");
+            
+            var space_char_indices = indexOf_2d(this.target_layout, "_");
+
+            x_start = this.keygrid.x_positions[space_char_indices[0]][space_char_indices[1]][0];
+            x_end = this.keygrid.x_positions[space_char_indices[0]][space_char_indices[1]][1];
+            y_start = this.keygrid.y_positions[space_char_indices[0]][0];
+            y_end = this.keygrid.y_positions[space_char_indices[0]][1];
+
+            this.generate_main_clock_layout(x_start, y_start, x_end, y_end, "_");
         }
         var help;
 
