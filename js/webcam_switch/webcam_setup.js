@@ -233,8 +233,8 @@ class webcamSetup {
         if (this.allow_save) {
             this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
-            this.resting_pos = this.webcam_switch.face_x;
-            this.webcam_switch.face_x_calibration = 0.5 - this.resting_pos;
+            this.resting_pos = 0.5 - this.webcam_switch.face_x;
+            this.webcam_switch.face_x_calibration = this.resting_pos;
             console.log("Resting:", this.resting_pos);
 
             this.start_button.onclick = this.save_trigger.bind(this);
@@ -262,8 +262,8 @@ class webcamSetup {
         if (this.allow_save) {
             this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
-            this.trigger_pos = this.webcam_switch.face_x;
-            this.webcam_switch.triger_x_calibration = 0.5-(this.trigger_pos - this.resting_pos);
+            this.trigger_pos = 0.5-(this.webcam_switch.face_x - this.resting_pos);
+            this.webcam_switch.triger_x_calibration = this.trigger_pos;
             console.log("Trigger:", this.trigger_pos);
 
             this.rotate_to_webcam = true;
@@ -360,11 +360,7 @@ const partial_session = params.get("partial_session") === 'true';
 const software = params.get("software");
 const emoji = params.get("emoji");
 const forward = params.get("forward") === 'true';
-if ("webcam" in params) {
-    const webcam = params.get("webcam") === 'true';
-} else {
-    const webcam = null;
-}
+
 console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Software: ", software, " Forward: ", forward);
 
 var forward_url;
@@ -379,7 +375,8 @@ if (forward) {
             '&partial_session=', partial_session.toString(), '&emoji=', emoji);
     }
 
-    if (webcam != null){
+    if ("webcam" in params) {
+        const webcam = params.get("webcam") === 'true';
         forward_url = forward_url.concat("webcam", webcam);
     }
 }

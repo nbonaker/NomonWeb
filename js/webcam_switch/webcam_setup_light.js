@@ -80,11 +80,7 @@ const partial_session = params.get("partial_session") === 'true';
 const software = params.get("software");
 const emoji = params.get("emoji");
 const forward = params.get("forward") === 'true';
-if ("webcam" in params) {
-    const webcam = params.get("webcam") === 'true';
-} else {
-    const webcam = null;
-}
+
 console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Software: ", software, " Forward: ", forward);
 
 var forward_url;
@@ -99,7 +95,8 @@ if (forward) {
             '&partial_session=', partial_session.toString(), '&emoji=', emoji);
     }
 
-    if (webcam != null){
+    if ("webcam" in params) {
+        const webcam = params.get("webcam") === 'true';
         forward_url = forward_url.concat("webcam", webcam);
     }
 }
