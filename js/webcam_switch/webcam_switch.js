@@ -134,11 +134,11 @@ export class WebcamSwitch {
     }
     draw_switch(){
         var face_x = 1 - this.face_x;
-        var face_size = this.face_width;
+        var face_size = 0.15;
 
         var facebar_x = this.webcam_canvas.screen_width*(face_x - face_size/2 - this.face_x_calibration);
-        var trigger_bar_x = this.webcam_canvas.screen_width*(this.triger_x_calibration + face_size);
-        var control_bar_x = this.webcam_canvas.screen_width*(0.47 - face_size/2);
+        var trigger_bar_x = this.webcam_canvas.screen_width*(this.triger_x_calibration+face_size/2);
+        var control_bar_x = this.webcam_canvas.screen_width*(0.55 - face_size/2);
 
         if (facebar_x < control_bar_x){
             this.control_switch = true;

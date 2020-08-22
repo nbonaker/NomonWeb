@@ -234,7 +234,7 @@ class webcamSetup {
             this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
             this.resting_pos = this.webcam_switch.face_x;
-            this.webcam_switch.face_x_calibration = 0.55 - this.resting_pos;
+            this.webcam_switch.face_x_calibration = 0.5 - this.resting_pos;
             console.log("Resting:", this.resting_pos);
 
             this.start_button.onclick = this.save_trigger.bind(this);
@@ -263,7 +263,7 @@ class webcamSetup {
             this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
             this.trigger_pos = this.webcam_switch.face_x;
-            this.webcam_switch.triger_x_calibration = 0.85-this.trigger_pos;
+            this.webcam_switch.triger_x_calibration = 0.5-(this.trigger_pos - this.resting_pos);
             console.log("Trigger:", this.trigger_pos);
 
             this.rotate_to_webcam = true;

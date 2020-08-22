@@ -208,6 +208,7 @@ so far.</p>
     console.log(partial_session);
     const order = 1 + (partial_session | 0);
     const tlx = params.get("tlx");
+    const final_survey = params.get("final") === 'true';
 
     var user_id_header = document.getElementById("user_id_text");
     user_id_header.innerHTML = user_id;
@@ -272,18 +273,25 @@ so far.</p>
             console.log(result);
 
             var url;
-            if (tlx === "full") {
-                url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
-                    '&condition=', condition,'&session=', session.toString(), '&partial_session=',
-                    partial_session.toString(), "&full=true");
-                window.open(url, "_self");
-            } else if (tlx === "short"){
-                url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
-                    '&condition=', condition, '&session=', session.toString(), '&partial_session=',
-                    partial_session.toString(), "&full=false");
+            if (final_survey && partial_session){
+                url = "../html/final_questionnaire.html".concat('?user_id=', user_id.toString(),
+                        '&condition=', condition, '&session=', session.toString(), '&partial_session=',
+                        partial_session.toString(), "&tlx=", tlx);
                 window.open(url, "_self");
             } else {
-                // window.close();
+                if (tlx === "full") {
+                    url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
+                        '&condition=', condition, '&session=', session.toString(), '&partial_session=',
+                        partial_session.toString(), "&full=true");
+                    window.open(url, "_self");
+                } else if (tlx === "short") {
+                    url = "../html/tlx.html".concat('?user_id=', user_id.toString(),
+                        '&condition=', condition, '&session=', session.toString(), '&partial_session=',
+                        partial_session.toString(), "&full=false");
+                    window.open(url, "_self");
+                } else {
+                    // window.close();
+                }
             }
         });
     }
