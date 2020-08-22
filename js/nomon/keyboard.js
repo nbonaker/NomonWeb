@@ -129,8 +129,8 @@ class Keyboard{
                     this.webcam_info_complete = true;
                     this.init_webcam_info_screen();
                 }
-                this.ws.face_x_calibration = 0.55 - this.prev_data["webcam_reset"];
-                this.ws.triger_x_calibration = 0.93 - this.prev_data["webcam_trigger"];
+                this.ws.face_x_calibration = this.prev_data["webcam_reset"];
+                this.ws.triger_x_calibration = this.prev_data["webcam_trigger"];
             } else {
                 this.ws = new webswitchlight.WebcamSwitch(this);
 
