@@ -55,10 +55,6 @@ export class LanguageModel{
             if (this.word_predictions.length == 0) {
                 this.word_update_complete = false;
                 this.char_update_complete = false;
-                //get base word predictions
-                cache_type = "word_base";
-                api_url = this.construct_url(this.word_predict_base_url, {"left": left, "prefix": prefix});
-                makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
 
                 //get base char probs
                 cache_type = "char_base";
@@ -104,11 +100,6 @@ export class LanguageModel{
                     });
                     this.word_cache[kconfig.mybad_char] = undo_cache_list;
 
-                    //get base word predictions
-                    cache_type = "word_base";
-                    api_url = this.construct_url(this.word_predict_base_url, {"left": left, "prefix": prefix});
-                    makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
-
                     //get base char probs
                     cache_type = "char_base";
                     api_url = this.construct_url(this.char_predict_base_url, {"left": left.concat(prefix)});
@@ -116,21 +107,10 @@ export class LanguageModel{
                 }
             }
 
-            cache_type = "word_future_char";
-            api_url = this.construct_url(this.word_predict_char_future_url, {"left": left, "prefix": prefix});
-            makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
-
-            cache_type = "word_future_word";
-            api_url = this.construct_url(this.word_predict_word_future_url, {"left": left, "prefix": prefix});
-            makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
-
             cache_type = "char_future_char";
             api_url = this.construct_url(this.char_predict_char_future_url, {"left": left.concat(prefix)});
             makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
 
-            cache_type = "char_future_word";
-            api_url = this.construct_url(this.char_predict_word_future_url, {"left": left, "prefix": prefix});
-            makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
         }
     }
     on_cor_load_function(output, cache_type){

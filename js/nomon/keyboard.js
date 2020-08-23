@@ -209,78 +209,6 @@ class Keyboard{
             this.change_speed(this.speed_slider.value);
         }.bind(this);
 
-        this.tutorial_button = document.getElementById("tutorial_button");
-        this.tutorial_button.onclick = function(){
-            if (!this.in_session && !this.in_info_screen) {
-                if (this.in_tutorial){
-                    this.end_tutorial();
-                    this.session_button.className = "btn clickable";
-                    this.change_user_button.className = "btn clickable";
-                    this.info_button.className = "btn clickable";
-                } else {
-                    this.init_tutorial();
-                    this.session_button.className = "btn unclickable";
-                    this.change_user_button.className = "btn unclickable";
-                    this.info_button.className = "btn unclickable";
-                }
-
-            }
-        }.bind(this);
-
-        this.change_user_button = document.getElementById("send_button");
-        if (this.user_id) {
-            this.change_user_button.onclick = function () {
-                if (!this.in_tutorial && !this.in_session && !this.in_info_screen) {
-                    var login_url = "../index.php";
-                    window.open(login_url, '_self');
-                }
-            }.bind(this);
-        } else {
-            this.change_user_button.value = "RCS Keyboard";
-            this.change_user_button.onclick = function () {
-                var keyboard_url = "../rowcol/index.html?emoji=".concat(this.emoji_keyboard.toString());
-                window.open(keyboard_url, '_self');
-            }.bind(this);
-        }
-
-        this.session_button = document.getElementById("session_button");
-        if (this.user_id) {
-            this.session_button.onclick = function () {
-                if (!this.in_tutorial && !this.in_info_screen) {
-                    this.study_manager.request_session_data();
-                }
-            }.bind(this);
-            this.session_time_label = document.getElementById("session_timer");
-        } else {
-            if (this.emoji_keyboard) {
-                this.session_button.value = "ABC";
-            } else {
-                this.session_button.value = `😃😮😒`;
-            }
-
-            this.session_button.onclick = function () {
-                var keyboard_url = "keyboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
-                window.open(keyboard_url, '_self');
-            }.bind(this);
-            document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
-        }
-
-        this.info_button = document.getElementById("help_button");
-        this.info_button.onclick = function () {
-            if (!this.in_tutorial) {
-                if (this.in_info_screen) {
-                    this.destroy_info_screen();
-                } else {
-                    this.in_info_screen = true;
-                    if (this.in_session) {
-                        this.init_session_info_screen();
-                    } else {
-                        this.init_info_screen();
-                    }
-                }
-            }
-        }.bind(this);
-
         this.recalibrate_button = document.getElementById("recalibrate_button");
         this.recalibrate_button.onclick = function () {
             this.in_webcam_calibration = true;
@@ -539,14 +467,8 @@ class Keyboard{
             var results = [this.words_on, this.words_off, this.word_score_prior, this.is_undo, this.is_equalize, this.skip_hist];
             this.bc.continue_select(results);
 
-            if (this.in_tutorial){
-                this.tutorial_manager.update_target();
-            }
         }
 
-        if (this.in_session && this.last_selection != null){
-            this.study_manager.save_selection_data(this.last_selection);
-        }
     }
     init_locs(){
         var key_chars;

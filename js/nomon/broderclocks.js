@@ -41,17 +41,29 @@ export class BroderClocks{
 
         var last_gap_time = (time_in - this.last_press_time) % this.time_rotate;
 
-        if (this.clock_inf.is_winner() && !this.parent.in_tutorial){
-            console.log(this.parent.clockgrid.clocks[top_score_clock].text);
-
-            this.clock_inf.win_history[0] = this.clock_inf.sorted_inds[0];
-
-            this.clock_inf.entropy.update_bits();
-            this.parent.make_choice(this.clock_inf.sorted_inds[0]);
-
-        }else{
-            this.init_round(false, false, []);
+        var score_dict = {};
+        var clocks = this.parent.clockgrid.clocks;
+        for (var clock_ind in clocks){
+            score_dict[clocks[clock_ind].text] = this.clock_inf.cscores[clock_ind] -
+                this.clock_inf.prev_cscores[this.clock_inf.prev_cscores.length-1][clock_ind];
         }
+        console.log(score_dict);
+        this.clock_inf.prev_cscores.push(this.clock_inf.cscores.slice());
+
+        this.fetched_words = false;
+        this.parent.lm.update_cache("", "");
+
+        // if (this.clock_inf.is_winner()){
+        //     console.log(this.parent.clockgrid.clocks[top_score_clock].text);
+        //
+        //     this.clock_inf.win_history[0] = this.clock_inf.sorted_inds[0];
+        //
+        //     this.clock_inf.entropy.update_bits();
+        //     this.parent.make_choice(this.clock_inf.sorted_inds[0]);
+        //
+        // }else{
+        //     this.init_round(false, false, []);
+        // }
     }
     continue_select(results){
         this.clock_inf.clocks_on = results[0];
@@ -61,15 +73,7 @@ export class BroderClocks{
         this.is_equalize = results[4];
         var skip_hist = results[5];
 
-        if (skip_hist){
-            this.init_round(true, true, clock_score_prior);
-        }else {
-            if (this.parent.learn_checkbox.checked && !this.parent.in_tutorial) {
-                this.clock_inf.learn_scores(this.is_undo);
-            }
-
-            this.init_round(true, false, clock_score_prior);
-        }
+        this.init_round(true, true, clock_score_prior);
     }
     init_bits(){
         this.bits_per_select = Math.log(this.clock_inf.clocks_on.length) / Math.log(2);
