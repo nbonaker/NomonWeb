@@ -262,7 +262,7 @@ class webcamSetup {
         if (this.allow_save) {
             this.person_image.setAttribute("style", "transform: rotate(30deg)");
 
-            this.trigger_pos = 0.5-(this.webcam_switch.face_x - this.resting_pos);
+            this.trigger_pos = 0.5-(this.webcam_switch.face_x + (this.resting_pos-0.5));
             this.webcam_switch.triger_x_calibration = this.trigger_pos;
             console.log("Trigger:", this.trigger_pos);
 
@@ -339,8 +339,8 @@ class webcamSetup {
 
         if (this.rotate_to_webcam){
             var face_x = this.webcam_switch.face_x;
-            var angle = (this.resting_pos - face_x)/
-                (this.resting_pos - this.trigger_pos + this.webcam_switch.face_width)*30;
+            var angle = (face_x - this.resting_pos-0.5)/
+                (this.resting_pos - this.trigger_pos)*50;
             // console.log(angle);
             this.rotate_to_angle(angle);
 
