@@ -408,8 +408,10 @@ class Keyboard{
                 this.init_webcam_switch();
             } else if (this.start_tutorial){
                 this.init_tutorial();
-            } else if (this.in_session){
-                this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
+            } else if (this.in_session) {
+                if (this.study_manager.session_pause_start_time !== Infinity) {
+                    this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
+                }
                 this.study_manager.session_pause_start_time = Infinity;
                 if (!this.webcam_info_complete) {
                     this.init_webcam_switch();
@@ -922,7 +924,7 @@ class Keyboard{
                 }
                 new_text = this.typed_versions[this.typed_versions.length - 1];
                 if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
-                    new_text = new_text.slice(0, new_text.lenght-1).concat("_");
+                    new_text = new_text.slice(0, new_text.length-1).concat("_");
                 }
 
                 input_text = new_text;
