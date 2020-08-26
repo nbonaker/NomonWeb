@@ -6,6 +6,7 @@ import * as bc from './broderclocks.js';
 import * as tm from './tutorial.js';
 import * as sm from './study_manager.js';
 import * as lm from './lm.js';
+import * as bs from './beam_search.js'
 import * as webswitch from "../webcam_switch/webcam_switch.js";
 import * as webswitchlight from "../webcam_switch/webcam_switch_light.js";
 
@@ -93,6 +94,7 @@ class Keyboard{
         this.full_init=false;
         this.fetched_words = false;
         this.lm = new lm.LanguageModel(this);
+        this.beamSearch = new bs.beamSearch(this);
 
         this.start_tutorial = first_load;
         this.in_info_screen = first_load;
@@ -568,9 +570,9 @@ class Keyboard{
         }
     }
     init_words(){
-        this.words_li = this.lm.word_predictions;
-        this.word_freq_li = this.lm.word_prediction_probs;
-        this.key_freq_li = this.lm.key_probs;
+        this.words_li = [];
+        this.word_freq_li = [];
+        this.key_freq_li = this.beamSearch.key_probs;
 
         this.word_id = [];
         this.word_pair = [];
@@ -621,9 +623,9 @@ class Keyboard{
         this.typed_versions = [''];
     }
     draw_words() {
-        this.words_li = this.lm.word_predictions;
-        this.word_freq_li = this.lm.word_prediction_probs;
-        this.key_freq_li = this.lm.key_probs;
+        this.words_li = [];
+        this.word_freq_li = [];
+        this.key_freq_li = this.beamSearch.key_probs;
 
         this.word_id = [];
         this.word_pair = [];
@@ -731,141 +733,30 @@ class Keyboard{
             }
         }
     }
-    draw_typed(){
-        var new_text = '';
-        var redraw_words = false;
-
-        var is_delete = false;
-        var is_undo = false;
-
-        var previous_text = this.textbox.text;
-        previous_text = previous_text.replace("|", "");
-
-        if (this.in_session) {
-            previous_text = previous_text.slice(this.study_manager.cur_phrase.length + 1, previous_text.length);
+    draw_typed(conditionals){
+        var text_versions = [];
+        var i;
+        for (i in conditionals){
+            text_versions.push(conditionals[i][0]);
         }
-        if (previous_text.length > 0 && previous_text.charAt(previous_text.length - 1) == "_") {
-            previous_text = previous_text.slice(0, previous_text.length - 1).concat(" ");
-        }
-
-        var last_add;
-        var undo_text;
-        if (this.last_add_li.length > 1) {
-            last_add = this.last_add_li[this.last_add_li.length - 1];
-            if (last_add > 0) {
-                new_text = this.typed.slice(this.typed.length -last_add, this.typed.length);
-                undo_text = new_text;
-            } else if (last_add == -1) {
-                new_text = '';
-                is_delete = true;
-                undo_text = kconfig.back_char;
-            }
-        } else {
-            new_text = '';
-            undo_text = new_text;
-        }
-
-        previous_text = previous_text.replace(" .", ". ");
-        previous_text = previous_text.replace(" ,", ", ");
-        previous_text = previous_text.replace(" ?", "? ");
-        previous_text = previous_text.replace(" !", "! ");
-
-        var index = this.previous_winner;
-        if ( [kconfig.mybad_char, 'Undo'].includes(this.clockgrid.clocks[index].text)){
-            is_undo = true;
-            is_delete = false;
-        }
-        if (this.typed_versions[this.typed_versions.length - 1] == '' && this.typed_versions.length > 1) {
-            undo_text = 'Clear';
-        }
-
-        var input_text;
-        if (this.clear_text) {
-            this.typed_versions.push('');
-            input_text = "";
-            this.lm_prefix = "";
-            if (this.in_session) {
-                this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
-            } else {
-                this.textbox.draw_text("");
-            }
-            this.clear_text = false;
-            undo_text = 'Clear';
-        }
-        else if (is_delete){
-            if (this.typed_versions[this.typed_versions.length -1 ] != ''){
-                if (this.emoji_keyboard){
-                    var emoji_length = 2;
-                    this.typed_versions.push(previous_text.slice(0, previous_text.length - emoji_length));
+        var text_output = text_versions[0];
+        for (i=1; i<text_versions.length; i+=1){
+            var cur_line = "";
+            for (var char_ind in text_versions[i]){
+                var cur_char = text_versions[i].charAt(char_ind);
+                if (cur_char === text_versions[0].charAt(char_ind)){
+                    cur_line = cur_line.concat(" ");
                 } else {
-                    this.typed_versions.push(previous_text.slice(0, previous_text.length - 1));
+                    if (cur_char === " "){
+                        cur_char = "_";
+                    }
+                    cur_line = cur_line.concat(cur_char);
                 }
-                new_text = this.typed_versions[this.typed_versions.length - 1];
-                if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
-                    new_text = new_text.slice(0, new_text.lenght-1).concat("_");
-                }
+            }
+            text_output = text_output.concat("\n", cur_line);
 
-                input_text = new_text;
-                if (this.in_session) {
-                    new_text = this.study_manager.cur_phrase.concat('\n', new_text);
-                }
-                this.textbox.draw_text(new_text);
-            }
-            else {
-                input_text = "";
-                if (this.in_session) {
-                    input_text = this.study_manager.cur_phrase.concat('\n', input_text);
-                }
-            }
         }
-        else if (is_undo){
-            if (this.typed_versions.length > 1){
-                this.typed_versions.pop();
-
-                new_text = this.typed_versions[this.typed_versions.length -1];
-                if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
-                    new_text = new_text.slice(0, new_text.length - 1);
-                }
-                input_text = new_text;
-                if (this.in_session) {
-                    new_text = this.study_manager.cur_phrase.concat('\n', new_text);
-                }
-                this.textbox.draw_text(new_text);
-            }
-            else {
-                input_text = "";
-            }
-        }
-        else{
-            this.typed_versions.push(previous_text.concat(new_text));
-            if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
-                    new_text = new_text.slice(0, new_text.length - 1);
-            }
-            input_text = previous_text.concat(new_text);
-
-            input_text = input_text.replace(" .", "._");
-            input_text = input_text.replace(" ,", ",_");
-            input_text = input_text.replace(" ?", "?_");
-            input_text = input_text.replace(" !", "!_");
-
-            if (this.in_session) {
-                input_text = this.study_manager.cur_phrase.concat('\n', input_text);
-            }
-            this.textbox.draw_text(input_text);
-        }
-        if (undo_text == kconfig.mybad_char){
-            undo_text = "Undo";
-        }
-        else if (undo_text == kconfig.back_char) {
-            undo_text = "Backspace";
-        }
-        else if (undo_text == kconfig.clear_char) {
-            undo_text = "Clear";
-        }
-
-        this.previous_undo_text = undo_text;
-        this.clockgrid.undo_label.text = undo_text;
-        this.clockgrid.undo_label.draw_text();
+        this.textbox.draw_text(text_output);
     }
     make_choice(index){
         var is_undo = false;

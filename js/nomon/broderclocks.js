@@ -44,10 +44,17 @@ export class BroderClocks{
         var score_dict = {};
         var clocks = this.parent.clockgrid.clocks;
         for (var clock_ind in clocks){
-            score_dict[clocks[clock_ind].text] = this.clock_inf.cscores[clock_ind] -
-                this.clock_inf.prev_cscores[this.clock_inf.prev_cscores.length-1][clock_ind];
+            var char = clocks[clock_ind].text;
+            if (char === "_"){
+                char = " ";
+            }
+            score_dict[char] = this.clock_inf.cscores[clock_ind];
         }
+        delete score_dict["Undo"];
+        delete score_dict["Backspace"];
+        this.parent.beamSearch.priors_data.push(score_dict);
         console.log(score_dict);
+        this.parent.beamSearch.increment_search();
         this.clock_inf.prev_cscores.push(this.clock_inf.cscores.slice());
 
         this.fetched_words = false;
