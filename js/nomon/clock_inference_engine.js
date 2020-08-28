@@ -24,7 +24,8 @@ export class Entropy{
 
 export class KernelDensityEstimation{
 
-    constructor(time_rotate, past_data=null){
+    constructor(time_rotate, high_error = false, past_data=null){
+        this.high_error = high_error;
         this.dens_li = [];
         this.Z = 0;
         this.ksigma =0;
@@ -140,7 +141,11 @@ export class KernelDensityEstimation{
             var diff = this.x_li[index] - yin;
             var dens = Math.exp(-1 / (2 * ksigma_sq) * diff * diff);
             dens /= Math.sqrt(2 * Math.PI * ksigma_sq);
-            this.dens_li[index] = this.damp * this.dens_li[index] + dens;
+            if (this.high_error){
+                this.dens_li[index] = Math.max(1, this.damp * this.dens_li[index] + dens);
+            } else {
+                this.dens_li[index] = this.damp * this.dens_li[index] + dens;
+            }
 
             this.Z += this.dens_li[index];
         }
@@ -174,7 +179,9 @@ export class ClockInference{
         this.time_rotate = this.parent.time_rotate;
 
         this.entropy = new Entropy(this);
-        this.kde = new KernelDensityEstimation(this.time_rotate, past_data);
+
+        var high_error = parseInt(this.bc.parent.user_id) === 217;
+        this.kde = new KernelDensityEstimation(this.time_rotate, high_error, past_data);
 
         this.n_hist = Math.min(200, Math.floor(Math.log(0.02) / Math.log(this.kde.damp)));
 

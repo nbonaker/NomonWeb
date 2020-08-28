@@ -21,7 +21,7 @@ export var is_pre_learning = true;
 
 export var is_write_data = true;
 export var undo_index = 5;
-export var learn_delay = 0;
+export var learn_delay = 1;
 
 export var mu0 = 0.05 ;
 export var sigma0 = 0.12;
