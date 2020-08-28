@@ -234,11 +234,13 @@ export class LanguageModel{
             char_prob_dict[chars_li[index].token] = Math.max(chars_li[index].logProb, Math.log(0.01));
             normalizer = log_add_exp(normalizer, Math.max(chars_li[index].logProb, Math.log(0.01)));
         }
+        var break_prob = Math.log(1/(kconfig.key_chars.length));
+        char_prob_dict["."] = break_prob;
+        normalizer = log_add_exp(normalizer, break_prob);
 
         var key_probs = [];
         var back_prob = Math.log(kconfig.back_prob);
         var undo_prob = Math.log(kconfig.undo_prob);
-        var break_prob = Math.log(1/(kconfig.key_chars.length));
         var rem_prob = Math.log(kconfig.rem_prob-kconfig.break_chars.length/kconfig.key_chars.length - kconfig.back_prob);
 
         for (var char_ind in kconfig.key_chars){
