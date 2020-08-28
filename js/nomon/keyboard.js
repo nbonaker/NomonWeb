@@ -474,11 +474,9 @@ class Keyboard{
     }
     init_locs(){
         var key_chars;
-        if (this.emoji_keyboard){
-            key_chars = kconfig.emoji_key_chars;
-        } else {
-            key_chars = kconfig.key_chars;
-        }
+
+        key_chars = kconfig.key_chars;
+
         this.N_rows = key_chars.length;
         this.N_keys_row = [];
         this.N_keys = 0;
@@ -487,11 +485,8 @@ class Keyboard{
         var col;
         for (row = 0; row < this.N_rows; row++){
 
-            if (this.emoji_keyboard){
-                var n_keys = 1;
-            } else {
-                var n_keys = key_chars[row].length;
-            }
+            var n_keys = key_chars[row].length;
+
             for (col = 0; col < n_keys; col++){
                 if (!(key_chars[row] instanceof Array)){
                     if (kconfig.main_chars.includes(key_chars[row][col]) && (key_chars[row].length == 1)){

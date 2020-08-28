@@ -250,7 +250,7 @@ export class ClockGrid{
                 this.clocks.push(cur_back_clock);
 
             }
-        } else {
+        } else if (indexOf_2d(this.target_layout, "#") !== false) {
             var space_char_indices = indexOf_2d(this.target_layout, "#");
 
             x_start = this.keygrid.x_positions[space_char_indices[0]][space_char_indices[1]][0];

@@ -201,7 +201,13 @@ export class beamSearch{
                 var transition_probs = this.parent.lm.prefix_cache[prefix];
                 for (j in cur_prior){
                     var cur_char = cur_prior[j][0];
-                    var conditional_prob = cur_prior[j][1] + prev_conditional[i][1] + transition_probs[cur_char];
+                    var conditional_prob;
+
+                    if ((prefix.charAt(prefix.length - 1) === " ") && (cur_char === " ")){
+                        conditional_prob = -Infinity;
+                    } else {
+                        conditional_prob = cur_prior[j][1] + prev_conditional[i][1] + transition_probs[cur_char];
+                    }
                     cur_conditional.push([prefix.concat(cur_char), conditional_prob])
                 }
             }
