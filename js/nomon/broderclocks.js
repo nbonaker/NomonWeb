@@ -48,7 +48,7 @@ export class BroderClocks{
             if (char === "_"){
                 char = " ";
             }
-            score_dict[char] = this.clock_inf.cscores[clock_ind];
+            score_dict[char] = this.clock_inf.cscores[clock_ind]-this.parent.key_freq_li[clock_ind];
         }
         delete score_dict["Undo"];
         delete score_dict["Backspace"];

@@ -18,7 +18,7 @@ function createCORSRequest(method, url) {
 }
 
 // Make the actual CORS request.
-export function makeCorsRequest(url, on_load_function=null, cache_type=null) {
+export function makeCorsRequest(url, on_load_function=null, cache_type= null, prefix=null) {
     // This is a sample server that supports CORS.
 
     var xhr = createCORSRequest('GET', url);
@@ -35,7 +35,7 @@ export function makeCorsRequest(url, on_load_function=null, cache_type=null) {
         // console.log('Response from CORS request to ' + url);
         // console.log('Recieved: ' + text);
         if (on_load_function != null){
-            on_load_function(data, cache_type);
+            on_load_function(data, cache_type, prefix);
         }
     };
 
