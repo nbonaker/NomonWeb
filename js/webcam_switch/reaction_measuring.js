@@ -34,6 +34,7 @@ export class AnimationCanvas{
 
 class reactionManager{
     constructor(webcam_data, forward_url=null) {
+        this.webcam_data = webcam_data;
         this.forward_url = forward_url;
 
         this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
@@ -43,8 +44,8 @@ class reactionManager{
             if (webcam_data.webcam_type === "face") {
                 this.ws = new webswitch.WebcamSwitch(this);
 
-                this.ws.trigger_pos = webcam_data.webcam_trigger;
-                this.ws.reset_pos = webcam_data.webcam_reset;
+                this.ws.face_x_calibration = webcam_data["webcam_reset"];
+                this.ws.triger_x_calibration = webcam_data["webcam_trigger"];
             } else {
                 this.ws = new webswitchlight.WebcamSwitch(this);
 
@@ -124,7 +125,7 @@ class reactionManager{
 
     }
     start_trial(){
-        if (this.srts.length < 3) {
+        if (this.srts.length < 30) {
             this.next_trial_time = Date.now() + Math.max(2500, Math.random() * 6000);
             this.draw_reaction_box();
             console.log("SRTs:", this.srts);
@@ -135,13 +136,52 @@ class reactionManager{
     }
     finish_trials(){
         this.start_button.className = "btn clickable";
-        this.start_button.onclick = null;
+        this.start_button.onclick = function(){
+            this.save_data();
+        }.bind(this);
 
         document.getElementById("info_text").innerHTML = `You have finished the trials. Press Finished to proceed.`
     }
+    save_data(){
+        var user_id = this.webcam_data.user_id;
+        var switch_type;
+        if (this.webcam_data.webcam){
+            switch_type = this.webcam_data.webcam_type;
+        } else {
+            switch_type = "button";
+        }
+
+        var srt = JSON.stringify(this.srts);
+        var dpt = JSON.stringify(this.dpts);
+
+        function send_data(forward_url) { // jshint ignore:line
+
+            console.log({"user_id": user_id, "switch": switch_type, "srt": srt, "dpt": dpt});
+            $.ajax({
+                method: "POST",
+                url: "../php/send_reaction_data.php",
+                data: {"user_id": user_id, "switch": switch_type, "srt": srt, "dpt": dpt}
+            }).done(function (data) {
+                console.log("SENT DATA");
+                if (forward_url !== null) {
+                    window.open(forward_url, '_self');
+                } else {
+                    window.close();
+                }
+            });
+        }
+
+        send_data(this.forward_url);
+    }
     animate(){
-        this.ws.grab_stream();
-        this.ws.draw_switch();
+        if (this.ws) {
+            if (this.webcam_data.webcam_type == "face"){
+                this.ws.detect_face();
+            } else {
+                this.ws.grab_stream();
+                this.ws.draw_switch();
+            }
+        }
 
         var cur_time = Date.now();
         if (cur_time >= this.next_trial_time){
@@ -149,7 +189,9 @@ class reactionManager{
             this.draw_reaction_box();
             this.next_trial_time = Infinity;
             this.last_show_time = Date.now();
-            this.ws.control_lock = false;
+            if (this.ws) {
+                this.ws.control_lock = false;
+            }
 
         }
     }
@@ -186,8 +228,9 @@ function send_login() {
         var result = $.parseJSON(data);
         var webcam_data;
         if (result.length > 0) {
-            webcam_data = {"webcam": webcam};
+
             result = result[0];
+            webcam_data = {"webcam": webcam, "user_id": result.id};
 
             var webcam_type = result.webcam_type;
             if (webcam_type !== null) {
@@ -222,7 +265,8 @@ function send_login() {
 if (user_id){
     send_login();
 } else {
-    var webcam_data = {"webcam": webcam, "webcam_type": "motion", "webcam_trigger": 0.6, "webcam_reset": 0.4, "webcam_bottom": 0.2};
+    var webcam_data = {"webcam": webcam, "webcam_type": "motion", "webcam_trigger": 0.6, "webcam_reset": 0.4,
+        "webcam_bottom": 0.2};
 
     let rm = new reactionManager(webcam_data);
     setInterval(rm.animate.bind(rm), 50);
