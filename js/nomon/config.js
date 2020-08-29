@@ -14,7 +14,7 @@ export var theta0 = frac_period * 2.0 * Math.PI;
 
 export var win_diff_base = Math.log(99);
 export var win_diff_high = Math.log(999);
-export var max_init_diff = win_diff_base - Math.log(4);
+export var max_init_diff = win_diff_base - Math.log(25);
 
 export var is_learning = true;
 export var is_pre_learning = true;

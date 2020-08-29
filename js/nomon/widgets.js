@@ -166,6 +166,7 @@ export class ClockGrid{
         this.key_chars = key_chars;
         this.main_chars = main_chars;
         this.n_pred = n_pred;
+        this.clock_prob = 0;
 
         this.clocks = [];
         this.generate_layout();

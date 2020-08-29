@@ -49,10 +49,12 @@ export class BroderClocks{
                 char = " ";
             }
             score_dict[char] = this.clock_inf.cscores[clock_ind]-this.parent.key_freq_li[clock_ind];
+
+
         }
         delete score_dict["Undo"];
         delete score_dict["Backspace"];
-        this.parent.beamSearch.priors_data.push(score_dict);
+        this.parent.beamSearch.observations.push(score_dict);
         console.log(score_dict);
         this.parent.beamSearch.increment_search();
         this.clock_inf.prev_cscores.push(this.clock_inf.cscores.slice());
@@ -139,11 +141,9 @@ export class BroderClocks{
         top_score = this.clock_inf.cscores[this.clock_inf.sorted_inds[0]];
 
         var bound_score;
-        if (this.clock_inf.clock_history[0].length == 0){
-            bound_score = top_score - config.max_init_diff;
-        }else {
-            bound_score = top_score - this.parent.win_diffs[this.clock_inf.sorted_inds[0]];
-        }
+
+        bound_score = top_score - config.max_init_diff;
+
 
         for (var i in this.clock_inf.clocks_on){
             clock_ind = this.clock_inf.clocks_on[i];

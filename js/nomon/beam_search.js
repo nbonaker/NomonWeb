@@ -25,113 +25,147 @@ export class beamSearch{
     constructor(parent){
         this.parent = parent;
         this.emoji_keyboard = false;
-        this.beam_width = 10;
+        this.beam_width = 5;
         this.prefixes = [""];
         this.cur_level = 0;
-        this.priors_data = [];
+        this.observations = [];
+        this.joints = [[["", 0]]];
         this.key_probs = [];
+        this.most_probable_clocks = [];
 
         this.init_search()
     }
     increment_search(){
-        this.cur_level = this.priors_data.length-1;
-        if (this.priors_data.length > 0) {
-
+        this.cur_level = this.observations.length-1;
+        if (this.observations.length > 0) {
             console.log("SEARCHING ", this.cur_level);
+            this.calc_clock_probs();
             this.search_level(this.cur_level);
-
         }
 
     }
     on_word_load(){
         this.update_key_prior();
     }
-    init_search(){
-        this.conditionals = [];
-        this.cur_level = 0;
-
-        this.parent.lm.update_cache("", "");
-    }
-    search_level(level){
-        var prior_data = this.priors_data[level];
-        var cur_conditional = [];
-        var cur_prior = Object.keys(prior_data).map(function(key) {
-                        return [key, prior_data[key]];
+    calc_clock_probs(){
+        var obs_data = this.observations[this.cur_level];
+        var cur_obs = Object.keys(obs_data).map(function(key) {
+                        return [key, obs_data[key]];
                     });
-        if (level > 0){
-            var prev_conditional = this.conditionals[level-1];
-            var i;
-            var j;
-            for (i in prev_conditional){
-                var prefix = prev_conditional[i][0];
-                var transition_probs = this.parent.lm.prefix_cache[prefix];
-                for (j in cur_prior){
-                    var cur_char = cur_prior[j][0];
-                    var conditional_prob;
+        this.observations[this.cur_level] = log_normalize(cur_obs);
 
-                    var cur_word_start = prefix.slice(0, prefix.length - 1).lastIndexOf(" ");
-                    var cur_word = prefix.slice(cur_word_start + 1, prefix.length - 1);
 
-                    if ((prefix.charAt(prefix.length - 1) === " ") && (cur_char === " ")){
-                        conditional_prob = -Infinity;
+        var clock_cscore_levels = [this.observations[this.cur_level].slice()];
 
-                    } else {
-                        conditional_prob = cur_prior[j][1] + prev_conditional[i][1] + transition_probs[cur_char];
-
-                    }
-                    cur_conditional.push([prefix.concat(cur_char), conditional_prob])
-                }
+        var key_ind;
+        var i;
+        for (i=1; i <= Math.min(this.cur_level, 3); i+=1){
+            var cumulative_scores = [];
+            var prior_scores = clock_cscore_levels[i-1];
+            for (key_ind in clock_cscore_levels[0]){
+                cumulative_scores.push([prior_scores[key_ind][0], this.observations[this.cur_level-i][key_ind][1] + prior_scores[key_ind][1]])
             }
+            clock_cscore_levels.push(cumulative_scores)
+        }
 
-            cur_conditional.sort(function(first, second) {
+        var cscore_max_diffs = [];
+        var most_probable_clocks = [];
+        for (var j in clock_cscore_levels){
+            var cscores = clock_cscore_levels[j];
+            cscores.sort(function(first, second) {
               return second[1] - first[1];
             });
-            cur_conditional = cur_conditional.slice(0, this.beam_width);
+            cscore_max_diffs.push([cscores[0][0], cscores[1][1] - cscores[0][1]]);
 
-            for (i in cur_conditional){
-                if (!this.prefixes.includes(cur_conditional[i][0])){
-                    this.prefixes.push(cur_conditional[i][0]);
-                    this.parent.lm.update_cache("", cur_conditional[i][0]);
-                }
-            }
-
-        } else {
-            cur_prior.sort(function(first, second) {
-              return second[1] - first[1];
-            });
-            cur_conditional = cur_prior.slice(0, this.beam_width);
-
-            for (i in cur_conditional){
-                if (!this.prefixes.includes(cur_conditional[i][0])){
-                    this.prefixes.push(cur_conditional[i][0]);
-                    this.parent.lm.update_cache("", cur_conditional[i][0]);
+            for (key_ind=0; key_ind<3; key_ind +=1){
+                var key = cscores[key_ind][0];
+                if (!(most_probable_clocks.includes(key))){
+                    most_probable_clocks.push(key);
                 }
             }
         }
+        this.most_probable_clocks = most_probable_clocks;
 
-        cur_conditional = log_normalize(cur_conditional);
+        console.log(cscore_max_diffs);
 
-        console.log(cur_conditional);
-        this.conditionals.push(cur_conditional);
+    }
+    init_search(){
+        this.joints = this.joints = [[["", 0]]];
+        this.cur_level = 0;
+        this.parent.lm.update_cache("", "");
+    }
+    search_level(level){
+        var cur_obs = this.observations[level];  // get observation dist from press times
+        var cur_joint = [];
 
-        this.parent.draw_typed(cur_conditional);
+        var i;
+        var j;
+        var cur_char;
+        var token_joint_prob;
+
+        if (level >= 0){
+
+            var prev_joint = this.joints[level];  // get joint dist from previous level
+
+            for (i in prev_joint){
+                var prefix = prev_joint[i][0];
+                var transition_probs = this.parent.lm.prefix_cache[prefix];  // get conditional dist for current level
+                for (j in cur_obs){
+                    cur_char = cur_obs[j][0];
+                    token_joint_prob;
+
+                    if ((prefix.charAt(prefix.length - 1) === " ") && (cur_char === " ")){
+                        token_joint_prob = -Infinity;
+                    } else {
+                        if (level === 0){
+                            token_joint_prob = cur_obs[j][1] + prev_joint[i][1];
+                        } else {
+                            token_joint_prob = cur_obs[j][1] + prev_joint[i][1] + transition_probs[cur_char];
+                        }
+                    }
+                    cur_joint.push([prefix.concat(cur_char), token_joint_prob])
+                }
+            }
+
+            cur_joint.sort(function(first, second) {
+              return second[1] - first[1];
+            });
+            cur_joint = cur_joint.slice(0, this.beam_width);
+
+            for (i in cur_joint){
+                if (!this.prefixes.includes(cur_joint[i][0])){
+                    this.prefixes.push(cur_joint[i][0]);
+                    this.parent.lm.update_cache("", cur_joint[i][0]);
+                }
+            }
+
+        }
+
+        cur_joint = log_normalize(cur_joint);
+
+        console.log(cur_joint);
+        this.joints.push(cur_joint);
+
+        this.parent.draw_typed(cur_joint);
     }
     update_key_prior(){
         var key_probs;
 
-        if (this.priors_data.length > 0) {
-            var conditional = this.conditionals[this.cur_level];
+        if (this.observations.length > 0) {
+            var joint = this.joints[this.cur_level + 1];
             var char_prob_dict = {};
             var normalizer = -Infinity;
 
-            for (var i in conditional){
-                var prefix = conditional[i][0];
-                var prefix_prob = conditional[i][1];
+            for (var i in joint){
+                var prefix = joint[i][0];
+                var prefix_prob = joint[i][1];
                 var char_futures = this.parent.lm.prefix_cache[prefix];
                 var chars = Object.keys(char_futures);
-                for (var char_index in chars){
+                for (var char_index in chars) {
                     var char = chars[char_index];
-                    if (char in char_prob_dict){
+                    if (this.most_probable_clocks.includes(char)){
+                        char_prob_dict[char] = 0;
+                    }else if (char in char_prob_dict){
                         char_prob_dict[char] = log_add_exp(char_prob_dict[char], prefix_prob + char_futures[char])
                     } else {
                         char_prob_dict[char] = prefix_prob + char_futures[char];
@@ -168,7 +202,7 @@ export class beamSearch{
         } else {
             key_probs = this.parent.lm.key_probs;
         }
-       this.key_probs = key_probs;
+        this.key_probs = key_probs;
         this.parent.on_word_load();
     }
 }

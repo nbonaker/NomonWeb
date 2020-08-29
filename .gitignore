@@ -7,4 +7,4 @@ tmp
 .idea
 .jshintrc
 .travis.yml
-
+data_processing/*

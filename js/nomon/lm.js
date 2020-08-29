@@ -82,7 +82,7 @@ export class LanguageModel{
         var future_word;
         var future_char;
 
-        console.log("Cache type: ", cache_type, " Prefix: ", prefix);
+        // console.log("Cache type: ", cache_type, " Prefix: ", prefix);
 
         if (cache_type === "char_base") {
             chars_li = output.results;
