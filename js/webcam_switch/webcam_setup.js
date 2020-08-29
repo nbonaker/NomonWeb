@@ -361,23 +361,31 @@ const software = params.get("software");
 const emoji = params.get("emoji");
 const forward = params.get("forward") === 'true';
 
+var webcam = params.get("webcam");
+
+if (webcam != null){
+    webcam = webcam === 'true';
+}
+
 console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Software: ", software, " Forward: ", forward);
 
 var forward_url;
 if (forward) {
-    if (software === "A") {
-        forward_url = "keyboard.html";
-        forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-            '&partial_session=', partial_session.toString(), '&emoji=', emoji);
-    } else if (software === "B") {
-        forward_url = "rowcol.html";
-        forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-            '&partial_session=', partial_session.toString(), '&emoji=', emoji);
-    }
-
-    if ("webcam" in params) {
-        const webcam = params.get("webcam") === 'true';
-        forward_url = forward_url.concat("webcam", webcam);
+    if (webcam != null){
+        forward_url = "reaction_measuring.html";
+        forward_url = forward_url.concat('?user_id=', user_id.toString(), '&software=', software, '&first_load=', first_load,
+                '&partial_session=', partial_session.toString(), '&emoji=', emoji);
+        forward_url = forward_url.concat("&webcam=", webcam.toString());
+    } else {
+        if (software === "A") {
+            forward_url = "keyboard.html";
+            forward_url = forward_url.concat('?user_id=', user_id.toString(), '&software=', software, '&first_load=', first_load,
+                '&partial_session=', partial_session.toString(), '&emoji=', emoji);
+        } else if (software === "B") {
+            forward_url = "rowcol.html";
+            forward_url = forward_url.concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+                '&partial_session=', partial_session.toString(), '&emoji=', emoji);
+        }
     }
 }
 
