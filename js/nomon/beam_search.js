@@ -20,12 +20,23 @@ function log_add_exp(a_1, a_2){
     return sum;
 }
 
+function indexOf_2d(array, item){
+    for (var row_index in array){
+        var row = array[row_index]
+        if (row.includes(item)){
+            var col_index = array[row_index].indexOf(item);
+            return [parseInt(row_index), col_index];
+        }
+    }
+    return false;
+}
+
 
 export class beamSearch{
     constructor(parent){
         this.parent = parent;
         this.emoji_keyboard = false;
-        this.beam_width = 5;
+        this.beam_width = 20;
         this.prefixes = [""];
         this.cur_level = 0;
         this.observations = [];
@@ -69,13 +80,13 @@ export class beamSearch{
         }
 
         var cscore_max_diffs = [];
-        var most_probable_clocks = [];
+        var most_probable_clocks = ["."];
         for (var j in clock_cscore_levels){
-            var cscores = clock_cscore_levels[j];
+            var cscores = log_normalize(clock_cscore_levels[j]);
             cscores.sort(function(first, second) {
               return second[1] - first[1];
             });
-            cscore_max_diffs.push([cscores[0][0], cscores[1][1] - cscores[0][1]]);
+            // cscore_max_diffs.push([cscores[0][0], cscores[1][1] - cscores[0][1]]);
 
             for (key_ind=0; key_ind<3; key_ind +=1){
                 var key = cscores[key_ind][0];
@@ -83,10 +94,19 @@ export class beamSearch{
                     most_probable_clocks.push(key);
                 }
             }
+            var period_prob = cscores[indexOf_2d(cscores, ".")[0]][1];
+            if (cscores[1][1] - period_prob < Math.log(1/1000)) {
+                console.log((parseInt(j) + 1).toString(), "Press, End :", cscores[1][1] - period_prob);
+            }
+
+            var undo_prob = cscores[indexOf_2d(cscores, "Undo")[0]][1];
+            if (cscores[1][1] - undo_prob < Math.log(1/1000)) {
+                console.log((parseInt(j) + 1).toString(), "Press, Undo :", cscores[1][1] - undo_prob);
+            }
         }
         this.most_probable_clocks = most_probable_clocks;
 
-        console.log(cscore_max_diffs);
+        // console.log(clock_cscore_levels);
 
     }
     init_search(){
@@ -185,15 +205,15 @@ export class beamSearch{
                 if (char in char_prob_dict) {
                     key_probs.push(char_prob_dict[char] - normalizer + rem_prob);
                 } else if (char == kconfig.space_char) {
-                    key_probs.push(Math.log(1 / 26) - normalizer + rem_prob);
-                } else if (kconfig.break_chars.includes(char)) {
-                    key_probs.push(break_prob);
+                    key_probs.push(Math.log(1 / 50) - normalizer + rem_prob);
+
                 } else if (char == kconfig.mybad_char) {
                     key_probs.push(undo_prob);
                 } else if (char == kconfig.back_char || char == kconfig.clear_char) {
                     key_probs.push(back_prob);
                 }
             }
+
 
             var sanity_check = -Infinity;
             for (var key_ind in key_probs) {

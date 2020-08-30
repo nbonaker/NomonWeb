@@ -52,10 +52,9 @@ export class BroderClocks{
 
 
         }
-        delete score_dict["Undo"];
+        // delete score_dict["Undo"];
         delete score_dict["Backspace"];
         this.parent.beamSearch.observations.push(score_dict);
-        console.log(score_dict);
         this.parent.beamSearch.increment_search();
         this.clock_inf.prev_cscores.push(this.clock_inf.cscores.slice());
 
