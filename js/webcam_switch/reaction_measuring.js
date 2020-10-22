@@ -60,6 +60,8 @@ class reactionManager{
                     this.on_press();
                 }
             }.bind(this), false);
+            document.getElementById("info_text").innerHTML = `Press Start Trials. When the grey box flashes green, PRESS THE SPACEBAR TWICE.
+        <br> You must be in the reset box when the box flashes.`
         }
 
         this.animation_canvas = new AnimationCanvas("animation_canvas", 1);
