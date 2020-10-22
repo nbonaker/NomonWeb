@@ -1,4 +1,4 @@
-export function pixel_distance(pixel_1, pixel_2, threshold=30) {
+export function pixel_distance(pixel_1, pixel_2, threshold=50) {
     var distance = Math.max(0, Math.abs(pixel_2 - pixel_1)-threshold);
     if (distance > 0){
         distance += threshold;
