@@ -86,6 +86,7 @@ export class tutorialManager{
         this.parent = parent;
         this.bc = bc;
         this.target_phrase = "calibrating ";
+        this.emoji_phrase_length = 5;
         this.target_text = null;
         this.target_clock = null;
         this.cur_presses_remaining = 0;
@@ -100,48 +101,68 @@ export class tutorialManager{
         this.start_tutorial();
     }
     update_target(){
-        var typed_text = this.parent.typed;
-        var word_index = typed_text.split("_").length - 1;
-        var char_index = typed_text.length;
+        if (this.parent.emoji_keyboard){
+            this.target_clock = Math.floor(Math.random()*50);
 
-        var target_words = this.target_phrase.split(" ");
-        if (word_index <= target_words.length){
-            if (char_index <= this.target_phrase.length){
-                var cur_word = target_words[word_index];
-                if (subarray_includes(this.parent.words_li, cur_word)[0]){
-                    this.target_text = cur_word;
+            if (this.emoji_phrase_length <= 0) {
+                this.update_kde();
+                this.parent.destroy_info_screen();
+                this.parent.in_tutorial = false;
+            } else {
+
+                this.cur_presses_remaining = Math.floor(Math.random() * 2) + 2;
+                this.cur_press = 0;
+
+                console.log("target clock:", this.target_clock);
+                if (this.info_canvas) {
+                    this.change_focus();
+                }
+                this.emoji_phrase_length -= 1;
+            }
+        } else {
+            var typed_text = this.parent.typed;
+            var word_index = typed_text.split("_").length - 1;
+            var char_index = typed_text.length;
+
+            var target_words = this.target_phrase.split(" ");
+            if (word_index <= target_words.length) {
+                if (char_index <= this.target_phrase.length) {
+                    var cur_word = target_words[word_index];
+                    if (subarray_includes(this.parent.words_li, cur_word)[0]) {
+                        this.target_text = cur_word;
+                    } else {
+                        this.target_text = this.target_phrase.charAt(char_index);
+                    }
                 } else {
-                    this.target_text = this.target_phrase.charAt(char_index);
+                    this.target_text = null;
                 }
             } else {
                 this.target_text = null;
             }
-        } else {
-            this.target_text = null;
-        }
 
-        if (this.target_text === null || this.target_text === ""){
-            this.update_kde();
-            this.parent.destroy_info_screen();
-            this.parent.in_tutorial = false;
-        } else {
-            if (this.target_text === " ") {
-                this.target_text = "_";
-            }
-            console.log("target text:", this.target_text);
-
-            if (this.target_text.length === 1) {
-                this.target_clock = kconfig.main_chars.indexOf(this.target_text) * 4 + 3;
+            if (this.target_text === null || this.target_text === "") {
+                this.update_kde();
+                this.parent.destroy_info_screen();
+                this.parent.in_tutorial = false;
             } else {
-                var word_li_index = subarray_includes(this.parent.words_li, this.target_text)[1];
-                this.target_clock = word_li_index[0] * 4 + word_li_index[1];
-            }
-            this.cur_presses_remaining = Math.floor(Math.random() * 2) + 2;
-            this.cur_press = 0;
+                if (this.target_text === " ") {
+                    this.target_text = "_";
+                }
+                console.log("target text:", this.target_text);
 
-            console.log("target clock: ", this.target_clock, "target clock_text:", this.parent.clockgrid.clocks[this.target_clock].text, "num presses:", this.cur_presses_remaining);
-            if (this.info_canvas){
-                this.change_focus();
+                if (this.target_text.length === 1) {
+                    this.target_clock = kconfig.main_chars.indexOf(this.target_text) * 4 + 3;
+                } else {
+                    var word_li_index = subarray_includes(this.parent.words_li, this.target_text)[1];
+                    this.target_clock = word_li_index[0] * 4 + word_li_index[1];
+                }
+                this.cur_presses_remaining = Math.floor(Math.random() * 2) + 2;
+                this.cur_press = 0;
+
+                console.log("target clock: ", this.target_clock, "target clock_text:", this.parent.clockgrid.clocks[this.target_clock].text, "num presses:", this.cur_presses_remaining);
+                if (this.info_canvas) {
+                    this.change_focus();
+                }
             }
         }
     }

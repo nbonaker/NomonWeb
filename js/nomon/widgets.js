@@ -1,4 +1,4 @@
-
+import * as kconfig from './kconfig.js';
 
 export class KeyboardCanvas{
     constructor(canvas_id, layer_index) {
@@ -192,6 +192,9 @@ export class ClockGrid{
             x_end = this.keygrid.x_positions[main_char_indices[0]][main_char_indices[1]][1];
             y_start = this.keygrid.y_positions[main_char_indices[0]][0];
             y_end = this.keygrid.y_positions[main_char_indices[0]][1];
+            if (main_char == '$'){
+                main_char = 'Clear';
+            }
 
             this.generate_word_clock_layout(x_start, y_start, x_end, y_end);
             this.generate_main_clock_layout(x_start, y_start, x_end, y_end, main_char);
@@ -377,6 +380,30 @@ export class ClockGrid{
     }
 }
 
+export class CommTile {
+    constructor(face_canvas, x_pos, y_pos, height, num) {
+        this.face_canvas = face_canvas;
+        this.crop_x = 0;
+        this.crop_y = 0;
+        this.crop_h = 170;
+        this.crop_w = 170;
+        this.x_pos = x_pos;
+        this.y_pos = y_pos;
+        this.height = height;
+        this.get_crop_pos(parseInt(num) - 10);
+        this.draw_text();
+    }
+    get_crop_pos(num){
+        this.crop_x = 193.5*(num % kconfig.comm_num_columns);
+        this.crop_y = 193.5*Math.floor(num / kconfig.comm_num_columns);
+    }
+    draw_text() {
+        this.face_canvas.ctx.fillStyle = "#000000";
+        var base_image = document.getElementById("commboard");
+        this.face_canvas.ctx.drawImage(base_image, this.crop_x, this.crop_y, this.crop_w, this.crop_h,
+            this.x_pos, this.y_pos, this.height, this.height);
+    }
+}
 
 export class Label {
     constructor(face_canvas, x_pos, y_pos, height, text = "") {
@@ -429,7 +456,12 @@ export class Clock{
             this.face_canvas.ctx.fillStyle = "#000000";
             var font_height = this.radius * 1.7;
             this.face_canvas.ctx.font = font_height.toString().concat("px Helvetica");
-            this.face_canvas.ctx.fillText(this.text, this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
+            if (parseInt(this.text) >= 10) {
+                let tile = new CommTile(this.face_canvas, this.x_pos + this.radius * 1.25,
+                    this.y_pos - this.radius * 2.5, this.radius * 5, parseInt(this.text));
+            } else {
+                this.face_canvas.ctx.fillText(this.text, this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
+            }
         }
     }
     draw_hand(clear=true) {
