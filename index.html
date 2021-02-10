@@ -24,17 +24,25 @@
         }
 
         .btn {
-            background-color: #0056ff;
             border: none;
             color: white;
             padding: 15px 32px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
-            font-size: 16px;
+            font-size: 20px;
             margin: 4px 2px;
             cursor: pointer;
             border-radius: 4px;
+        }
+        .darkhighlighted {
+            background-color: rgb(103, 0, 255);
+        }
+        .highlighted {
+            background-color: rgba(0, 89, 255, 0.83);
+        }
+        .unhighlighted {
+            background-color: rgba(0, 89, 255, 0.32);
         }
 
         input[type='text'] {
@@ -85,203 +93,60 @@
                     <label>User ID:</label>
                 </td>
 
-                <td>
+                <td colspan="2">
                     <input type='text' placeholder='User ID' name='user_id' id='user_id' required><br/>
                 </td>
+            </tr>
+        </table>
+        <table align="">
+            <tr>
                 <td>
-                    <input class='btn' type="button" id="send_button" value="Enter" formaction="html/keyboard.html"/>
+                    <input class='btn unhighlighted' type="button" id="button1" value="1"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button2" value="2"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button3" value="3"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button4" value="4"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button5" value="5"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button6" value="6"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button7" value="7"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button8" value="8"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button9" value="9"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class='btn unhighlighted' type="button" id="button0" value="0"/>
+                </td>
+                <td  colspan="2">
+                    <input class='btn unhighlighted' type="button" id="send_button" value="Enter" formaction="html/keyboard.html"/>
                 </td>
             </tr>
         </table>
     </form>
+    <p id="info_text2"><strong>You can input your user ID through the Row Column Scanning Interface <br>
+                                or another person can input it for you by clicking the buttons.</strong></p>
 </div>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-<script type="text/javascript">
-    var logged_in = false;
-
-    function create_user(user_id) {
-        $.ajax({
-            method: "POST",
-            url: "../php/create_user.php",
-            data: {"user_id": user_id}
-        }).done(function (data) {
-            console.log(data);
-        });
-    }
-
-    function handle_partial_sessions(nomon_sessions, rowcol_sessions, first_software) {
-        var session_num = Math.min(nomon_sessions, rowcol_sessions);
-        var partial_session;
-        var next_software;
-        var cur_info_text = document.getElementById("info_text").textContent;
-
-        if (nomon_sessions < rowcol_sessions) {
-            document.getElementById("info_text").innerHTML =
-                `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
-
-            next_software = "A";
-            partial_session = true;
-
-        } else if (rowcol_sessions < nomon_sessions) {
-
-            document.getElementById("info_text").innerHTML =
-                `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
-
-            next_software = "B";
-            partial_session = true;
-
-        } else {
-
-            document.getElementById("info_text").innerHTML =
-                `<strong>${cur_info_text} <br> You have completed ${session_num} sessions. Click to launch the keyboard software.</strong>`;
-
-            if (session_num % 2) {
-                if (first_software === "nomon") {
-                    first_software = "rowcol";
-                } else {
-                    first_software = "nomon";
-                }
-            }
-            if (first_software === "nomon") {
-                next_software = "A";
-            } else {
-                next_software = "B";
-            }
-            partial_session = false;
-        }
-
-        return [session_num, next_software, partial_session];
-    }
-
-    function init_study(user_id, webcam_type) {
-        $.ajax({
-            method: "POST",
-            url: "../php/init_study.php",
-            data: {"user_id": user_id}
-        }).done(function (data) {
-            var result = $.parseJSON(data);
-            console.log(result);
-            var user_id = result[0].id;
-            var first_software = result[0].first_software;
-
-            var next_session_results = handle_partial_sessions(parseInt(result[0].nomon_sessions), parseInt(result[0].rowcol_sessions), first_software);
-            var session_num = next_session_results[0];
-            var next_software = next_session_results[1];
-            var partial_session = next_session_results[2];
-
-            var first_load;
-            if (session_num == 0) {
-                first_load = "true";
-            } else {
-                first_load = "false";
-            }
-
-            var emoji;
-
-            if (session_num == 5) {
-                emoji = "false";
-                launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, true);
-            } else if (session_num == 6) {
-                emoji = "false";
-                launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, false);
-            } else if (session_num == 9) {
-                emoji = "true";
-                launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
-            } else if (session_num >= 10) {
-                alert("You have completed all sessions in this study. Please contact us at mitkbstudy@gmail.com to discuss payment. Thank you for participating!")
-            } else {
-                emoji = "false";
-                launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
-            }
-
-        });
-
-    }
-
-    function launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, webcam = null) {
-
-        document.getElementById("send_button").value = "Launch Software";
-
-        if (webcam_type === "motion") {
-            document.getElementById("send_button").onclick = function () {
-                keyboard_url = "html/webcam_setup_light.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-                    '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-                if (webcam != null) {
-                    keyboard_url = keyboard_url.concat("&webcam=", webcam);
-                }
-                window.open(keyboard_url, '_self');
-            };
-        } else {
-            document.getElementById("send_button").onclick = function () {
-                keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-                    '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-                if (webcam != null) {
-                    keyboard_url = keyboard_url.concat("&webcam=", webcam);
-                }
-                window.open(keyboard_url, '_self');
-            };
-        }
-    }
-
-    function send_login() {
-        var requested_user_id = $("#user_id").val();
-        $.ajax({
-            method: "GET",
-            url: "../php/send_login.php",
-            data: {"user_id": requested_user_id}
-        }).done(function (data) {
-            var result = $.parseJSON(data);
-            console.log(result);
-            var user_id;
-            var click_dist;
-            var webcam_type = "face";
-            if (result.length > 0) {
-                result = result[0];
-            }
-            if ("MAX(id)" in result) {  // Create new user
-                console.log("requested_id:", requested_user_id);
-                if (!Number.isInteger(parseInt(requested_user_id))) {
-                    user_id = parseInt(result["MAX(id)"]) + 7;
-                    if (Number.isNaN(user_id)) {
-                        user_id = 0;
-                    }
-                    document.getElementById("send_button").onclick = null;
-                    console.log("given_id:", user_id);
-                    document.getElementById("info_text").innerHTML =
-                        `<strong>Your ID will be: ${user_id}. Press "Create User".</strong>`;
-                    document.getElementById("send_button").value = "Create User";
-                    document.getElementById("user_id").style.display = "none";
-                    create_user(user_id);
-                    document.getElementById("info_text").innerHTML =
-                        `<strong>Created user with ID ${user_id}!</strong>`;
-                    init_study(user_id, webcam_type);
-                }
-            } else if ("id" in result) {  // Load previous user
-                user_id = requested_user_id;
-                click_dist = result.click_dist;
-                if (click_dist === null) {
-                    document.getElementById("info_text").innerHTML =
-                        `<strong>Loading User ${user_id}... No user preferences were found.</strong>`;
-                } else {
-                    document.getElementById("info_text").innerHTML =
-                        `<strong>Loading User ${user_id}... User preferences loaded!</strong>`;
-                }
-                webcam_type = result.webcam_type;
-                console.log("given_id:", user_id, "webcam switch:", webcam_type);
-                init_study(user_id, webcam_type);
-            } else {  //  User not found
-                document.getElementById("info_text").innerHTML =
-                    `<strong>We could not find a user with ID ${requested_user_id}. Please try again.</strong>`;
-                document.getElementById("send_button").value = "Enter";
-            }
-        });
-    }
-
-    document.getElementById("send_button").onclick = send_login;
-    // $("#send_button").on('click', send_login());
-
-    // });
-</script>
+<script type="module" src="./js/login_page.js"></script>
 
 </body>
 </html>
