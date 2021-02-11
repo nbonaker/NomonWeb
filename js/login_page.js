@@ -1,6 +1,7 @@
 import * as rcom from './rowcol_options_manager.js';
 
 var logged_in = false;
+var redirect_url;
 
 function create_user(user_id) {
     $.ajax({
@@ -104,25 +105,20 @@ function init_study(user_id, webcam_type) {
 function launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, webcam = null) {
 
     document.getElementById("send_button").value = "Launch Software";
-
     if (webcam_type === "motion") {
-        document.getElementById("send_button").onclick = function () {
-            keyboard_url = "html/webcam_setup_light.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-                '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-            if (webcam != null) {
-                keyboard_url = keyboard_url.concat("&webcam=", webcam);
-            }
-            window.open(keyboard_url, '_self');
-        };
+
+        redirect_url = "../html/webcam_setup_light.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+            '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
+        if (webcam != null) {
+            redirect_url = redirect_url.concat("&webcam=", webcam);
+        }
+
     } else {
-        document.getElementById("send_button").onclick = function () {
-            keyboard_url = "html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-                '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-            if (webcam != null) {
-                keyboard_url = keyboard_url.concat("&webcam=", webcam);
-            }
-            window.open(keyboard_url, '_self');
-        };
+        redirect_url = "../html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+            '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
+        if (webcam != null) {
+            redirect_url = redirect_url.concat("&webcam=", webcam);
+        }
     }
 }
 
@@ -148,7 +144,6 @@ function send_login() {
                 if (Number.isNaN(user_id)) {
                     user_id = 0;
                 }
-                document.getElementById("send_button").onclick = null;
                 console.log("given_id:", user_id);
                 document.getElementById("info_text").innerHTML =
                     `<strong>Your ID will be: ${user_id}. Press "Create User".</strong>`;
@@ -180,8 +175,6 @@ function send_login() {
     });
 }
 
-document.getElementById("send_button").onclick = send_login;
-
 class rowcolButton{
     constructor(id, value) {
         this.value = value;
@@ -200,7 +193,10 @@ class rowcolButton{
     select(){
         if (this.value === "Enter"){
             send_login();
-        } else {
+        } else if (this.value === "Launch Software"){
+            window.open(redirect_url, '_self');
+        }
+        else {
             var output_elem = document.getElementById("user_id");
             output_elem.value = output_elem.value.concat(this.value);
         }
