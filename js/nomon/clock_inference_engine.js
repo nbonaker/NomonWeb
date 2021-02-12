@@ -154,6 +154,7 @@ export class KernelDensityEstimation{
 
 export class ClockInference{
     constructor(parent, bc, past_data=null){
+        this.past_data = past_data;
         this.parent = parent;
         this.bc = bc;
         this.clock_util = new clock_util.ClockUtil(this.parent, this.bc, this);
@@ -181,11 +182,10 @@ export class ClockInference{
         this.entropy = new Entropy(this);
 
         var high_error = parseInt(this.bc.parent.user_id) === 217;
-        this.kde = new KernelDensityEstimation(this.time_rotate, high_error, past_data);
+        this.kde = new KernelDensityEstimation(this.time_rotate, high_error, this.past_data);
 
         this.n_hist = Math.min(200, Math.floor(Math.log(0.02) / Math.log(this.kde.damp)));
 
-        this.past_data = past_data;
     }
     get_score_inc(yin){
         var index = Math.floor(config.num_divs_click * (yin / this.time_rotate + 0.5)) % config.num_divs_click;

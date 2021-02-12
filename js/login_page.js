@@ -1,7 +1,7 @@
 import * as rcom from './rowcol_options_manager.js';
 
 var logged_in = false;
-var redirect_url;
+var redirect_url = "";
 
 function create_user(user_id) {
     $.ajax({
@@ -105,21 +105,10 @@ function init_study(user_id, webcam_type) {
 function launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, webcam = null) {
 
     document.getElementById("send_button").value = "Launch Software";
-    if (webcam_type === "motion") {
 
-        redirect_url = "../html/webcam_setup_light.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-            '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-        if (webcam != null) {
-            redirect_url = redirect_url.concat("&webcam=", webcam);
-        }
+    redirect_url = "../html/commboard.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
+        '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
 
-    } else {
-        redirect_url = "../html/webcam_setup.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-            '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-        if (webcam != null) {
-            redirect_url = redirect_url.concat("&webcam=", webcam);
-        }
-    }
 }
 
 function send_login() {
@@ -171,6 +160,7 @@ function send_login() {
             document.getElementById("info_text").innerHTML =
                 `<strong>We could not find a user with ID ${requested_user_id}. Please try again.</strong>`;
             document.getElementById("send_button").value = "Enter";
+            document.getElementById("user_id").value = "";
         }
     });
 }
@@ -191,12 +181,14 @@ class rowcolButton{
         this.button.className = "btn unhighlighted";
     }
     select(){
-        if (this.value === "Enter"){
-            send_login();
-        } else if (this.value === "Launch Software"){
-            window.open(redirect_url, '_self');
-        }
-        else {
+        if (this.value === "Enter" ) {
+            if (redirect_url === "") {
+                send_login();
+            } else {
+                window.open(redirect_url, '_self');
+            }
+
+        } else {
             var output_elem = document.getElementById("user_id");
             output_elem.value = output_elem.value.concat(this.value);
         }

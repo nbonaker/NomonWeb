@@ -67,12 +67,16 @@ export class studyManager {
         }
         var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
         if (response){
-             window.addEventListener('keydown', function (e) {
-                if (e.keyCode === 13) {
-                    e.preventDefault();
-                    this.phrase_complete();
-                }
-            }.bind(this), false);
+            //  window.addEventListener('keydown', function (e) {
+            //     if (e.keyCode === 13) {
+            //         e.preventDefault();
+            //         this.phrase_complete();
+            //     }
+            //     else if (e.keyCode === 32) {
+            //         e.preventDefault();
+            //         this.parent.on_press();
+            //     }
+            // }.bind(this), false);
 
             this.parent.in_session = true;
 
@@ -86,12 +90,9 @@ export class studyManager {
             this.parent.change_user_button.style.display = "none";
 
             this.parent.learn_checkbox.checked = true;
-            this.parent.checkbox_webcam.checked = true;
 
-            this.parent.checkbox_webcam.disabled = true;
             this.parent.learn_checkbox.disabled = true;
 
-            // this.init_webcam_switch();
             // document.onkeypress = null;
 
             this.session_start_time = Math.round(Date.now() / 1000);
@@ -121,7 +122,6 @@ export class studyManager {
         }
     }
     init_session_specifics(){
-        this.parent.init_webcam_switch();
 
         if (this.session_number <= 9){
             if (this.session_number === 1){
