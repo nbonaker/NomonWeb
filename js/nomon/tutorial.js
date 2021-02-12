@@ -95,14 +95,23 @@ export class tutorialManager{
 
         this.circle_x;
         this.circle_y;
+        this.circle_rel_size = 1.5;
+        this.target_num = 0;
         this.clock;
+
 
         this.update_target();
         this.start_tutorial();
     }
     update_target(){
         if (this.parent.emoji_keyboard){
-            this.target_clock = Math.floor(Math.random()*50);
+            if (this.target_num === 1){
+                this.circle_rel_size = 7;
+            } else if (this.target_num === 2){
+                this.circle_rel_size = 14;
+            }
+
+            this.target_clock = 31;
 
             if (this.emoji_phrase_length <= 0) {
                 this.update_kde();
@@ -119,6 +128,7 @@ export class tutorialManager{
                 }
                 this.emoji_phrase_length -= 1;
             }
+
         } else {
             var typed_text = this.parent.typed;
             var word_index = typed_text.split("_").length - 1;
@@ -164,7 +174,9 @@ export class tutorialManager{
                     this.change_focus();
                 }
             }
+            this.circle_rel_size = 6;
         }
+        this.target_num += 1;
     }
     start_tutorial(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -182,17 +194,17 @@ export class tutorialManager{
     change_focus(){
         var clock = this.parent.clockgrid.clocks[this.target_clock];
         this.clock = clock;
-        clock.winner = true;
+        // clock.winner = true;
         clock.draw_face();
         this.circle_x = clock.x_pos;
         this.circle_y = clock.y_pos;
-        var circle_radius = clock.radius*6;
+        var circle_radius = clock.radius*this.circle_rel_size;
 
         this.info_canvas.ctx.beginPath();
         this.info_canvas.ctx.globalCompositeOperation = 'source-over';
         this.info_canvas.ctx.clearRect(0, 0, this.width, this.height);
-        this.info_canvas.ctx.fillStyle = "rgba(232,232,232, 0.7)";
-        this.info_canvas.ctx.rect(0, 0, this.width, this.height*0.8);
+        this.info_canvas.ctx.fillStyle = "rgb(255,255,255)";
+        this.info_canvas.ctx.rect(0, 0, this.width, this.height);
         this.info_canvas.ctx.fill();
 
         this.info_canvas.ctx.beginPath();
@@ -208,11 +220,45 @@ export class tutorialManager{
         this.info_canvas.ctx.stroke();
 
         this.draw_clock_instruction(this.circle_x, this.circle_y, clock.radius);
+        if (this.target_num === 1){
+            this.draw_welcome();
+        }
+
+    }
+    draw_welcome(){
+        var font_height = this.width/17;
+        this.info_canvas.ctx.globalCompositeOperation = 'source-over';
+        this.info_canvas.ctx.fillStyle = "#404040";
+        this.info_canvas.ctx.font = "bold ".concat(font_height.toString(), "px Helvetica");
+
+        this.info_canvas.ctx.fillText("Welcome to Nomon!", this.width / 4.6, this.height * 0.22);
+
+        font_height = this.width/12.5;
+        this.info_canvas.ctx.font = "bold ".concat(font_height.toString(), "px Helvetica");
+
+
+        font_height = this.width/70;
+        var rect_x = this.width*0.28;
+        var rect_y = this.height*0.7;
+
+        this.info_canvas.ctx.fillStyle = "#ffffff";
+        this.info_canvas.ctx.strokeStyle = "#404040";
+        this.info_canvas.ctx.lineWidth = font_height*0.3;
+        roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height*31, font_height*5,
+            20, true, true);
+        this.info_canvas.ctx.fillStyle = "#404040";
+        this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+        this.info_canvas.ctx.fillText("Nomon centers around clocks like the one above. Clocks are ",
+            rect_x + font_height, rect_y + font_height*1.3);
+        this.info_canvas.ctx.fillText("positioned to the left of all chooseable items. You can select a clock",
+            rect_x + font_height, rect_y + font_height*2.7);
+        this.info_canvas.ctx.fillText("by pressing when its minute hand passes the red Noon line.",
+            rect_x + font_height, rect_y + font_height*4.1);
 
     }
     draw_clock_instruction(clock_x, clock_y, radius){
 
-        var font_height = radius*2;
+        var font_height = radius*1;
 
         this.info_canvas.ctx.beginPath();
         this.info_canvas.ctx.fillStyle = "#404040";
