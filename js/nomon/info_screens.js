@@ -63,7 +63,7 @@ export class InfoScreen {
     increment_screen(){
         this.info_canvas.ctx.beginPath();
         this.info_canvas.ctx.clearRect(0, 0, this.width, this.height);
-        this.info_canvas.ctx.fillStyle = "rgba(232,232,232, 0.5)";
+        this.info_canvas.ctx.fillStyle = "rgb(232,232,232)";
         this.info_canvas.ctx.rect(0, 0, this.width, this.height);
         this.info_canvas.ctx.fill();
 

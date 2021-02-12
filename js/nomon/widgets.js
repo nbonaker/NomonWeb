@@ -111,7 +111,7 @@ export class KeyGrid {
             this.keygrid_canvas.ctx.fillStyle = "#bfeec2";
         }
         else{
-            this.keygrid_canvas.ctx.fillStyle = "#eeeeee";
+            this.keygrid_canvas.ctx.fillStyle = "#d1d1d1";
         }
         this.keygrid_canvas.ctx.rect(0, 0, this.keygrid_canvas.screen_width, this.keygrid_canvas.screen_height);
         this.keygrid_canvas.ctx.fill();
@@ -179,7 +179,7 @@ export class ClockGrid{
         var y_end;
 
         if(this.parent.emoji_keyboard) {
-            this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 5;
+            this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 4;
         } else {
             this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 7;
         }
@@ -458,7 +458,7 @@ export class Clock{
             this.face_canvas.ctx.font = font_height.toString().concat("px Helvetica");
             if (parseInt(this.text) >= 10) {
                 let tile = new CommTile(this.face_canvas, this.x_pos + this.radius * 1.25,
-                    this.y_pos - this.radius * 2.5, this.radius * 5, parseInt(this.text));
+                    this.y_pos - this.radius * 2, this.radius * 4, parseInt(this.text));
             } else {
                 this.face_canvas.ctx.fillText(this.text, this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
             }
