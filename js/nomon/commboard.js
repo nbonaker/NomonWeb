@@ -372,12 +372,12 @@ class Keyboard{
                     console.log("cur_hour", this.bc.clock_inf.clock_util.cur_hours[this.tutorial_manager.target_clock]);
                     this.tutorial_manager.on_press(time_in);
 
-                }
-
-                this.bc.select(time_in);
-                if (this.in_session) {
-                    this.allow_slider_input = false;
-                    this.pre_phrase_rotate_index = this.rotate_index;
+                } else {
+                    this.bc.select(time_in);
+                    if (this.in_session) {
+                        this.allow_slider_input = false;
+                        this.pre_phrase_rotate_index = this.rotate_index;
+                    }
                 }
             }
         }
