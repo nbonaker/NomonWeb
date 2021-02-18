@@ -105,14 +105,15 @@ class Keyboard{
 
     }
     init_ui(){
-        this.speed_slider = document.getElementById("speed_slider");
-        this.speed_slider_output = document.getElementById("speed_slider_value");
-        this.speed_slider_output.innerHTML = this.rotate_index;
-        this.speed_slider.value = this.rotate_index;
+        this.speed_inc = document.getElementById("inc_speed_button");
+        this.speed_dec = document.getElementById("dec_speed_button");
 
-        this.speed_slider.oninput = function() {
-            this.speed_slider_output.innerHTML = this.speed_slider.value;
-            this.change_speed(this.speed_slider.value);
+        this.speed_inc.onclick = function(){
+            this.change_speed(Math.min(20, this.rotate_index + 1))
+        }.bind(this);
+
+        this.speed_dec.onclick = function(){
+            this.change_speed(Math.max(0, this.rotate_index - 1))
         }.bind(this);
 
         this.tutorial_button = document.getElementById("tutorial_button");
@@ -122,12 +123,10 @@ class Keyboard{
                     this.end_tutorial();
                     this.session_button.className = "btn clickable";
                     this.change_user_button.className = "btn clickable";
-                    this.info_button.className = "btn clickable";
                 } else {
                     this.init_tutorial();
                     this.session_button.className = "btn unclickable";
                     this.change_user_button.className = "btn unclickable";
-                    this.info_button.className = "btn unclickable";
                 }
 
             }
@@ -159,9 +158,9 @@ class Keyboard{
             this.session_time_label = document.getElementById("session_timer");
         } else {
             if (this.emoji_keyboard) {
-                this.session_button.value = "ABC";
+                this.session_button.value = "ABC            ";
             } else {
-                this.session_button.value = `😃😮😒`;
+                this.session_button.value = `😃😮😒          `;
             }
 
             this.session_button.onclick = function () {
@@ -170,22 +169,6 @@ class Keyboard{
             }.bind(this);
             document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
         }
-
-        this.info_button = document.getElementById("help_button");
-        this.info_button.onclick = function () {
-            if (!this.in_tutorial) {
-                if (this.in_info_screen) {
-                    this.destroy_info_screen();
-                } else {
-                    this.in_info_screen = true;
-                    if (this.in_session) {
-                        this.init_session_info_screen();
-                    } else {
-                        this.init_info_screen();
-                    }
-                }
-            }
-        }.bind(this);
 
         this.learn_checkbox = document.getElementById("checkbox_learn");
         if (this.prev_data && this.prev_data.learn !== null){
@@ -272,9 +255,8 @@ class Keyboard{
     init_tutorial(){
         this.session_button.className = "btn unclickable";
         this.change_user_button.className = "btn unclickable";
-        this.info_button.className = "btn unclickable";
         this.tutorial_button.className = "btn clickable";
-        this.tutorial_button.value = "Abort Retrain";
+        this.tutorial_button.value = "Abort Retrain  ";
 
         this.left_context = "";
         this.typed = "";
@@ -298,8 +280,7 @@ class Keyboard{
 
         this.session_button.className = "btn clickable";
         this.change_user_button.className = "btn clickable";
-        this.info_button.className = "btn clickable";
-        this.tutorial_button.value = "Retrain";
+        this.tutorial_button.value = "Retrain           ";
     }
     draw_phrase(){
         this.typed_versions = [''];
@@ -309,13 +290,13 @@ class Keyboard{
         this.emojis_selected = 0;
 
         for (var i = 0; i<5; i++) {
-            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length);
+            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length) + 10;
             var comm_word = kconfig.comm_phrase_lookup[comm_index].concat(" ");
             this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(comm_word);
             this.phrase_arr.push(comm_index);
         }
 
-        this.cur_emoji_target = this.phrase_arr[0];
+        this.cur_emoji_target = this.phrase_arr[0].toString();
 
         this.keygrid.draw_layout();
         this.highlight_emoji();
@@ -328,7 +309,7 @@ class Keyboard{
 
         var indicies = widgets.indexOf_2d(kconfig.comm_target_layout, this.cur_emoji_target);
         if (indicies !== false) {
-            this.keygrid.highlight_square(indicies[0], indicies[1]);
+            this.keygrid.highlight_square(indicies[1], indicies[0]);
         }
 
     }
@@ -359,8 +340,6 @@ class Keyboard{
             // # update the histogram
             this.histogram.update(this.bc.clock_inf.kde.dens_li);
         }
-        this.speed_slider_output.innerHTML = speed_index;
-        this.speed_slider.value = speed_index;
     }
     on_press(){
         if (document.hasFocus()) {
@@ -869,6 +848,16 @@ class Keyboard{
             this.last_add_li.push(-2);
 
             this.clear_text = true;
+        }
+        else if (new_char == "."){
+            this.old_context_li.push(this.context);
+            this.typed = this.typed.concat(new_char);
+            this.last_add_li.push(new_char.length);
+
+            this.context = "";
+        }
+        else if (new_char == "options"){
+            console.log("OPTIONS");
         }
         else{
             new_char = kconfig.comm_phrase_lookup[parseInt(new_char)-10].concat(" ");

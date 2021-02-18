@@ -379,15 +379,11 @@ export class studyManager {
         var phrase;
         var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
 
-        if (this.parent.emoji_keyboard){
-            phrase = this.parse_emojis(this.cur_phrase);
-            typed_text = this.parse_emojis(typed_text);
-            selection = this.parse_emojis(selection);
-        } else {
-            phrase = this.cur_phrase.replace("'", "8");
-            typed_text = typed_text.replace("'", "8");
-            selection = selection.replace("'", "8");
-        }
+
+        phrase = this.cur_phrase.replace("'", "8");
+        typed_text = typed_text.replace("'", "8");
+        selection = selection.replace("'", "8");
+
 
         var phrase_num = this.phrase_num;
 
