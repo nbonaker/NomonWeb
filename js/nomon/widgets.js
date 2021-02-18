@@ -318,7 +318,30 @@ export class ClockGrid{
             this.undo_label = new Label(this.face_canvas, undo_label_x, undo_label_y, this.clock_radius*2,"");
 
         }
-        var help;
+        if (indexOf_2d(this.target_layout,  kconfig.mybad_char)!== false){
+
+            var undo_unit_indicies = indexOf_2d(this.target_layout, kconfig.mybad_char);
+            x_start = this.keygrid.x_positions[undo_unit_indicies[0]][undo_unit_indicies[1]][0];
+            x_end = this.keygrid.x_positions[undo_unit_indicies[0]][undo_unit_indicies[1]][1];
+            y_start = this.keygrid.y_positions[undo_unit_indicies[0]][0];
+            y_end = this.keygrid.y_positions[undo_unit_indicies[0]][1];
+
+            var undo_clock_x = x_start + this.clock_radius * 1.5;
+            var undo_clock_y = y_start + (y_end - y_start) *0.3;
+
+            let cur_undo_clock = new Clock(this.face_canvas, this.hand_canvas,
+                                    undo_clock_x, undo_clock_y, this.clock_radius, "Undo");
+            for (var i=0; i<this.parent.n_pred; i++) {
+                    this.clocks.push(null);
+                }
+            this.clocks.push(cur_undo_clock);
+
+            var undo_label_x = x_start+ this.clock_radius*0.2;
+            var undo_label_y = y_start + (y_end - y_start)*4 / 5;
+
+            this.undo_label = new Label(this.face_canvas, undo_label_x, undo_label_y, this.clock_radius*1.2,"");
+
+        }
 
     }
     generate_main_clock_layout(x_start, y_start, x_end, y_end, text){
@@ -415,7 +438,7 @@ export class Label {
     }
 
     draw_text() {
-        this.face_canvas.ctx.clearRect(this.x_pos, this.y_pos+this.height, this.height*10, -this.height*2);
+        this.face_canvas.ctx.clearRect(this.x_pos, this.y_pos+this.height, this.height*10, -this.height*1.5);
         this.face_canvas.ctx.fillStyle = "#000000";
         var font_height = this.height;
         this.face_canvas.ctx.font = font_height.toString().concat("px Helvetica");
@@ -458,7 +481,7 @@ export class Clock{
             this.face_canvas.ctx.font = font_height.toString().concat("px Helvetica");
             if (parseInt(this.text) >= 10) {
                 let tile = new CommTile(this.face_canvas, this.x_pos + this.radius * 1.25,
-                    this.y_pos - this.radius * 2, this.radius * 4, parseInt(this.text));
+                    this.y_pos - this.radius * 1.75, this.radius * 3.5, parseInt(this.text));
             } else {
                 this.face_canvas.ctx.fillText(this.text, this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
             }
