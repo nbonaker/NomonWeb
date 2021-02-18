@@ -68,20 +68,20 @@ export var emoji_conversion_dict = conversion_dict;
 
 export var comm_num_columns = 9;
 export var comm_num_rows = 7;
-var num_comm_items = 60;
+var num_comm_items = 61;
 
 export var comm_main_chars = [];
 for (var num = 10; num <= num_comm_items+10; num++ ){
     comm_main_chars.push(num.toString());
 }
-comm_main_chars.push('$');
+comm_main_chars.push('.', '$');
 export var comm_key_chars = comm_main_chars.concat(['@']);
 
 export var comm_target_layout = [];
 var closest_square = Math.ceil(Math.sqrt(comm_main_chars.length+2));
 var col_ind = 0;
 var cur_row = [];
-var comm_layout_keys = comm_main_chars.concat(['UNDOUNIT']);
+var comm_layout_keys = comm_main_chars.concat(['@']);
 for (var key_ind in comm_layout_keys){
     cur_row.push(comm_layout_keys[key_ind]);
     col_ind ++;
@@ -97,7 +97,7 @@ export var comm_phrase_lookup = ["i", "it", "who", "what", "where", "again", "no
     "mine", "don't", "is", "do", "okay", "all gone", "finished", "bad", "you", "drink", "eat", "want", "give", "go",
     "big", "little", "good", "have", "get", "like", "see", "make", "put", "away", "less", "more", "say", "stop", "take",
     "turn", "help", "here", "there", "hard", "soft", "work", "break", "feel", "happy", "sad", "in", "on", "easy",
-    "bumpy", "play", "read", "sick", "mad", "scared", "excited", "with"];
+    "bumpy", "play", "read", "sick", "mad", "scared", "excited", "with", "quiet"] ;
 
 
 export var pause_length = 1500;

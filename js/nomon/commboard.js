@@ -81,9 +81,9 @@ class Keyboard{
         this.lm = new lm.LanguageModel(this);
 
         this.start_tutorial = first_load;
-        this.in_info_screen = first_load;
+        this.in_info_screen = false;
 
-        this.in_tutorial = false;
+        this.in_tutorial = true;
         this.in_finished_screen = false;
         this.init_ui();
     }
@@ -216,10 +216,12 @@ class Keyboard{
 
         this.histogram = new widgets.Histogram(this.output_canvas);
 
-        if (this.in_info_screen){
-            this.init_info_screen();
-        }
         this.continue_init();
+
+        if (this.in_tutorial){
+            this.init_tutorial();
+        }
+
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -254,9 +256,7 @@ class Keyboard{
 
             this.in_info_screen = false;
 
-            if (this.start_tutorial){
-                this.init_tutorial();
-            } else if (this.in_session) {
+            if (this.in_session) {
                 if (this.study_manager.session_pause_start_time !== Infinity) {
                     this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
                 }
@@ -1101,6 +1101,6 @@ function send_login() {
 if (user_id) {
     send_login();
 } else {
-    let keyboard = new Keyboard(user_id, false, false, null);
+    let keyboard = new Keyboard(user_id, true, false, null);
     setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 }

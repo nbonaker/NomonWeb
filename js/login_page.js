@@ -105,9 +105,23 @@ function init_study(user_id, webcam_type) {
 function launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, webcam = null) {
 
     document.getElementById("send_button").value = "Launch Software";
+    document.getElementById("send_button").className = "btn darkhighlighted";
+    for (var button_num = 0; button_num < 10 ; button_num += 1){
+        document.getElementById("button".concat(button_num.toString())).style.display = "none"
+    }
 
     redirect_url = "../html/commboard.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
         '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
+
+    clearInterval(RCOM_interval);
+    RCOM = null;
+
+    window.addEventListener('keydown', function (e) {
+        if (e.keyCode === 32) {
+            e.preventDefault();
+            window.open(redirect_url, '_self');
+        }
+    }, false);
 
 }
 
@@ -182,12 +196,7 @@ class rowcolButton{
     }
     select(){
         if (this.value === "Enter" ) {
-            if (redirect_url === "") {
-                send_login();
-            } else {
-                window.open(redirect_url, '_self');
-            }
-
+            send_login();
         } else {
             var output_elem = document.getElementById("user_id");
             output_elem.value = output_elem.value.concat(this.value);
@@ -203,4 +212,4 @@ var options_array = [
     ];
 console.log(options_array);
 let RCOM = new rcom.OptionsManager(options_array);
-setInterval(RCOM.animate.bind(RCOM), 0.05*1000);
+var RCOM_interval = setInterval(RCOM.animate.bind(RCOM), 0.05*1000);

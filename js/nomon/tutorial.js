@@ -105,24 +105,23 @@ export class tutorialManager{
     update_target(){
         this.target_num += 1;
         if (this.parent.emoji_keyboard){
-            this.target_clock = 31;
+            this.target_clock = 34;
             if (this.target_num === 1){
                 this.circle_rel_size = 1.5;
-                this.target_clock = 31;
+                this.target_clock = 34;
             } else if (this.target_num === 2){
                 this.circle_rel_size = 6;
-                this.target_clock = 31;
+                this.target_clock = 34;
             } else if (this.target_num === 3) {
                 this.circle_rel_size = 14;
-                this.target_clock = 21;
+                this.target_clock = 25;
             } else if (this.target_num === 4){
                 this.circle_rel_size = 29;
-                this.target_clock = 28;
+                this.target_clock = 31;
             } else {
                 this.circle_rel_size = 50;
                 this.target_clock = 4
             }
-
 
 
             if (this.emoji_phrase_length <= 0) {
@@ -205,7 +204,7 @@ export class tutorialManager{
     change_focus(center=false){
         var clock;
         if (center) {
-            clock = this.parent.clockgrid.clocks[31];
+            clock = this.parent.clockgrid.clocks[34];
         } else {
             clock = this.parent.clockgrid.clocks[this.target_clock];
         }
@@ -456,11 +455,11 @@ export class tutorialManager{
         } else {
             var cur_word;
             if (this.target_num === 2){
-                cur_word = "make";
+                cur_word = "less";
             } else if (this.target_num === 3){
-                cur_word = "want";
+                cur_word = "little";
             } else if (this.target_num === 4){
-                cur_word = "get";
+                cur_word = "make";
             } else if (this.target_num === 5){
                 cur_word = "where";
                 if (this.cur_press > 0){
