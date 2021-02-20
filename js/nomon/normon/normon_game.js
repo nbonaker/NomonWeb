@@ -1,13 +1,15 @@
+
 class NormonCanvas{
-    constructor(canvas_id, y_offset) {
+    constructor(canvas_id, layer_index) {
         this.canvas = document.getElementById(canvas_id);
         this.canvas.style.position = "absolute";
         this.canvas.style.left = "0px";
         this.ctx = this.canvas.getContext("2d");
-        this.calculate_size(y_offset);
+        this.calculate_size();
+        this.canvas.style.zIndex = layer_index;
     }
-    calculate_size(y_offset){
-        this.canvas.style.top = y_offset.toString().concat("px");
+    calculate_size(){
+
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
@@ -193,12 +195,14 @@ class Eyebrow {
 
 
 class Normon {
-    constructor(canvas, x_pos, y_pos, radius) {
+    constructor(canvas, x_pos, y_pos, radius, hist) {
         this.canvas = canvas;
         this.x_pos = x_pos;
         this.y_pos = y_pos;
+        this.y_base = y_pos;
         this.radius = radius;
         this.angle = 0.5;
+        this.hist = hist;
 
         this.draw_face();
         this.draw_hand();
@@ -216,8 +220,16 @@ class Normon {
         this.target_coords = [800, 1000];
 
         this.start_time= Date.now();
-        this.pause_length = 3000;
+        this.jump = false;
         this.period = 7000;
+
+        window.addEventListener('keydown', function (e) {
+
+            if (e.keyCode === 32) {
+                e.preventDefault();
+                this.on_press();
+            }
+        }.bind(this), false);
     }
     draw_face() {
         this.canvas.ctx.beginPath();
@@ -259,34 +271,49 @@ class Normon {
     }
     compute_motion(){
 
-        var ideal_x_vel = (this.target_coords[0] - this.x_pos)/4;
-        var ideal_y_vel = (this.target_coords[1] - this.y_pos)/4;
-        var scale_speed = Math.sqrt(ideal_x_vel**2 + ideal_y_vel**2);
-        if (scale_speed > 10) {
-            ideal_x_vel /= scale_speed/10;
-            ideal_y_vel /= scale_speed/10;
-        }
+        var ideal_x_vel = 14;
 
         this.x_vel += (ideal_x_vel-this.x_vel)*0.1;
-        this.y_vel += (ideal_y_vel-this.y_vel)*0.1;
 
-        this.x_pos += this.x_vel;
+        if (this.jump){
+            this.y_vel = -30;
+            this.jump = false;
+            this.y_pos -= 2;
+        }
+
+        if (this.y_pos < this.y_base){
+            this.y_vel += 1;
+
+        } else {
+            this.y_vel *= -0.6;
+            this.y_pos = this.y_base+1;
+        }
+
+
+        // this.x_pos += this.x_vel;
         this.y_pos += this.y_vel;
+        this.hist.scroll_factor += this.x_vel/this.hist.bin_width;
+        this.hist.generate_normal_values();
+        this.hist.update(this.hist.dens_li);
 
         this.angle += this.r_vel;
         this.r_vel = Math.sign(this.x_vel)*Math.sqrt(this.x_vel**2 + this.y_vel**2)/this.radius;
 
-        this.left_eye.compute_motion();
-        this.right_eye.compute_motion();
+        if (this.y_pos < this.y_base*0.9){
+            this.compute_return();
+        } else {
+            this.left_eye.compute_motion();
+            this.right_eye.compute_motion();
 
-        this.left_eyebrow.compute_motion();
-        this.right_eyebrow.compute_motion();
+            this.left_eyebrow.compute_motion();
+            this.right_eyebrow.compute_motion();
+        }
 
     }
     compute_return(){
-        this.r_vel = 0;
-        this.x_vel = 0;
-        this.y_vel = 0;
+        // this.r_vel = 0;
+        // this.x_vel = 0;
+        // this.y_vel = 0;
 
         this.left_eye.compute_return();
         this.right_eye.compute_return();
@@ -298,13 +325,12 @@ class Normon {
         console.log(this.target_coords);
         this.target_coords = [x_pos, y_pos];
     }
+    on_press(){
+        this.jump = true;
+    }
     animate(){
 
-        if (Math.round(this.target_coords[0]) !== Math.round(this.x_pos) || Math.round(this.target_coords[1]) !== Math.round(this.y_pos)) {
-            this.compute_motion();
-        } else {
-            this.compute_return();
-        }
+        this.compute_motion();
 
         this.draw_face();
         this.draw_hand();
@@ -314,12 +340,92 @@ class Normon {
         this.right_eyebrow.redraw();
     }
 }
-let info_canvas = new NormonCanvas("normon_canvas", 1);
 
-let normon = new Normon(info_canvas, 300, 300, 100);
+function normal(x, mu, sigma_sq){
+    return 1 / Math.sqrt(2 * Math.PI * sigma_sq) * Math.E ** ( (-1 / 2)* ((x - mu)) ** 2 / sigma_sq);
+}
+
+export class Histogram{
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.text = "";
+        this.calculate_size();
+        this.num_bins = 80;
+        this.scroll_factor=-40;
+
+        this.generate_normal_values();
+        this.update(this.dens_li);
+
+    }
+    calculate_size(){
+        this.box_x_offset = 0;
+        this.box_y_offset = this.canvas.screen_height * 9 / 10;
+        this.box_width = this.canvas.screen_width ;
+        this.box_height = this.canvas.screen_height/10;
+
+        this.bin_width = (this.box_width - this.box_height*0.05) / (this.num_bins + 1);
+    }
+    update(dens_li){
+        this.dens_li = [];
+        for (var i in dens_li){
+            this.dens_li.push(dens_li[i]);
+        }
+        this.draw_box();
+        this.draw_histogram();
+    }
+    draw_box(){
+        this.canvas.ctx.beginPath();
+        this.canvas.ctx.fillStyle = "#eeeeee";
+        this.canvas.ctx.rect(this.box_x_offset, this.box_y_offset, this.box_width, this.box_height);
+        this.canvas.ctx.fill();
+
+        this.canvas.ctx.beginPath();
+        this.canvas.ctx.fillStyle = "#ffffff";
+        this.canvas.ctx.strokeStyle = "#ffffff";
+        this.canvas.ctx.rect(this.box_x_offset + this.box_height * 0.02, this.box_y_offset,
+            this.box_width - this.box_height*0.05, this.box_height * 0.95);
+        this.canvas.ctx.fill();
+        this.canvas.ctx.stroke();
+    }
+    generate_normal_values(){
+        this.dens_li = [];
+        for (var i = 0; i <= this.num_bins; i++) {
+            this.dens_li.push(normal(i, 40-this.scroll_factor, 10)*8);
+        }
+    }
+    renormalize() {
+        var normalizer = Math.max.apply(Math, this.dens_li);
+        for (var i in this.dens_li) {
+            this.dens_li[i] = this.dens_li[i] / normalizer;
+        }
+    }
+    draw_histogram(){
+        this.bin_width = (this.box_width - this.box_height*0.05) / (this.num_bins + 1);
+        for (var i = 0; i <= this.num_bins; i++){
+            this.canvas.ctx.beginPath();
+            this.canvas.ctx.fillStyle = "#0067ff";
+            this.canvas.ctx.strokeStyle = "#000000";
+            var bin_x_offset = this.box_x_offset + this.box_height * 0.02 + this.bin_width*i;
+            this.canvas.ctx.rect(bin_x_offset, this.box_y_offset+this.box_height,
+                this.bin_width, -this.box_height*0.95*(this.dens_li[i]));
+            this.canvas.ctx.fill();
+            this.canvas.ctx.stroke();
+        }
+    }
+}
+
+let back_canvas = new NormonCanvas("back_canvas", 1);
+
+let info_canvas = new NormonCanvas("normon_canvas", 2);
+
+let hist = new Histogram(back_canvas);
+
+let normon = new Normon(info_canvas, info_canvas.screen_width*0.2, info_canvas.screen_height*0.9,
+    info_canvas.screen_height*0.09, hist);
+
 
 setInterval(normon.animate.bind(normon), 20);
 //
-document.addEventListener('mousemove', (event) => {
-	normon.update_target_coords(event.clientX*2, event.clientY*2);
-});
+// document.addEventListener('mousemove', (event) => {
+// 	normon.update_target_coords(event.clientX*2, event.clientY*2);
+// });
