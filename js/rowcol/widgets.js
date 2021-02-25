@@ -29,10 +29,16 @@ export class KeyboardCanvas{
         this.canvas.style.height = ((this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
 
         this.screen_width = this.window_width * this.resolution_factor;
-        this.screen_height = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
+        this.v = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
     }
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
+    }
+    grey(){
+        this.ctx.beginPath();
+        this.ctx.fillStyle = "rgb(232,232,232)";
+        this.ctx.rect(0, 0, this.screen_width, this.screen_height);
+        this.ctx.fill();
     }
 }
 

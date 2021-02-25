@@ -6,6 +6,7 @@ import * as bc from './broderclocks.js';
 import * as tm from './tutorial.js';
 import * as sm from './study_manager.js';
 import * as lm from './lm.js';
+import * as rcom from '../rowcol_options_manager.js';
 
 import {makeCorsRequest} from "../cors_request.js";
 
@@ -18,6 +19,26 @@ function log_add_exp(a_1, a_2){
 function emoji_count(str){
     return Array.from(str.split(/[\ufe00-\ufe0f]/).join("")).length;
 }
+
+class rowcolButton{
+    constructor(button, value) {
+        this.value = value;
+        this.button = button;
+    }
+    darkhighlight(){
+        this.button.className = "btn darkhighlighted";
+    }
+    highlight(){
+        this.button.className = "btn highlighted";
+    }
+    unhighlight(){
+        this.button.className = "btn unhighlighted";
+    }
+    select(){
+        this.button.onclick();
+    }
+}
+
 
 class Keyboard{
     constructor(user_id, first_load, partial_session, prev_data){
@@ -44,8 +65,8 @@ class Keyboard{
         this.run_on_focus = false;
 
         window.addEventListener('keydown', function (e) {
-            e.preventDefault();
             if (e.keyCode === 32) {
+                e.preventDefault();
                 this.on_press();
             }
         }.bind(this), false);
@@ -109,36 +130,35 @@ class Keyboard{
         this.speed_dec = document.getElementById("dec_speed_button");
 
         this.speed_inc.onclick = function(){
-            this.change_speed(Math.min(20, this.rotate_index + 1))
+            this.change_speed(Math.min(20, this.rotate_index + 1));
+            this.destroy_options_rcom();
         }.bind(this);
 
         this.speed_dec.onclick = function(){
-            this.change_speed(Math.max(0, this.rotate_index - 1))
+            this.change_speed(Math.max(0, this.rotate_index - 1));
+            this.destroy_options_rcom();
         }.bind(this);
 
         this.tutorial_button = document.getElementById("tutorial_button");
         this.tutorial_button.onclick = function(){
-            if (!this.in_session && !this.in_info_screen) {
+            if (!this.in_session) {
                 if (this.in_tutorial){
                     this.end_tutorial();
-                    this.session_button.className = "btn clickable";
-                    this.change_user_button.className = "btn clickable";
                 } else {
                     this.init_tutorial();
-                    this.session_button.className = "btn unclickable";
-                    this.change_user_button.className = "btn unclickable";
                 }
-
             }
+            this.destroy_options_rcom();
         }.bind(this);
 
         this.change_user_button = document.getElementById("send_button");
         if (this.user_id) {
             this.change_user_button.onclick = function () {
-                if (!this.in_tutorial && !this.in_session && !this.in_info_screen) {
+                if (!this.in_tutorial && !this.in_session) {
                     var login_url = "../index.php";
                     window.open(login_url, '_self');
                 }
+                this.destroy_options_rcom();
             }.bind(this);
         } else {
             this.change_user_button.value = "RCS Keyboard";
@@ -151,9 +171,10 @@ class Keyboard{
         this.session_button = document.getElementById("session_button");
         if (this.user_id) {
             this.session_button.onclick = function () {
-                if (!this.in_tutorial && !this.in_info_screen) {
+                if (!this.in_tutorial) {
                     this.study_manager.request_session_data();
                 }
+                this.destroy_options_rcom();
             }.bind(this);
             this.session_time_label = document.getElementById("session_timer");
         } else {
@@ -209,11 +230,9 @@ class Keyboard{
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
+        // this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
+        this.info_canvas.grey();
 
-        this.session_button.className = "btn unclickable";
-        this.change_user_button.className = "btn unclickable";
-        this.tutorial_button.className = "btn unclickable";
     }
     init_session_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -246,16 +265,12 @@ class Keyboard{
                 this.study_manager.session_pause_start_time = Infinity;
 
             } else {
-                this.session_button.className = "btn clickable";
-                this.change_user_button.className = "btn clickable";
-                this.tutorial_button.className = "btn clickable";
+
             }
         }
     }
     init_tutorial(){
-        this.session_button.className = "btn unclickable";
-        this.change_user_button.className = "btn unclickable";
-        this.tutorial_button.className = "btn clickable";
+
         this.tutorial_button.value = "Abort Retrain  ";
 
         this.left_context = "";
@@ -284,9 +299,31 @@ class Keyboard{
         this.textbox.draw_text("");
         this.lm.update_cache(this.left_context, this.lm_prefix);
 
-        this.session_button.className = "btn clickable";
-        this.change_user_button.className = "btn clickable";
         this.tutorial_button.value = "Retrain           ";
+    }
+    init_options_rcom(){
+        var options_array = [
+            [new rowcolButton(this.speed_inc, "1"), new rowcolButton(this.speed_dec, "2")],
+            [new rowcolButton(this.tutorial_button, "4"), new rowcolButton(this.change_user_button, "5"), new rowcolButton(this.session_button, "6")]
+            ];
+
+        this.RCOM = new rcom.OptionsManager(options_array);
+        this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05*1000);
+        this.in_info_screen = true;
+        this.init_info_screen();
+    }
+    destroy_options_rcom(){
+        clearInterval(this.RCOM_interval);
+        this.RCOM = null;
+        this.in_info_screen = false;
+
+        this.speed_inc.className = "btn unhighlighted";
+        this.speed_dec.className = "btn unhighlighted";
+        this.tutorial_button.className = "btn unhighlighted";
+        this.change_user_button.className = "btn unhighlighted";
+        this.session_button.className = "btn unhighlighted";
+
+        this.destroy_info_screen();
     }
     draw_phrase(){
         this.typed_versions = [''];
@@ -863,7 +900,7 @@ class Keyboard{
             this.context = "";
         }
         else if (new_char == "options"){
-            console.log("OPTIONS");
+            this.init_options_rcom();
         }
         else{
             new_char = kconfig.comm_phrase_lookup[parseInt(new_char)-10].concat(" ");
@@ -998,15 +1035,15 @@ class Keyboard{
         this.histogram.draw_histogram();
         this.textbox.calculate_size();
 
-        if (this.in_info_screen){
-            this.info_canvas.calculate_size(0);
-            var info_screen_num = this.info_screen.screen_num - 1;
-            if (this.in_session){
-                this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas, info_screen_num);
-            } else {
-                this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
-            }
-        }
+        // if (this.in_info_screen){
+        //     this.info_canvas.calculate_size(0);
+        //     var info_screen_num = this.info_screen.screen_num - 1;
+        //     if (this.in_session){
+        //         this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas, info_screen_num);
+        //     } else {
+        //         this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
+        //     }
+        // }
         if (this.in_tutorial){
             this.tutorial_manager.change_focus();
         }

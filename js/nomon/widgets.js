@@ -34,6 +34,12 @@ export class KeyboardCanvas{
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
     }
+    grey(){
+        this.ctx.beginPath();
+        this.ctx.fillStyle = "rgba(232,232,232,0.76)";
+        this.ctx.rect(0, 0, this.screen_width, this.screen_height);
+        this.ctx.fill();
+    }
 }
 
 export class OutputCanvas{
