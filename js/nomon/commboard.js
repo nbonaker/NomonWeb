@@ -83,7 +83,7 @@ class Keyboard{
         this.start_tutorial = first_load;
         this.in_info_screen = false;
 
-        this.in_tutorial = true;
+        this.in_tutorial = first_load;
         this.in_finished_screen = false;
         this.init_ui();
     }
@@ -274,7 +274,13 @@ class Keyboard{
 
         this.left_context = "";
         this.typed = "";
+        this.typed_versions = [];
         this.lm_prefix = "";
+        this.btyped = "";
+        this.ctyped = [];
+        this.context = "";
+        this.old_context_li = [""];
+        this.last_add_li = [0];
         this.textbox.draw_text("");
         this.lm.update_cache(this.left_context, this.lm_prefix);
 
@@ -1090,6 +1096,6 @@ function send_login() {
 if (user_id) {
     send_login();
 } else {
-    let keyboard = new Keyboard(user_id, true, false, null);
+    let keyboard = new Keyboard(user_id, false, false, null);
     setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 }
