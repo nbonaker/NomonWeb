@@ -191,17 +191,18 @@ export class tutorialManager{
     start_tutorial(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.parent.info_canvas = this.info_canvas;
-        this.info_canvas.calculate_size(0);
 
         this.x_pos = 0;
         this.y_pos = 0;
-        this.width = this.info_canvas.screen_width;
-        this.height = this.info_canvas.screen_height;
 
         this.change_focus();
 
     }
     change_focus(center=false){
+        this.info_canvas.calculate_size(0);
+        this.width = this.info_canvas.screen_width;
+        this.height = this.info_canvas.screen_height;
+
         var clock;
         if (center) {
             clock = this.parent.clockgrid.clocks[34];
@@ -392,7 +393,7 @@ export class tutorialManager{
     }
     draw_clock_instruction(clock_x, clock_y, radius){
 
-        var font_height = radius*1;
+        var font_height = this.width/60;
 
         this.info_canvas.ctx.beginPath();
         this.info_canvas.ctx.fillStyle = "#404040";
@@ -510,6 +511,7 @@ export class tutorialManager{
             this.parent.make_choice(this.target_clock);
         } else {
             this.bc.init_round(false, false, []);
+            this.clock_history = [[]];
         }
     }
     update_kde(){

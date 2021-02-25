@@ -179,7 +179,8 @@ export class ClockGrid{
         var y_end;
 
         if(this.parent.emoji_keyboard) {
-            this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 4;
+            this.clock_radius = Math.min((this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 4,
+                                            (this.keygrid.x_positions[0][1][1] - this.keygrid.x_positions[0][1][0])/6.5);
         } else {
             this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 7;
         }

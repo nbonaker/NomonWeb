@@ -11,7 +11,7 @@ class NormonCanvas{
     calculate_size(){
 
         this.window_width = window.innerWidth;
-        this.window_height = window.innerHeight;
+        this.window_height = window.innerHeight*0.9;
 
         this.resolution_factor = 2;
         this.screen_fill_factor = 0.98;
@@ -217,11 +217,13 @@ class Normon {
         this.y_vel = 0.0;
         this.gravity = 1;
 
+        this.ideal_x_vel = this.radius/20;
+
         this.target_coords = [800, 1000];
 
-        this.start_time= Date.now();
+        this.failed = false;
         this.jump = false;
-        this.period = 7000;
+        this.score = 0;
 
         window.addEventListener('keydown', function (e) {
 
@@ -230,11 +232,13 @@ class Normon {
                 this.on_press();
             }
         }.bind(this), false);
+
+        this.animation_int = setInterval(this.animate.bind(this), 20);
     }
     draw_face() {
         this.canvas.ctx.beginPath();
-        this.canvas.ctx.clearRect(this.x_pos - this.radius*1.3, this.y_pos - this.radius*1.3,
-                    this.radius * 2.6, this.radius * 2.6);
+        this.canvas.ctx.clearRect(this.x_pos - this.radius*1.8, this.y_pos - this.radius*1.8,
+                    this.radius * 3.6, this.radius * 3.6);
 
         this.canvas.ctx.arc(this.x_pos, this.y_pos, this.radius, 0, 2 * Math.PI);
         this.canvas.ctx.fillStyle = "#ffffff";
@@ -271,35 +275,30 @@ class Normon {
     }
     compute_motion(){
 
-        var ideal_x_vel = 14;
+        this.ideal_x_vel += 1*this.radius/15000;
 
-        this.x_vel += (ideal_x_vel-this.x_vel)*0.1;
+        this.x_vel += (this.ideal_x_vel-this.x_vel)*0.1;
+
+        this.y_pos += this.y_vel;
 
         if (this.jump){
-            this.y_vel = -30;
+            this.y_vel = -(this.radius+this.x_vel*3)/4;
             this.jump = false;
             this.y_pos -= 2;
         }
-
         if (this.y_pos < this.y_base){
-            this.y_vel += 1;
+            this.y_vel += 1*this.x_vel/10;
 
         } else {
-            this.y_vel *= -0.6;
+            this.y_vel *= -0.6*(this.radius/15)/this.x_vel;
             this.y_pos = this.y_base+1;
         }
 
 
-        // this.x_pos += this.x_vel;
-        this.y_pos += this.y_vel;
-        this.hist.scroll_factor += this.x_vel/this.hist.bin_width;
-        this.hist.generate_normal_values();
-        this.hist.update(this.hist.dens_li);
-
         this.angle += this.r_vel;
         this.r_vel = Math.sign(this.x_vel)*Math.sqrt(this.x_vel**2 + this.y_vel**2)/this.radius;
 
-        if (this.y_pos < this.y_base*0.9){
+        if (this.y_pos < this.y_base*0.89){
             this.compute_return();
         } else {
             this.left_eye.compute_motion();
@@ -308,6 +307,7 @@ class Normon {
             this.left_eyebrow.compute_motion();
             this.right_eyebrow.compute_motion();
         }
+        this.failed = this.check_fail();
 
     }
     compute_return(){
@@ -321,23 +321,77 @@ class Normon {
         this.left_eyebrow.compute_return();
         this.right_eyebrow.compute_return();
     }
+    animate_fail(){
+        var ideal_r_vel = 1;
+
+        this.r_vel += (ideal_r_vel-this.r_vel)*0.2;
+
+        this.y_vel += 1*this.radius/150;
+
+
+        this.angle += this.r_vel;
+        this.y_pos += this.y_vel;
+
+        this.left_eye.compute_motion();
+        this.right_eye.compute_motion();
+
+        this.left_eyebrow.compute_motion();
+        this.right_eyebrow.compute_motion();
+
+    }
+    move_hist(){
+        this.hist.scroll_factor += this.x_vel/this.hist.bin_width;
+        this.hist.generate_normal_values();
+        this.hist.update(this.hist.dens_li);
+        if (this.hist.scroll_factor > 45){
+            this.hist.scroll_factor = -45;
+            this.inc_score();
+        }
+    }
+    inc_score(){
+        this.score += 1;
+        document.getElementById("score_text").textContent = this.score.toString();
+    }
+    check_fail(){
+        if (this.y_base - this.y_pos+2 < this.hist.box_height*0.95*this.hist.dens_li[15]) {
+            this.y_vel = -this.radius/3.7;
+            return true;
+        } else if (this.y_base - this.y_pos + this.radius < this.hist.box_height*0.95*this.hist.dens_li[19]) {
+            this.y_vel = -this.radius/3.7;
+            return true;
+        } else if (this.y_base - this.y_pos + this.radius < this.hist.box_height*0.95*this.hist.dens_li[11]) {
+            this.y_vel = -this.radius/3.7;
+            return true;
+        }
+        return false;
+
+    }
     update_target_coords(x_pos, y_pos){
         console.log(this.target_coords);
         this.target_coords = [x_pos, y_pos];
     }
     on_press(){
-        this.jump = true;
+        if (this.y_pos > this.y_base*0.95) {
+            this.jump = true;
+        }
     }
     animate(){
 
-        this.compute_motion();
+        if (this.failed){
+            // clearInterval(this.animation_int);
+            this.animate_fail();
+        } else {
+            this.compute_motion();
+            this.move_hist();
+        }
+            this.draw_face();
+            this.draw_hand();
+            this.left_eye.redraw();
+            this.right_eye.redraw();
+            this.left_eyebrow.redraw();
+            this.right_eyebrow.redraw();
 
-        this.draw_face();
-        this.draw_hand();
-        this.left_eye.redraw();
-        this.right_eye.redraw();
-        this.left_eyebrow.redraw();
-        this.right_eyebrow.redraw();
+
     }
 }
 
@@ -359,9 +413,10 @@ export class Histogram{
     }
     calculate_size(){
         this.box_x_offset = 0;
-        this.box_y_offset = this.canvas.screen_height * 9 / 10;
+
         this.box_width = this.canvas.screen_width ;
-        this.box_height = this.canvas.screen_height/10;
+        this.box_height = this.canvas.screen_width/7;
+        this.box_y_offset = this.canvas.screen_height - this.box_height;
 
         this.bin_width = (this.box_width - this.box_height*0.05) / (this.num_bins + 1);
     }
@@ -390,7 +445,7 @@ export class Histogram{
     generate_normal_values(){
         this.dens_li = [];
         for (var i = 0; i <= this.num_bins; i++) {
-            this.dens_li.push(normal(i, 40-this.scroll_factor, 10)*8);
+            this.dens_li.push(normal(i, 40-this.scroll_factor, 5)*5);
         }
     }
     renormalize() {
@@ -420,11 +475,10 @@ let info_canvas = new NormonCanvas("normon_canvas", 2);
 
 let hist = new Histogram(back_canvas);
 
-let normon = new Normon(info_canvas, info_canvas.screen_width*0.2, info_canvas.screen_height*0.9,
-    info_canvas.screen_height*0.09, hist);
+let normon = new Normon(info_canvas, info_canvas.screen_width*0.2,
+    info_canvas.screen_height-info_canvas.screen_width*0.057,
+    info_canvas.screen_width*0.05, hist);
 
-
-setInterval(normon.animate.bind(normon), 20);
 //
 // document.addEventListener('mousemove', (event) => {
 // 	normon.update_target_coords(event.clientX*2, event.clientY*2);

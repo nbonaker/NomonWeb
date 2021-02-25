@@ -305,8 +305,8 @@ export class ClockInference{
                 this.win_history.shift();
             }
             else {
-                this.win_history.shift().clock_history = [];
-                this.win_history.shift().win_history = [];
+                this.clock_history = [[]];
+                this.win_history = [];
             }
         }
         else if (n_hist > config.learn_delay){

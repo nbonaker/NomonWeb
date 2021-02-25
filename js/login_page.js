@@ -116,6 +116,8 @@ function launch_software(user_id, next_software, partial_session, first_load, em
     clearInterval(RCOM_interval);
     RCOM = null;
 
+    document.getElementById("send_button").onclick = function () {window.open(redirect_url, '_self')};
+
     window.addEventListener('keydown', function (e) {
         if (e.keyCode === 32) {
             e.preventDefault();
