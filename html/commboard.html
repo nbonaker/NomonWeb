@@ -85,10 +85,13 @@ label {
   cursor: pointer;
   border-radius: 4px;
 }
-.clickable {
-    background-color: #0056ff;
+.darkhighlighted {
+    background-color: rgb(103, 0, 255);
 }
-.unclickable {
+.highlighted {
+    background-color: rgba(0, 89, 255, 0.83);
+}
+.unhighlighted {
     background-color: rgba(0, 89, 255, 0.32);
 }
 
@@ -102,8 +105,8 @@ label {
 <div class="container space-between" id="top_bar_top">
     <div>
         <div class="slidecontainer">
-            <input class='btn clickable' type="button" id = "dec_speed_button" value = "Clock Speed -"/>
-            <input class='btn clickable' type="button" id = "inc_speed_button" value = "Clock Speed +"/>
+            <input class='btn unhighlighted' type="button" id = "dec_speed_button" value = "Clock Speed -"/>
+            <input class='btn unhighlighted' type="button" id = "inc_speed_button" value = "Clock Speed +"/>
         </div>
     </div>
     <div>
@@ -174,9 +177,9 @@ label {
 </div>
 <div class="container space-between" id="top_bar_bottom">
         <div>
-            <input class='btn clickable' type="button" id = "tutorial_button" value = "Retrain           "/>
-            <input class='btn clickable' type="button" id = "send_button" value =     "Change User  "/>
-            <input class='btn clickable' type="button" id = "session_button" value =  "End Training  "/>
+            <input class='btn unhighlighted' type="button" id = "tutorial_button" value = "Retrain           "/>
+            <input class='btn unhighlighted' type="button" id = "send_button" value =     "Change User  "/>
+            <input class='btn unhighlighted' type="button" id = "session_button" value =  "Start Testing  "/>
             <label id = "session_timer"><b> </b></label>
             <label id="info_label" style="padding-left: 20px"/><i>Welcome User! Press Start Session to begin.</i></label>
         </div>
