@@ -1,13 +1,14 @@
-class NormonCanvas{
-    constructor(canvas_id, y_offset) {
+export class NormonCanvas{
+    constructor(canvas_id, layer_index) {
         this.canvas = document.getElementById(canvas_id);
         this.canvas.style.position = "absolute";
         this.canvas.style.left = "0px";
         this.ctx = this.canvas.getContext("2d");
-        this.calculate_size(y_offset);
+        this.canvas.style.zIndex = layer_index;
+        this.calculate_size();
     }
-    calculate_size(y_offset){
-        this.canvas.style.top = y_offset.toString().concat("px");
+    calculate_size(){
+        this.canvas.style.top = "0px";
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
@@ -192,7 +193,7 @@ class Eyebrow {
 }
 
 
-class Normon {
+export class Normon {
     constructor(canvas, x_pos, y_pos, radius) {
         this.canvas = canvas;
         this.x_pos = x_pos;
@@ -262,9 +263,9 @@ class Normon {
         var ideal_x_vel = (this.target_coords[0] - this.x_pos)/4;
         var ideal_y_vel = (this.target_coords[1] - this.y_pos)/4;
         var scale_speed = Math.sqrt(ideal_x_vel**2 + ideal_y_vel**2);
-        if (scale_speed > 10) {
-            ideal_x_vel /= scale_speed/10;
-            ideal_y_vel /= scale_speed/10;
+        if (scale_speed > 15) {
+            ideal_x_vel /= scale_speed/15;
+            ideal_y_vel /= scale_speed/15;
         }
 
         this.x_vel += (ideal_x_vel-this.x_vel)*0.1;
@@ -313,13 +314,34 @@ class Normon {
         this.left_eyebrow.redraw();
         this.right_eyebrow.redraw();
     }
+    update_radius(new_radius){
+        this.radius = new_radius;
+        this.canvas.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.left_eye.x_base = -new_radius*0.35;
+        this.left_eye.y_base = -new_radius*0.3;
+        this.left_eye.size = new_radius;
+
+        this.right_eye.x_base = new_radius*0.35;
+        this.right_eye.y_base = -new_radius*0.3;
+        this.right_eye.size = new_radius;
+
+        this.left_eyebrow.x_base = -new_radius*0.47;
+        this.left_eyebrow.y_base = -new_radius*0.55;
+        this.left_eyebrow.size = new_radius;
+
+        this.right_eyebrow.x_base = new_radius*0.47;
+        this.right_eyebrow.y_base = -new_radius*0.55;
+        this.right_eyebrow.size = new_radius;
+    }
 }
-let info_canvas = new NormonCanvas("normon_canvas", 1);
 
-let normon = new Normon(info_canvas, 300, 300, 100);
-
-setInterval(normon.animate.bind(normon), 20);
+// let info_canvas = new NormonCanvas("normon_canvas", 1);
 //
-document.addEventListener('mousemove', (event) => {
-	normon.update_target_coords(event.clientX*2, event.clientY*2);
-});
+// let normon = new Normon(info_canvas, 300, 300, 100);
+//
+// setInterval(normon.animate.bind(normon), 20);
+// //
+// document.addEventListener('mousemove', (event) => {
+// 	normon.update_target_coords(event.clientX*2, event.clientY*2);
+// });
