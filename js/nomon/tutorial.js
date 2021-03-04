@@ -2,6 +2,7 @@ import * as kconfig from './kconfig.js';
 import * as widgets from "./widgets.js";
 import {KernelDensityEstimation} from "./clock_inference_engine.js";
 import * as config from "./config.js";
+import * as normon from "./normon/normontheclock.js";
 
 
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
@@ -102,6 +103,17 @@ export class tutorialManager{
         this.update_target();
         this.start_tutorial();
     }
+    initialize_normon(){
+        this.normon_canvas = new normon.NormonCanvas("normon_canvas", 5);
+
+        var normon_x = -this.normon_canvas.screen_width/5;
+        var normon_y = this.normon_canvas.screen_height/2;
+        var normon_r = this.normon_canvas.screen_height/15;
+
+        this.Normon = new normon.Normon(this.normon_canvas, normon_x, normon_y, normon_r);
+
+        setInterval(this.Normon.animate.bind(this.Normon), 20);
+    }
     update_target(){
         this.target_num += 1;
         if (this.parent.emoji_keyboard){
@@ -191,6 +203,7 @@ export class tutorialManager{
     start_tutorial(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.parent.info_canvas = this.info_canvas;
+        this.initialize_normon();
 
         this.x_pos = 0;
         this.y_pos = 0;
@@ -200,6 +213,7 @@ export class tutorialManager{
     }
     change_focus(center=false){
         this.info_canvas.calculate_size(0);
+        this.normon_canvas.calculate_size();
         this.width = this.info_canvas.screen_width;
         this.height = this.info_canvas.screen_height;
 
@@ -246,15 +260,25 @@ export class tutorialManager{
         }
 
         this.draw_clock_instruction(this.circle_x, this.circle_y, clock.radius);
+
+        var normon_x;
+        var normon_y;
         if (this.target_num === 1){
             this.draw_welcome();
+            normon_x = this.width/4;
+            normon_y = this.height/1.8;
         } if (this.target_num === 2){
             this.draw_info_1();
+            normon_x = this.width*9/10;
+            normon_y = this.height*7/8;
         } if (this.target_num === 3){
             this.draw_info_2();
         } else if (this.target_num === 5){
             this.draw_info_3();
         }
+        // this.Normon.radius = this.height/15;
+        this.Normon.update_radius(this.height/15);
+        this.Normon.update_target_coords(normon_x, normon_y)
 
     }
     draw_welcome(){
@@ -451,7 +475,6 @@ export class tutorialManager{
                 this.info_canvas.ctx.fillStyle = "#404040";
                 this.info_canvas.ctx.fillText("Great! You have to press multiple times to select a clock.", arrow_x_start + font_height * 2, arrow_y_start);
                 this.info_canvas.ctx.fillText("Keep pressing when the clock passes noon.", arrow_x_start + font_height * 2, arrow_y_start + font_height * 1.5);
-
             }
         } else {
             var cur_word;
