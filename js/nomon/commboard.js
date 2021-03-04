@@ -87,6 +87,7 @@ class Keyboard{
         this.time_rotate = config.period_li[this.rotate_index];
         this.pre_phrase_rotate_index = this.rotate_index;
         this.allow_slider_input = true;
+        document.getElementById("speed_text").innerText = this.rotate_index.toString();
 
         this.typed = "";
         this.btyped = "";
@@ -139,6 +140,12 @@ class Keyboard{
             this.destroy_options_rcom();
         }.bind(this);
 
+        this.abort_options_button = document.getElementById("abort_options_button");
+        this.abort_options_button.onclick = function(){
+            this.destroy_options_rcom();
+        }.bind(this);
+
+
         this.tutorial_button = document.getElementById("tutorial_button");
         this.tutorial_button.onclick = function(){
             if (!this.in_session) {
@@ -188,7 +195,7 @@ class Keyboard{
                 var keyboard_url = "commboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
-            document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
+            document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press Retrain for help.</b>`;
         }
 
         this.learn_checkbox = document.getElementById("checkbox_learn");
@@ -303,7 +310,7 @@ class Keyboard{
     }
     init_options_rcom(){
         var options_array = [
-            [new rowcolButton(this.speed_inc, "1"), new rowcolButton(this.speed_dec, "2")],
+            [new rowcolButton(this.speed_dec, "1"), new rowcolButton(this.speed_inc, "2"), new rowcolButton(this.abort_options_button, "3")],
             [new rowcolButton(this.tutorial_button, "4"), new rowcolButton(this.change_user_button, "5"), new rowcolButton(this.session_button, "6")]
             ];
 
@@ -315,15 +322,17 @@ class Keyboard{
     destroy_options_rcom(){
         clearInterval(this.RCOM_interval);
         this.RCOM = null;
-        this.in_info_screen = false;
+        if (!this.in_tutorial) {
+            this.destroy_info_screen();
+        }
 
         this.speed_inc.className = "btn unhighlighted";
         this.speed_dec.className = "btn unhighlighted";
+        this.abort_options_button.className = "btn unhighlighted";
         this.tutorial_button.className = "btn unhighlighted";
         this.change_user_button.className = "btn unhighlighted";
         this.session_button.className = "btn unhighlighted";
 
-        this.destroy_info_screen();
     }
     draw_phrase(){
         this.typed_versions = [''];
@@ -333,13 +342,13 @@ class Keyboard{
         this.emojis_selected = 0;
 
         for (var i = 0; i<5; i++) {
-            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length) + 10;
+            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length);
             var comm_word = kconfig.comm_phrase_lookup[comm_index].concat(" ");
             this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(comm_word);
             this.phrase_arr.push(comm_index);
         }
 
-        this.cur_emoji_target = this.phrase_arr[0].toString();
+        this.cur_emoji_target = (this.phrase_arr[this.emojis_selected] + 10).toString();
 
         this.keygrid.draw_layout();
         this.highlight_emoji();
@@ -350,9 +359,10 @@ class Keyboard{
     highlight_emoji(){
         console.log("CUR TARGET: ", this.cur_emoji_target);
 
-        var indicies = widgets.indexOf_2d(kconfig.comm_target_layout, this.cur_emoji_target);
+        var indicies = widgets.indexOf_2d(kconfig.comm_target_layout, this.cur_emoji_target.toString());
+        console.log(indicies);
         if (indicies !== false) {
-            this.keygrid.highlight_square(indicies[1], indicies[0]);
+            this.keygrid.highlight_square(indicies[0], indicies[1]);
         }
 
     }
@@ -383,6 +393,7 @@ class Keyboard{
             // # update the histogram
             this.histogram.update(this.bc.clock_inf.kde.dens_li);
         }
+        document.getElementById("speed_text").textContent = speed_index.toString();
     }
     on_press(){
         if (document.hasFocus()) {
@@ -401,6 +412,9 @@ class Keyboard{
                         this.pre_phrase_rotate_index = this.rotate_index;
                     }
                 }
+            }
+            if (this.in_info_screen && this.info_screen){
+                this.increment_info_screen();
             }
         }
     }
@@ -881,6 +895,7 @@ class Keyboard{
             }
             new_char = '';
             is_undo = true;
+            this.emojis_selected -= 1;
         }
         else if (new_char == kconfig.clear_char) {
             new_char = '_';
@@ -891,6 +906,7 @@ class Keyboard{
             this.last_add_li.push(-2);
 
             this.clear_text = true;
+            this.emojis_selected = 0;
         }
         else if (new_char == "."){
             this.old_context_li.push(this.context);
@@ -907,6 +923,7 @@ class Keyboard{
             this.old_context_li.push(this.context);
             this.typed = this.typed.concat(new_char);
             this.last_add_li.push(new_char.length);
+            this.emojis_selected += 1;
 
             this.context = "";
         }
@@ -941,11 +958,14 @@ class Keyboard{
 
         this.on_word_load();
         if (this.in_session) {
-            if (this.emojis_selected < this.phrase_arr.length) {
-                this.cur_emoji_target = this.phrase_arr[this.emojis_selected];
+            if (this.typed.length > 2 && this.typed.slice(-2) === ".."){
+                this.study_manager.phrase_complete();
+                // this.init_options_rcom()
+            }else if (this.emojis_selected < this.phrase_arr.length) {
+                this.cur_emoji_target = this.phrase_arr[this.emojis_selected] + 10;
                 this.highlight_emoji();
-            } else {
-                this.cur_emoji_target = null;
+            } else if (this.emojis_selected < this.phrase_arr.length + 2){
+                this.cur_emoji_target = ".";
                 this.highlight_emoji();
             }
         }

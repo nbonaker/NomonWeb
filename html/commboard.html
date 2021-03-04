@@ -107,6 +107,8 @@ label {
         <div class="slidecontainer">
             <input class='btn unhighlighted' type="button" id = "dec_speed_button" value = "Clock Speed -"/>
             <input class='btn unhighlighted' type="button" id = "inc_speed_button" value = "Clock Speed +"/>
+            <input class='btn unhighlighted' type="button" id = "abort_options_button" value = "Stop Scan    "/>
+            <label><b>Clock Speed: <span id="speed_text">0</span>/20</b></label>
         </div>
     </div>
     <div>
@@ -179,9 +181,9 @@ label {
         <div>
             <input class='btn unhighlighted' type="button" id = "tutorial_button" value = "Retrain           "/>
             <input class='btn unhighlighted' type="button" id = "send_button" value =     "Change User  "/>
-            <input class='btn unhighlighted' type="button" id = "session_button" value =  "Start Testing  "/>
+            <input class='btn unhighlighted' type="button" id = "session_button" value =  "Start Training "/>
             <label id = "session_timer"><b> </b></label>
-            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! Press Start Session to begin.</i></label>
+            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! This is a Training Phase. Press Start Training to begin.</i></label>
         </div>
     </div>
     <textarea id="output_textbox"></textarea>

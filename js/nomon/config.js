@@ -1,9 +1,9 @@
 export var period_li = [];
 for (var i=0; i < 21; i++){
-    period_li.push(4*Math.exp((-i)/10));
+    period_li.push(6*Math.exp((-i)/10));
 }
 
-export var default_rotate_ind = 1;
+export var default_rotate_ind = 5;
 
 export var num_divs_click = 80;
 export var ideal_wait_s = 0.04;
