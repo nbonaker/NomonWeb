@@ -11,7 +11,7 @@ export class OptionsManager{
         }
 
         this.row_scan = -1;
-        this.col_scan = -1;
+        this.col_scan = -2;
         this.col_scan_count = 0;
         this.next_scan_time = Infinity;
         this.prev_scan_time = Infinity;
@@ -30,12 +30,12 @@ export class OptionsManager{
         var time_in = Date.now()/1000;
 
         if (press) {
-            if (this.col_scan == -1) { // in row scan
-                this.col_scan = this.row_lengths[this.row_scan];
+            if (this.col_scan == -2) { // in row scan
+                this.col_scan = -1;
                 this.next_scan_time = time_in;
             } else { // in col scan
                 var selection = this.options_array[this.row_scan][this.col_scan];
-                this.col_scan = -1;
+                this.col_scan = -2;
                 this.row_scan = -1;
                 this.next_scan_time = Infinity;
 
@@ -47,7 +47,7 @@ export class OptionsManager{
         } else {
             this.prev_scan_time = this.next_scan_time;
 
-            if (this.col_scan == -1) { // in row scan
+            if (this.col_scan == -2) { // in row scan
                 this.col_scan_count = 0;
                 this.row_scan += 1;
 
@@ -69,7 +69,7 @@ export class OptionsManager{
 
             if (this.col_scan_count > this.scan_abort_count){
                 this.row_scan = 0;
-                this.col_scan = -1;
+                this.col_scan = -2;
                 this.col_scan_count = 0;
             }
         }

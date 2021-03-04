@@ -90,8 +90,9 @@ export class studyManager {
             this.parent.change_user_button.style.display = "none";
 
             this.parent.learn_checkbox.checked = true;
-
             this.parent.learn_checkbox.disabled = true;
+            this.parent.pause_checkbox.checked = true;
+            this.parent.pause_checkbox.disabled = true;
 
             // document.onkeypress = null;
 
