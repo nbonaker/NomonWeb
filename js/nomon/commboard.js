@@ -71,8 +71,6 @@ class Keyboard{
             }
         }.bind(this), false);
         // document.onkeypress = function() {this.on_press();}.bind(this);
-        document.onmousedown = function() {
-            this.increment_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
@@ -314,7 +312,11 @@ class Keyboard{
             [new rowcolButton(this.tutorial_button, "4"), new rowcolButton(this.change_user_button, "5"), new rowcolButton(this.session_button, "6")]
             ];
 
-        this.RCOM = new rcom.OptionsManager(options_array);
+        if (this.in_tutorial) {
+            this.RCOM = new rcom.OptionsManager(options_array, 2, this.tutorial_manager, false);
+        } else {
+            this.RCOM = new rcom.OptionsManager(options_array, 2, null, false);
+        }
         this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05*1000);
         this.in_info_screen = true;
         this.init_info_screen();
@@ -416,6 +418,9 @@ class Keyboard{
             if (this.in_info_screen && this.info_screen){
                 this.increment_info_screen();
             }
+            if (this.RCOM){
+                this.RCOM.update_scan_time(true);
+            }
         }
     }
     start_pause(){
@@ -436,7 +441,11 @@ class Keyboard{
         this.winner_clock = this.clockgrid.clocks[clock_index];
         this.winner_clock.winner = true;
         this.winner_clock.draw_face();
-        setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
+        if (this.in_tutorial && this.tutorial_manager.target_num === 1){
+            setTimeout(this.unhighlight_winner.bind(this), 8000);
+        } else {
+            setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
+        }
     }
     unhighlight_winner(){
         this.winner_clock.winner = false;
@@ -1066,6 +1075,7 @@ class Keyboard{
         // }
         if (this.in_tutorial){
             this.tutorial_manager.change_focus();
+
         }
     }
 }
@@ -1153,6 +1163,6 @@ function send_login() {
 if (user_id) {
     send_login();
 } else {
-    let keyboard = new Keyboard(user_id, false, false, null);
+    let keyboard = new Keyboard(user_id, true, false, null);
     setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 }
