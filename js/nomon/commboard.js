@@ -276,7 +276,7 @@ class Keyboard{
     }
     init_tutorial(){
 
-        this.tutorial_button.value = "Abort Retrain  ";
+        this.tutorial_button.value = "Abort Help      ";
 
         this.left_context = "";
         this.typed = "";
@@ -287,24 +287,29 @@ class Keyboard{
         this.in_tutorial = true;
         this.start_tutorial = false;
     }
-    end_tutorial(){
-        this.destroy_info_screen();
-        this.in_tutorial = false;
-        this.tutorial_manager = null;
+    end_tutorial(failed=false){
+        if (failed) {
+            this.tutorial_manager = null;
+            this.init_tutorial();
+        } else {
+            this.destroy_info_screen();
+            this.in_tutorial = false;
+            this.tutorial_manager = null;
 
-        this.left_context = "";
-        this.typed = "";
-        this.typed_versions = [];
-        this.lm_prefix = "";
-        this.btyped = "";
-        this.ctyped = [];
-        this.context = "";
-        this.old_context_li = [""];
-        this.last_add_li = [0];
-        this.textbox.draw_text("");
-        this.lm.update_cache(this.left_context, this.lm_prefix);
+            this.left_context = "";
+            this.typed = "";
+            this.typed_versions = [];
+            this.lm_prefix = "";
+            this.btyped = "";
+            this.ctyped = [];
+            this.context = "";
+            this.old_context_li = [""];
+            this.last_add_li = [0];
+            this.textbox.draw_text("");
+            this.lm.update_cache(this.left_context, this.lm_prefix);
 
-        this.tutorial_button.value = "Retrain           ";
+            this.tutorial_button.value = "Help               ";
+        }
     }
     init_options_rcom(){
         var options_array = [

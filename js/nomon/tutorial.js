@@ -97,12 +97,13 @@ export class tutorialManager{
         this.circle_x;
         this.circle_y;
         this.circle_rel_size = 1.5;
-        this.target_num = 6;
+        this.target_num = 0;
         this.clock;
         this.Normon;
-        this.normon_pause_length = 0;
+        this.normon_pause_length = 5;
         this.text_num = 0;
         this.allow_input = false;
+        this.failed = false;
 
         this.update_target();
         this.start_tutorial();
@@ -864,7 +865,7 @@ export class tutorialManager{
             this.Normon.pause = 2;
             this.Normon.run_on_return = true;
         }
-        if (this.text_num >= 3) {
+        if (this.text_num >= 2) {
             font_height = this.width / 55;
             rect_x = this.width * 0.22;
             rect_y = this.height * 0.1;
@@ -889,7 +890,7 @@ export class tutorialManager{
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
-        if (this.text_num >= 4) {
+        if (this.text_num >= 3) {
             font_height = this.width / 55;
             rect_x = this.width * 0.22;
             rect_y = this.height * 0.1 + font_height*6;
@@ -904,14 +905,97 @@ export class tutorialManager{
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("This histogram down here shows you how accurately you're ",
+            this.info_canvas.ctx.fillText("As long as most of the histogram is green, you will be able to",
                 rect_x + font_height, rect_y + font_height * 1.3);
-            this.info_canvas.ctx.fillText("pressing relative to when your target clock passes Noon.",
+            this.info_canvas.ctx.fillText("select clocks with fewer presses. If you see a lot of red in ",
                 rect_x + font_height, rect_y + font_height * 2.7);
-            this.info_canvas.ctx.fillText("It will update as you type more.",
+            this.info_canvas.ctx.fillText("the histogram, it might be worth lowering the speed.",
                 rect_x + font_height, rect_y + font_height * 4.1);
 
-            this.Normon.pause = 2;
+            this.Normon.pause = this.normon_pause_length;
+            this.Normon.run_on_return = true;
+        }
+        if (this.text_num >= 4) {
+            font_height = this.width / 55;
+            rect_x = this.width * 0.22;
+            rect_y = this.height * 0.1 + font_height*12;
+
+            normon_x = this.width*9/10;
+            normon_y = this.info_canvas.topbar_height*2+this.height*7/9 - this.Normon.radius;
+
+            this.info_canvas.ctx.fillStyle = "#ffffff";
+            this.info_canvas.ctx.strokeStyle = "#404040";
+            this.info_canvas.ctx.lineWidth = font_height * 0.3;
+            roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height * 31, font_height * 5.4,
+                20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+
+            var click_performance = this.evaluate_click_dist();
+            console.log(click_performance);
+
+            if (click_performance === "excelent") {
+                this.info_canvas.ctx.fillText("Wow - Your histogram looks great! You should be able to select",
+                rect_x + font_height, rect_y + font_height * 1.3);
+                this.info_canvas.ctx.fillText("clocks in very few presses if you keep pressing this precisely!",
+                rect_x + font_height, rect_y + font_height * 2.7);
+                this.info_canvas.ctx.fillText("I think you're good to go!",
+                rect_x + font_height, rect_y + font_height * 4.1);
+
+            } else if (click_performance === "good") {
+                this.info_canvas.ctx.fillText("You clicked pretty precicely! It should only take a few presses",
+                rect_x + font_height, rect_y + font_height * 1.3);
+                this.info_canvas.ctx.fillText("for you to select clocks. I think you're good to go!",
+                rect_x + font_height, rect_y + font_height * 2.7);
+
+            }  else if (click_performance === "ok") {
+                this.info_canvas.ctx.fillText("You clicked fairly precicely! It should take a few presses",
+                rect_x + font_height, rect_y + font_height * 1.3);
+                this.info_canvas.ctx.fillText("for you to select clocks, but just keep trying to click exactly",
+                rect_x + font_height, rect_y + font_height * 2.7);
+                this.info_canvas.ctx.fillText("as the clock passes Noon. I think you're good to go!",
+                rect_x + font_height, rect_y + font_height * 4.1);
+
+            }  else if (click_performance === "poor" || click_performance === "redo" ) {
+                this.info_canvas.ctx.fillText("Hmmm... The results of your training were inconclusive. I highly ",
+                rect_x + font_height, rect_y + font_height * 1.3);
+                this.info_canvas.ctx.fillText("recommend we practice selecting clocks some more before we",
+                rect_x + font_height, rect_y + font_height * 2.7);
+                this.info_canvas.ctx.fillText("proceed. Are you good to train some more?",
+                rect_x + font_height, rect_y + font_height * 4.1);
+                this.failed = true;
+                this.text_num += 1;
+            }
+
+            this.Normon.pause = this.normon_pause_length;
+            this.Normon.run_on_return = true;
+        }
+        if (this.text_num === 5) {
+            font_height = this.width / 55;
+            rect_x = this.width * 0.22;
+            rect_y = this.height * 0.1 + font_height*18;
+
+            normon_x = this.Normon.radius*1.5;
+            normon_y = this.info_canvas.topbar_height*2+this.Normon.radius*1.5;
+
+            this.info_canvas.ctx.fillStyle = "#ffffff";
+            this.info_canvas.ctx.strokeStyle = "#404040";
+            this.info_canvas.ctx.lineWidth = font_height * 0.3;
+            roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height * 31, font_height * 2,
+                20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+            this.info_canvas.ctx.fillText("If you need me, you can call me through the help button up here!",
+                rect_x + font_height, rect_y + font_height * 1.3);
+
+            this.Normon.pause = this.normon_pause_length;
+            this.Normon.run_on_return = true;
+        }
+        if (this.text_num >= 6) {
+            this.target_num += 1;
+            normon_x = -this.Normon.radius*1.5;
+            normon_y = this.height/2;
+            this.Normon.pause = 1;
             this.Normon.run_on_return = true;
         }
 
@@ -919,14 +1003,49 @@ export class tutorialManager{
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
+    evaluate_click_dist(){
+        var dens_li = this.parent.bc.clock_inf.kde.dens_li.slice();
+        var mode = dens_li.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+        var percentile_5th = 0;
+        var percentile_95th = 0;
+        var cum_sum = 0;
+        var dens_sum = dens_li.reduce((a, b) => a + b, 0);
+
+        for (var i = 0; i <= dens_li.length; i++) {
+            cum_sum += dens_li[i];
+            if (cum_sum/dens_sum < 0.05) {
+                percentile_5th = i;
+            } else if (cum_sum/dens_sum < 0.95) {
+                percentile_95th = i;
+            }
+        }
+
+        var dist_range = percentile_95th - percentile_5th;
+        console.log(percentile_5th, percentile_95th, dist_range);
+
+        if (dist_range < 10){
+            return "excelent";
+        } else if (dist_range < 15){
+            return "good";
+        } else if (dist_range < 20){
+            return "ok";
+        } else if (dist_range < 30){
+            return "poor";
+        } else {
+            return "redo";
+        }
+
+    }
     end_tutorial(){
         this.parent.destroy_info_screen();
         this.parent.in_tutorial = false;
         this.emoji_phrase_length -= 1;
         this.Normon.run_on_return = false;
+        this.normon_canvas.ctx.clearRect(0, 0, this.width, this.height);
+        this.Normon = null;
 
         console.log("END");
-        this.parent.end_tutorial();
+        this.parent.end_tutorial(this.failed);
 }
     draw_clock_instruction(clock_x, clock_y, radius){
         this.allow_input = true;
