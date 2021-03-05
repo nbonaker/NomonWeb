@@ -1,8 +1,9 @@
 export class OptionsManager{
-    constructor(options_array, scan_delay = 1) {
+    constructor(options_array, scan_delay = 1, parent=null, own_keyevent=true) {
         this.options_array = options_array;
         this.scan_delay = scan_delay;
         this.scan_abort_count = 2;
+        this.parent=parent;
 
         this.num_rows = options_array.length;
         this.row_lengths = [];
@@ -16,18 +17,33 @@ export class OptionsManager{
         this.next_scan_time = Infinity;
         this.prev_scan_time = Infinity;
 
-        window.addEventListener('keydown', function (e) {
-            if (e.keyCode === 32) {
-                e.preventDefault();
-                this.update_scan_time(true);
-            }
-        }.bind(this), false);
+        if (own_keyevent) {
+            window.addEventListener('keydown', function (e) {
+                if (e.keyCode === 32) {
+                    e.preventDefault();
+                    this.update_scan_time(true);
+                }
+            }.bind(this), false);
+            this.skip_next_press = false;
+        } else {
+            this.skip_next_press = true;
+        }
 
         this.update_scan_time(false);
         this.update_highlights();
     }
     update_scan_time(press){
         var time_in = Date.now()/1000;
+
+        if (this.skip_next_press && press){
+            this.skip_next_press = false;
+            return
+        }
+        if (this.parent && !this.parent.allow_input && press){
+            if (!this.parent.allow_rcom_input(this.row_scan, this.col_scan)) {
+                return;
+            }
+        }
 
         if (press) {
             if (this.col_scan == -2) { // in row scan
@@ -95,7 +111,8 @@ export class OptionsManager{
         }
     }
     make_choice(selection){
-        selection.select()
+        selection.select();
+        this.parent = null
     }
     animate() {
         var time_in = Date.now() / 1000;
