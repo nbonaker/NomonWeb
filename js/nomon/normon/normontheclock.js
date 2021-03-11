@@ -367,7 +367,7 @@ export class Normon {
             this.compute_jump();
         } else {
             if (this.run_on_return && this.pause <=0 && this.is_returned()) {
-                this.on_return()
+                this.on_return();
             }
             this.compute_return();
 

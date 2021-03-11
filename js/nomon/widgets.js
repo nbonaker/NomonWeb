@@ -208,8 +208,8 @@ export class ClockGrid{
         var y_end;
 
         if(this.parent.emoji_keyboard) {
-            this.clock_radius = Math.min((this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 4,
-                                            (this.keygrid.x_positions[0][1][1] - this.keygrid.x_positions[0][1][0])/6.5);
+            this.clock_radius = Math.min((this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 3.5,
+                                            (this.keygrid.x_positions[0][1][1] - this.keygrid.x_positions[0][1][0])/6.0);
         } else {
             this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 7;
         }
@@ -375,7 +375,7 @@ export class ClockGrid{
 
     }
     generate_main_clock_layout(x_start, y_start, x_end, y_end, text){
-        var main_clock_x = x_start + this.clock_radius * 1.5;
+        var main_clock_x = x_start + this.clock_radius * 1.3;
         var main_clock_y = (y_start + y_end) / 2;
 
         let cur_main_clock = new Clock(this.face_canvas, this.hand_canvas,
@@ -503,7 +503,7 @@ export class Clock{
             }else{
                 this.face_canvas.ctx.strokeStyle = "#000000";
             }
-            this.face_canvas.ctx.lineWidth = this.radius / 5;
+            this.face_canvas.ctx.lineWidth = this.radius / 4;
             this.face_canvas.ctx.stroke();
 
             this.face_canvas.ctx.fillStyle = "#000000";
@@ -543,14 +543,14 @@ export class Clock{
             }else{
                 this.hand_canvas.ctx.strokeStyle = "#000000";
             }
-            this.hand_canvas.ctx.lineWidth = this.radius / 5;
+            this.hand_canvas.ctx.lineWidth = this.radius / 4;
             this.hand_canvas.ctx.stroke();
 
             this.hand_canvas.ctx.beginPath();
             this.hand_canvas.ctx.moveTo(this.x_pos, this.y_pos);
             this.hand_canvas.ctx.lineTo(this.x_pos, this.y_pos - this.radius * 0.925);
             this.hand_canvas.ctx.strokeStyle = "#ff0000";
-            this.hand_canvas.ctx.lineWidth = this.radius / 10;
+            this.hand_canvas.ctx.lineWidth = this.radius / 8;
             this.hand_canvas.ctx.stroke();
         }
     }
