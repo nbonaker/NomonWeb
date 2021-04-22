@@ -51,8 +51,9 @@ class Keyboard{
         this.n_pred = 0;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
-        this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
-        this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
+        this.highlight_canvas = new widgets.KeyboardCanvas("highlights", 2);
+        this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 3);
+        this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 4);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
 
         if (this.user_id){
@@ -424,8 +425,8 @@ class Keyboard{
         }
     }
     start_pause(){
-        this.keygrid.in_pause = true;
-        this.keygrid.draw_layout();
+        // this.keygrid.in_pause = true;
+        // this.keygrid.draw_layout();
         setTimeout(this.end_pause.bind(this), kconfig.pause_length);
         this.clockgrid.undo_label.draw_text();
     }
@@ -446,10 +447,12 @@ class Keyboard{
         } else {
             setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
         }
+        this.highlight_canvas.radial_highlight(this.winner_clock.x_pos, this.winner_clock.y_pos)
     }
     unhighlight_winner(){
         this.winner_clock.winner = false;
         this.winner_clock.draw_face();
+        this.highlight_canvas.clear()
     }
     on_word_load(){
         this.fetched_words = true;

@@ -100,7 +100,7 @@ export var comm_phrase_lookup = ["i", "it", "who", "what", "where", "again", "no
     "bumpy", "play", "read", "sick", "mad", "scared", "excited", "with"] ;
 
 
-export var pause_length = 1500;
+export var pause_length = 2000;
 
 export var n_pred = 3;
 export var num_words = 17;
