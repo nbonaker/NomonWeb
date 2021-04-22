@@ -40,6 +40,19 @@ export class KeyboardCanvas{
         this.ctx.rect(0, 0, this.screen_width, this.screen_height);
         this.ctx.fill();
     }
+    radial_highlight(x, y){
+        var res = 20;
+
+        for (var i = 0; i < res; i += 1) {
+            this.ctx.beginPath();
+            this.ctx.lineWidth = this.screen_height / res;
+            this.ctx.strokeStyle = `rgba(20,200,20,${(1-i/res)*0.8})`;
+            this.ctx.arc(x, y, this.screen_height*i/res, 0, 2 * Math.PI);
+            this.ctx.stroke();
+        }
+
+    }
+
 }
 
 export class OutputCanvas{
