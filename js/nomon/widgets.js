@@ -1,5 +1,28 @@
 import * as kconfig from './kconfig.js';
 
+
+function red_green_color_map(percent) {
+    percent = percent**0.5;
+    var color = "#";
+    var red;
+    var green;
+    if (percent > 0.5){
+        red = "ff";
+        green = Math.round((1-percent)*2*255).toString(16);
+    } else {
+        green = "ff";
+        red = Math.round((percent)*2*255).toString(16);
+    }
+    if (red.length === 1){
+        red = "0".concat(red);
+    }
+    if (green.length === 1){
+        green = "0".concat(green);
+    }
+    return color.concat(red, green, "00");
+}
+
+
 export class KeyboardCanvas{
     constructor(canvas_id, layer_index) {
         this.canvas = document.getElementById(canvas_id);
@@ -198,8 +221,8 @@ export class ClockGrid{
         var y_end;
 
         if(this.parent.emoji_keyboard) {
-            this.clock_radius = Math.min((this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 4,
-                                            (this.keygrid.x_positions[0][1][1] - this.keygrid.x_positions[0][1][0])/6.5);
+            this.clock_radius = Math.min((this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 3.5,
+                                            (this.keygrid.x_positions[0][1][1] - this.keygrid.x_positions[0][1][0])/6.0);
         } else {
             this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 7;
         }
@@ -365,7 +388,7 @@ export class ClockGrid{
 
     }
     generate_main_clock_layout(x_start, y_start, x_end, y_end, text){
-        var main_clock_x = x_start + this.clock_radius * 1.5;
+        var main_clock_x = x_start + this.clock_radius * 1.3;
         var main_clock_y = (y_start + y_end) / 2;
 
         let cur_main_clock = new Clock(this.face_canvas, this.hand_canvas,
@@ -493,7 +516,7 @@ export class Clock{
             }else{
                 this.face_canvas.ctx.strokeStyle = "#000000";
             }
-            this.face_canvas.ctx.lineWidth = this.radius / 5;
+            this.face_canvas.ctx.lineWidth = this.radius / 4;
             this.face_canvas.ctx.stroke();
 
             this.face_canvas.ctx.fillStyle = "#000000";
@@ -533,14 +556,14 @@ export class Clock{
             }else{
                 this.hand_canvas.ctx.strokeStyle = "#000000";
             }
-            this.hand_canvas.ctx.lineWidth = this.radius / 5;
+            this.hand_canvas.ctx.lineWidth = this.radius / 4;
             this.hand_canvas.ctx.stroke();
 
             this.hand_canvas.ctx.beginPath();
             this.hand_canvas.ctx.moveTo(this.x_pos, this.y_pos);
             this.hand_canvas.ctx.lineTo(this.x_pos, this.y_pos - this.radius * 0.925);
             this.hand_canvas.ctx.strokeStyle = "#ff0000";
-            this.hand_canvas.ctx.lineWidth = this.radius / 10;
+            this.hand_canvas.ctx.lineWidth = this.radius / 8;
             this.hand_canvas.ctx.stroke();
         }
     }
@@ -596,12 +619,23 @@ export class Histogram{
             this.dens_li[i] = this.dens_li[i] / normalizer;
         }
     }
+    calc_hist_colors(){
+        var mode = this.dens_li.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+        var colors = [];
+
+        for (var i = 0; i <= this.num_bins; i++){
+            colors.push(red_green_color_map(Math.min(1, Math.max(0, Math.abs(mode-i)/40))));
+        }
+        return colors;
+    }
     draw_histogram(){
+        var colors = this.calc_hist_colors();
         var bin_width = (this.box_width - this.box_height*0.05) / (this.num_bins + 1);
         for (var i = 0; i <= this.num_bins; i++){
             this.output_canvas.ctx.beginPath();
-            this.output_canvas.ctx.fillStyle = "#0067ff";
+            this.output_canvas.ctx.fillStyle = colors[i];
             this.output_canvas.ctx.strokeStyle = "#000000";
+
             var bin_x_offset = this.box_x_offset + this.box_height * 0.02 + bin_width*i;
             this.output_canvas.ctx.rect(bin_x_offset, this.box_height*0.975,
                 bin_width, -this.box_height*0.95*(this.dens_li[i]));

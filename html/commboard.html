@@ -72,6 +72,11 @@ label {
     width: 40%;
 }
 
+.container input {
+    z-index: 6;
+    position: relative;
+}
+
 .btn {
   border: none;
   color: white;
@@ -84,6 +89,8 @@ label {
   margin: 1px 1px;
   cursor: pointer;
   border-radius: 4px;
+  z-index: 6;
+    position: relative;
 }
 .darkhighlighted {
     background-color: rgb(103, 0, 255);
@@ -179,7 +186,7 @@ label {
 </div>
 <div class="container space-between" id="top_bar_bottom">
         <div>
-            <input class='btn unhighlighted' type="button" id = "tutorial_button" value = "Retrain           "/>
+            <input class='btn unhighlighted' type="button" id = "tutorial_button" value = "Help               "/>
             <input class='btn unhighlighted' type="button" id = "send_button" value =     "Change User  "/>
             <input class='btn unhighlighted' type="button" id = "session_button" value =  "Start Training "/>
             <label id = "session_timer"><b> </b></label>
