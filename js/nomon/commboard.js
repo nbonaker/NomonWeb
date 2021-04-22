@@ -7,8 +7,30 @@ import * as tm from './tutorial.js';
 import * as sm from './study_manager.js';
 import * as lm from './lm.js';
 import * as rcom from '../rowcol_options_manager.js';
+import * as normon from "./normon/normontheclock.js";
 
 import {makeCorsRequest} from "../cors_request.js";
+
+
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (stroke) {
+    ctx.stroke();
+    }
+    if (fill) {
+    ctx.fill();
+    }
+}
 
 function log_add_exp(a_1, a_2){
     var b = Math.max(a_1, a_2);
@@ -104,6 +126,10 @@ class Keyboard{
         this.start_tutorial = first_load;
         this.in_info_screen = false;
 
+        this.Normon;
+        this.normon_interval;
+        this.normon_pos = 0;
+
         this.in_tutorial = first_load;
         this.in_finished_screen = false;
         this.init_ui();
@@ -126,6 +152,8 @@ class Keyboard{
 
     }
     init_ui(){
+        this.normon_canvas = new normon.NormonCanvas("normon_canvas", 5);
+
         this.speed_inc = document.getElementById("inc_speed_button");
         this.speed_dec = document.getElementById("dec_speed_button");
 
@@ -149,6 +177,7 @@ class Keyboard{
         this.tutorial_button.onclick = function(){
             if (!this.in_session) {
                 if (this.in_tutorial){
+                    this.tutorial_manager.end_tutorial();
                     this.end_tutorial();
                 } else {
                     this.init_tutorial();
@@ -277,7 +306,7 @@ class Keyboard{
     }
     init_tutorial(){
 
-        this.tutorial_button.value = "Abort Retrain  ";
+        this.tutorial_button.value = "Abort Help      ";
 
         this.left_context = "";
         this.typed = "";
@@ -288,24 +317,29 @@ class Keyboard{
         this.in_tutorial = true;
         this.start_tutorial = false;
     }
-    end_tutorial(){
-        this.destroy_info_screen();
-        this.in_tutorial = false;
-        this.tutorial_manager = null;
+    end_tutorial(failed=false){
+        if (failed) {
+            this.tutorial_manager = null;
+            this.init_tutorial();
+        } else {
+            this.destroy_info_screen();
+            this.in_tutorial = false;
+            this.tutorial_manager = null;
 
-        this.left_context = "";
-        this.typed = "";
-        this.typed_versions = [];
-        this.lm_prefix = "";
-        this.btyped = "";
-        this.ctyped = [];
-        this.context = "";
-        this.old_context_li = [""];
-        this.last_add_li = [0];
-        this.textbox.draw_text("");
-        this.lm.update_cache(this.left_context, this.lm_prefix);
+            this.left_context = "";
+            this.typed = "";
+            this.typed_versions = [];
+            this.lm_prefix = "";
+            this.btyped = "";
+            this.ctyped = [];
+            this.context = "";
+            this.old_context_li = [""];
+            this.last_add_li = [0];
+            this.textbox.draw_text("");
+            this.lm.update_cache(this.left_context, this.lm_prefix);
 
-        this.tutorial_button.value = "Retrain           ";
+            this.tutorial_button.value = "Help               ";
+        }
     }
     init_options_rcom(){
         var options_array = [
@@ -335,6 +369,136 @@ class Keyboard{
         this.tutorial_button.className = "btn unhighlighted";
         this.change_user_button.className = "btn unhighlighted";
         this.session_button.className = "btn unhighlighted";
+
+    }
+    moniter_click_dist(){
+        // if (this.bc && this.bc.clock_inf && !this.in_info_screen ) {
+        //     var click_performance = this.evaluate_click_dist();
+        //
+        //     if (click_performance === "poor" || click_performance === "redo"){
+        //         this.launch_normon();
+        //         this.in_info_screen = true;
+        //         this.nomon_pos = 0;
+        //
+        //         this.progress_screens();
+        //     }
+        // }
+    }
+    launch_normon(){
+        this.destroy_normon();
+        this.nomon_pos = 0;
+
+        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.info_canvas.calculate_size(0);
+
+        var normon_x = this.normon_canvas.screen_width*1.3;
+        var normon_y = this.normon_canvas.screen_height*3/4;
+        var normon_r = this.normon_canvas.screen_height/15;
+
+        this.Normon = new normon.Normon(this.normon_canvas, normon_x, normon_y, normon_r, this);
+        this.normon_interval = setInterval(this.Normon.animate.bind(this.Normon), 20);
+
+    }
+    progress_screens(){
+        var normon_x;
+        var normon_y;
+
+        this.info_canvas.ctx.beginPath();
+        this.info_canvas.ctx.globalCompositeOperation = 'source-over';
+        this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.width, this.info_canvas.height);
+
+        if (this.normon_pos === 0) {
+            normon_x = this.normon_canvas.screen_width * 0.8;
+            normon_y = this.normon_canvas.screen_height * 3 / 4;
+            this.Normon.update_target_coords(normon_x, normon_y);
+
+            this.Normon.pause = 1;
+            this.Normon.run_on_return = true;
+
+        } else if (this.normon_pos === 1) {
+
+            var font_height = this.info_canvas.screen_width / 55;
+            var rect_x = this.info_canvas.screen_width * 0.22;
+            var rect_y = this.info_canvas.screen_height * 0.1 + font_height*12;
+
+            normon_x = this.normon_canvas.screen_width * 0.8;
+            normon_y = this.normon_canvas.screen_height * 3 / 4;
+
+            this.Normon.update_target_coords(normon_x, normon_y);
+            this.info_canvas.ctx.beginPath();
+
+            this.info_canvas.ctx.fillStyle = "#ffffff";
+            this.info_canvas.ctx.strokeStyle = "#404040";
+            this.info_canvas.ctx.lineWidth = font_height * 0.3;
+            roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height * 31, font_height * 5.4,
+                20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+            this.info_canvas.ctx.fillText("Hey! It looks like the clocks are going a bit too fast..",
+                rect_x + font_height, rect_y + font_height * 2.8);
+            this.info_canvas.ctx.fillText("Let's slow them down a bit so you can click more precisely!",
+                rect_x + font_height, rect_y + font_height * 4.1);
+
+            this.Normon.pause = 7;
+            this.Normon.run_on_return = true;
+        }
+        else if (this.normon_pos === 2) {
+            normon_x = this.normon_canvas.screen_width * 1.5;
+            normon_y = this.normon_canvas.screen_height * 3 / 4;
+            this.Normon.run_on_return = true;
+        }
+        else if (this.normon_pos === 3) {
+            this.normon_canvas.ctx.beginPath();
+            this.normon_canvas.ctx.globalCompositeOperation = 'source-over';
+            this.normon_canvas.ctx.clearRect(0, 0, this.normon_canvas.width, this.normon_canvas.height);
+
+            this.change_speed(Math.max(0, Math.min(this.rotate_index-4, 1)));
+            this.destroy_normon();
+
+        }
+        this.normon_pos += 1;
+    }
+    destroy_normon(){
+
+        if (this.Normon) {
+            this.Normon.run_on_return = false;
+            clearInterval(this.normon_interval);
+            this.normon_canvas.ctx.clearRect(0, 0, this.normon_canvas.width, this.normon_canvas.height);
+            this.Normon = null;
+        }
+
+    }
+    evaluate_click_dist(){
+        var dens_li = this.bc.clock_inf.kde.dens_li.slice();
+        var mode = dens_li.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+        var percentile_25th = 0;
+        var percentile_75th = 0;
+        var cum_sum = 0;
+        var dens_sum = dens_li.reduce((a, b) => a + b, 0);
+
+        for (var i = 0; i <= dens_li.length; i++) {
+            cum_sum += dens_li[i];
+            if (cum_sum/dens_sum < 0.25) {
+                percentile_25th = i;
+            } else if (cum_sum/dens_sum < 0.75) {
+                percentile_75th = i;
+            }
+        }
+
+        var dist_range = percentile_75th - percentile_25th;
+        console.log(percentile_25th, percentile_75th, dist_range);
+
+        if (dist_range < 5){
+            return "excelent";
+        } else if (dist_range < 9){
+            return "good";
+        } else if (dist_range < 12){
+            return "ok";
+        } else if (dist_range < 16){
+            return "poor";
+        } else {
+            return "redo";
+        }
 
     }
     draw_phrase(){
@@ -1076,6 +1240,11 @@ class Keyboard{
         //         this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
         //     }
         // }
+        if (this.Normon) {
+            this.normon_canvas.calculate_size();
+            this.info_canvas.calculate_size();
+            this.progress_screens();
+        }
         if (this.in_tutorial){
             this.tutorial_manager.change_focus();
 
@@ -1166,6 +1335,6 @@ function send_login() {
 if (user_id) {
     send_login();
 } else {
-    let keyboard = new Keyboard(user_id, true, false, null);
+    let keyboard = new Keyboard(user_id, first_load, false, null);
     setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 }
