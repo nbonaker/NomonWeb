@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
-<title>Keyboard B</title>
+<title>RCS Keyboard</title>
 <link rel="icon"
       type="image/png"
       href="../icon.png">
 <head>
-    <script defer src="../js/webcam_switch/face-api.min.js"></script>
     <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0"/>
     <meta http-equiv="cache-control" content="max-age=0"/>
     <meta http-equiv="expires" content="0"/>
@@ -139,38 +138,11 @@ label {
             <label id="info_label" style="padding-left: 20px"/><i>Welcome User! Press Start Session to begin.</i></label>
             <input class='btn clickable' type="button" id = "help_button" value = "?" >
         </div>
-         <div class="container center_veritcal" id="webcam_div">
-            <canvas id="webcam_canvas" height="10px" width="300vw"></canvas>
-            <label for="checkbox"
-                onmousedown="event.preventDefault()"
-                onclick="
-                    console.log('label:click');
-                    if (this === event.target) {
-                        console.log('label === event.target');
-                        console.log('label:click preventDefault()');
-                        // prevent focus and click
-                        event.preventDefault();
-                        // call click on the labeled control
-                        this.control && this.control.click();
-                    }
-                "
-                class="label webcam">
-                <input id="checkbox_webcam" type="checkbox"
-                    onmousedown="event.preventDefault()"
-                    onclick="
-                        console.log('checkbox:click', `checked = ${this.checked}`);
-                    "
-                />
-            <b>Webcam Switch</b>
-            </label>
-                <input class='btn clickable' type="button" id = "recalibrate_button" value = "Recalibrate"/>
-        </div>
+
     </div>
     <textarea id="output_textbox"></textarea>
 </div>
 
-<video id="video" width="500" height="560"></video>
-<canvas id="video_canvas"></canvas>
 
 <!--<script type="module" src="webcam_switch/webcam_switch.js"></script>-->
 
