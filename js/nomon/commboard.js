@@ -4,6 +4,7 @@ import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
 import * as tm from './tutorial.js';
+import * as hm from './session_help.js';
 import * as sm from './study_manager.js';
 import * as lm from './lm.js';
 import * as rcom from '../rowcol_options_manager.js';
@@ -131,6 +132,7 @@ class Keyboard{
         this.normon_pos = 0;
 
         this.in_tutorial = first_load;
+        this.in_session_help = false;
         this.in_finished_screen = false;
         this.init_ui();
     }
@@ -208,6 +210,7 @@ class Keyboard{
             this.session_button.onclick = function () {
                 if (!this.in_tutorial) {
                     this.study_manager.request_session_data();
+                    this.init_session_help();
                 }
                 this.destroy_options_rcom();
             }.bind(this);
@@ -303,6 +306,10 @@ class Keyboard{
 
             }
         }
+    }
+    init_session_help(){
+        this.help_manager = new hm.helpManager(this, this.bc);
+        this.in_session_help = true;
     }
     init_tutorial(){
 
@@ -485,6 +492,10 @@ class Keyboard{
             }
         }
 
+        var  dens_mean = dens_li.reduce((a, b) => (a + b)) / dens_li.length;
+        var dens_sigma = Math.sqrt(dens_li.map(x => Math.pow(x - dens_mean, 2)).reduce((a, b) => a + b) / (dens_li.length - 1));
+
+        console.log(dens_sigma);
         var dist_range = percentile_75th - percentile_25th;
         console.log(percentile_25th, percentile_75th, dist_range);
 
@@ -570,8 +581,9 @@ class Keyboard{
 
                 if (this.in_tutorial) {
                     console.log("cur_hour", this.bc.clock_inf.clock_util.cur_hours[this.tutorial_manager.target_clock]);
-                    this.tutorial_manager.on_press(time_in);
-
+                        this.tutorial_manager.on_press(time_in);
+                }else if (this.in_session_help) {
+                    this.help_manager.on_press(time_in);
                 } else {
                     this.bc.select(time_in);
                     if (this.in_session) {
@@ -983,7 +995,7 @@ class Keyboard{
 
                 new_text = this.typed_versions[this.typed_versions.length -1];
                 if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
-                    new_text = new_text.slice(0, new_text.length - 1);
+                    new_text = new_text.slice(0, new_text.length);
                 }
                 input_text = new_text;
                 if (this.in_session) {

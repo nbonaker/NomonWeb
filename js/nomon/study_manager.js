@@ -65,7 +65,8 @@ export class studyManager {
         } else {
             last_session = "";
         }
-        var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
+        // var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
+        var response = true;
         if (response){
             //  window.addEventListener('keydown', function (e) {
             //     if (e.keyCode === 13) {
@@ -128,18 +129,18 @@ export class studyManager {
             if (this.session_number === 1){
                 this.session_length = 10*60;
 
-                this.parent.change_speed(1);
-                this.parent.pre_phrase_rotate_index = 1;
+                // this.parent.change_speed(1);
+                // this.parent.pre_phrase_rotate_index = 1;
 
-                this.parent.in_info_screen = true;
-                this.parent.init_session_info_screen();
+                // this.parent.in_info_screen = true;
+                // this.parent.init_session_info_screen();
 
                 //remove after beta testing:
                 // this.intermediate_survey = true;
                 // this.full_tlx = true;
 
             } else if (this.session_number === 2) {
-                this.session_length = 20*60;
+                this.session_length = 10*60;
                 this.parent.change_speed(this.parent.pre_phrase_rotate_index);
 
                 this.parent.in_info_screen = true;
@@ -184,15 +185,6 @@ export class studyManager {
         this.parent.audio_checkbox.checked = true;
     }
     allow_session_continue(){
-        this.parent.session_button.value = "Finished Typing";
-        this.parent.session_button.onclick = function () {
-            if (!this.in_tutorial) {
-                this.session_continue();
-            }
-        }.bind(this);
-        this.parent.session_button.className = "btn clickable";
-        this.allow_session_finish = true;
-
         document.getElementById("info_label").innerHTML =`<i>This is your last phrase.</i>`;
     }
     finish_session(){
@@ -205,9 +197,6 @@ export class studyManager {
         this.parent.info_canvas.ctx.rect(0, 0, this.parent.info_canvas.screen_width, this.parent.info_canvas.screen_height);
         this.parent.info_canvas.ctx.fill();
 
-        this.parent.info_button.disabled = true;
-        this.parent.info_button.className = "btn unclickable";
-        document.getElementById("info_label").innerHTML =`<i>press Finished Typing</i>`;
         this.parent.textbox.draw_text("");
     }
     session_continue(){
@@ -305,24 +294,11 @@ export class studyManager {
     }
     launch_next_software(){
         var keyboard_url;
-        if (this.partial_session){
-            alert(`You have finished typing for this session. Click to exit.`);
-            keyboard_url = "../index.php";
-            window.open(keyboard_url, '_self');
-        } else {
-            alert(`You have finished typing with Software A in this session. You will now be redirected to Software B to finish this session.`);
-            keyboard_url = "../html/rowcol.html";
 
-            var first_load;
-            if (this.session_number === 1){
-                first_load = "true";
-            } else {
-                first_load = "false";
-            }
-            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load,
-                '&partial_session=true&emoji=', this.parent.emoji_keyboard.toString());
-            window.open(keyboard_url, '_self');
-        }
+        alert(`You have finished typing for this session. Click to exit.`);
+        keyboard_url = "../index.php";
+        window.open(keyboard_url, '_self');
+
     }
     parse_phrases(){
         var temp_phrase_queue = this.phrase_queue.slice();
@@ -354,14 +330,14 @@ export class studyManager {
 
         console.log(min_rem, sec_rem);
         if (min_rem < 1){
-            this.allow_session_continue();
+            this.finish_session();
         } else {
             this.parent.draw_phrase();
         }
 
-        if (this.allow_session_finish){
-            this.finish_session();
-        }
+        // if (this.allow_session_finish){
+        //     this.finish_session();
+        // }
 
         this.parent.pre_phrase_rotate_index = this.parent.rotate_index;
         this.parent.allow_slider_input = true;

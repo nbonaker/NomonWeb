@@ -403,7 +403,7 @@ export class SessionInfoScreen {
         this.height = this.info_canvas.screen_height;
 
         this.screen_num = screen_num;
-        this.num_screens = 3;
+        this.num_screens = 2;
         this.increment_screen();
 
     }
@@ -417,9 +417,9 @@ export class SessionInfoScreen {
         this.info_canvas.ctx.fillStyle = "#000000";
         var font_height = this.width/80;
         this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
-        this.info_canvas.ctx.fillText("Press ? to exit",
+        this.info_canvas.ctx.fillText("Continue...",
             this.width*0.91, this.height*0.98);
-        this.info_canvas.ctx.fillText("Click on screen for next",
+        this.info_canvas.ctx.fillText("Press your switch to",
             this.width*0.86, this.height*0.98 - font_height*1.2);
 
         if (this.screen_num === 0){
@@ -428,8 +428,6 @@ export class SessionInfoScreen {
             this.draw_scan_delay_info();
         } else if (this.screen_num === 2) {
             this.draw_timer_info();
-        } else if (this.screen_num === 3){
-            this.draw_help_info();
         }
         this.screen_num += 1;
     }
@@ -439,7 +437,7 @@ export class SessionInfoScreen {
         this.info_canvas.ctx.clearRect(0, this.height*0.8, this.width*3/5, this.height);
 
         var rect_x = this.width*0.1;
-        var rect_y = this.height*0.87;
+        var rect_y = this.height*0.6;
 
         this.info_canvas.ctx.fillStyle = "#ffffff";
         this.info_canvas.ctx.strokeStyle = "#404040";
@@ -448,10 +446,10 @@ export class SessionInfoScreen {
             20, true, true);
 
         var arrow_x_start = rect_x - font_height;
-        var arrow_y_start = rect_y + font_height*1.5;
+        var arrow_y_start = rect_y + font_height*2.5;
 
         var arrow_x_end = arrow_x_start - font_height*4;
-        var arrow_y_end = arrow_y_start - font_height*1.5;
+        var arrow_y_end = arrow_y_start + font_height*1.5;
 
         var arrow_x_center = arrow_x_start - font_height*3;
         var arrow_y_center = arrow_y_start;
@@ -462,7 +460,7 @@ export class SessionInfoScreen {
         this.info_canvas.ctx.moveTo(arrow_x_start,arrow_y_start);
         this.info_canvas.ctx.quadraticCurveTo(arrow_x_center, arrow_y_center, arrow_x_end, arrow_y_end);
         this.info_canvas.ctx.stroke();
-        drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, -Math.PI*0.71, font_height*1.5, font_height*1.5);
+        drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, Math.PI*0.71, font_height*1.5, font_height*1.5);
 
         this.info_canvas.ctx.fillStyle = "#404040";
         this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
@@ -470,7 +468,7 @@ export class SessionInfoScreen {
             rect_x + font_height, rect_y + font_height*1.3);
         this.info_canvas.ctx.fillText("type this phrases as quickly and accurately as possible.",
             rect_x + font_height, rect_y + font_height*2.6);
-        this.info_canvas.ctx.fillText("When you are finished with a phrase, press the ENTER key.",
+        this.info_canvas.ctx.fillText("When you finish a phrase, type two periods \". .\" to Continue.",
             rect_x + font_height, rect_y + font_height*3.9);
     }
     draw_scan_delay_info(){
@@ -537,47 +535,47 @@ export class SessionInfoScreen {
         this.info_canvas.ctx.fillStyle = "#404040";
         this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
         this.info_canvas.ctx.fillText("This timer shows how much time", rect_x + font_height, rect_y + 1.3*font_height );
-        this.info_canvas.ctx.fillText("is remaining with this software. ", rect_x + font_height, rect_y+2.6*font_height);
-        this.info_canvas.ctx.fillText("Sessions last 20 minutes. Please ", rect_x + font_height, rect_y+3.9*font_height);
+        this.info_canvas.ctx.fillText("is remaining with this keyboard. ", rect_x + font_height, rect_y+2.6*font_height);
+        this.info_canvas.ctx.fillText("Sessions last 10 minutes. Please ", rect_x + font_height, rect_y+3.9*font_height);
         this.info_canvas.ctx.fillText("Type as many phrases as you can  ", rect_x + font_height, rect_y+5.2*font_height);
         this.info_canvas.ctx.fillText("before the timer expires. ", rect_x + font_height, rect_y+6.5*font_height);
         this.info_canvas.ctx.fillText("At 30 seconds remaining, you  ", rect_x + font_height, rect_y+9*font_height);
         this.info_canvas.ctx.fillText("will no longer be given new ", rect_x + font_height, rect_y+10.3*font_height);
         this.info_canvas.ctx.fillText("phrases. ", rect_x + font_height, rect_y+11.6*font_height);
     }
-    draw_help_info(){
-        var font_height = this.width/70;
-
-        var rect_x = this.width*0.39;
-        var rect_y = this.height*0.02;
-
-        this.info_canvas.ctx.fillStyle = "#ffffff";
-        this.info_canvas.ctx.strokeStyle = "#404040";
-        this.info_canvas.ctx.lineWidth = font_height*0.3;
-        roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height*15, font_height*3.3,
-            20, true, true);
-
-        var arrow_x_start = rect_x + font_height*16;
-        var arrow_y_start = rect_y + font_height*1.5;
-
-        var arrow_x_end = arrow_x_start + font_height*1.5;
-        var arrow_y_end = arrow_y_start - font_height*1.5;
-
-        var arrow_x_center = arrow_x_start + font_height*1.5;
-        var arrow_y_center = arrow_y_start;
-
-        this.info_canvas.ctx.beginPath();
-        this.info_canvas.ctx.fillStyle = "#404040";
-        this.info_canvas.ctx.lineWidth = font_height*0.4;
-        this.info_canvas.ctx.moveTo(arrow_x_start,arrow_y_start);
-        this.info_canvas.ctx.quadraticCurveTo(arrow_x_center, arrow_y_center, arrow_x_end, arrow_y_end);
-        this.info_canvas.ctx.stroke();
-        drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, Math.PI*1.55, font_height*1.5, font_height*1.5);
-
-        this.info_canvas.ctx.fillStyle = "#404040";
-        this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
-        this.info_canvas.ctx.fillText("Help info can be found here.", rect_x + font_height, rect_y + 1.3*font_height );
-        this.info_canvas.ctx.fillText("Press ? to launch this tutorial", rect_x + font_height, rect_y+2.3*font_height);
-
-    }
+    // draw_help_info(){
+    //     var font_height = this.width/70;
+    //
+    //     var rect_x = this.width*0.39;
+    //     var rect_y = this.height*0.02;
+    //
+    //     this.info_canvas.ctx.fillStyle = "#ffffff";
+    //     this.info_canvas.ctx.strokeStyle = "#404040";
+    //     this.info_canvas.ctx.lineWidth = font_height*0.3;
+    //     roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height*15, font_height*3.3,
+    //         20, true, true);
+    //
+    //     var arrow_x_start = rect_x + font_height*16;
+    //     var arrow_y_start = rect_y + font_height*1.5;
+    //
+    //     var arrow_x_end = arrow_x_start + font_height*1.5;
+    //     var arrow_y_end = arrow_y_start - font_height*1.5;
+    //
+    //     var arrow_x_center = arrow_x_start + font_height*1.5;
+    //     var arrow_y_center = arrow_y_start;
+    //
+    //     this.info_canvas.ctx.beginPath();
+    //     this.info_canvas.ctx.fillStyle = "#404040";
+    //     this.info_canvas.ctx.lineWidth = font_height*0.4;
+    //     this.info_canvas.ctx.moveTo(arrow_x_start,arrow_y_start);
+    //     this.info_canvas.ctx.quadraticCurveTo(arrow_x_center, arrow_y_center, arrow_x_end, arrow_y_end);
+    //     this.info_canvas.ctx.stroke();
+    //     drawArrowhead(this.info_canvas.ctx, arrow_x_end, arrow_y_end, Math.PI*1.55, font_height*1.5, font_height*1.5);
+    //
+    //     this.info_canvas.ctx.fillStyle = "#404040";
+    //     this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+    //     this.info_canvas.ctx.fillText("Help info can be found here.", rect_x + font_height, rect_y + 1.3*font_height );
+    //     // this.info_canvas.ctx.fillText("Press \ to launch this tutorial", rect_x + font_height, rect_y+2.3*font_height);
+    //
+    // }
 }

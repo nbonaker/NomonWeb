@@ -190,7 +190,7 @@ export class KeyGrid {
         var x_end = this.x_positions[row][col][1];
 
         this.keygrid_canvas.ctx.beginPath();
-        this.keygrid_canvas.ctx.fillStyle = "#bfeec2";
+        this.keygrid_canvas.ctx.fillStyle = "#ee6dab";
         this.keygrid_canvas.ctx.strokeStyle = "#000000";
         this.keygrid_canvas.ctx.rect(x_start, y_start, x_end - x_start, y_end - y_start);
         this.keygrid_canvas.ctx.fill();
@@ -451,8 +451,9 @@ export class CommTile {
         this.face_canvas = face_canvas;
         this.crop_x = 0;
         this.crop_y = 0;
-        this.crop_h = 170;
-        this.crop_w = 170;
+        this.scale = 1.847;
+        this.crop_h = 170*this.scale;
+        this.crop_w = 170*this.scale;
         this.x_pos = x_pos;
         this.y_pos = y_pos;
         this.height = height;
@@ -460,8 +461,8 @@ export class CommTile {
         this.draw_text();
     }
     get_crop_pos(num){
-        this.crop_x = 193.5*(num % kconfig.comm_num_columns);
-        this.crop_y = 193.5*Math.floor(num / kconfig.comm_num_columns);
+        this.crop_x = 193.5*(num % kconfig.comm_num_columns)*this.scale;
+        this.crop_y = 193.5*Math.floor(num / kconfig.comm_num_columns)*this.scale;
     }
     draw_text() {
         this.face_canvas.ctx.fillStyle = "#000000";
