@@ -100,7 +100,7 @@ export class tutorialManager{
         this.circle_x;
         this.circle_y;
         this.circle_rel_size = 1.5;
-        this.target_num = 0;
+        this.target_num = 6;
         this.clock;
         this.Normon;
         this.normon_pause_length = 5;
@@ -307,9 +307,10 @@ export class tutorialManager{
         }
         else if (this.target_num === 9) {
             this.draw_end();
-        } else {
-                this.end_tutorial();
         }
+        //  else {
+        //     this.end_tutorial();
+        // }
     }
     draw_welcome() {
         this.allow_input = false;
@@ -963,17 +964,21 @@ export class tutorialManager{
 
                 this.parent.change_speed(Math.max(0, Math.min(cur_speed-4, 1)));
             }
+            this.Normon.pause = this.normon_pause_length;
 
             if (this.text_num === 3){
                 this.parent.change_speed(updated_speed);
+                this.Normon.pause = this.normon_pause_length*2;
+                this.Normon.update_target_coords(this.width+this.Normon.radius*3, this.Normon.y_pos);
             }
             if (this.text_num >=4){
                 this.end_tutorial();
+                return;
             }
 
-            this.Normon.pause = this.normon_pause_length;
+
             this.Normon.run_on_return = true;
-            this.update_target();
+            // this.update_target();
             this.parent.in_info_screen = false;
 
         }
@@ -1097,11 +1102,14 @@ export class tutorialManager{
         this.emoji_phrase_length -= 1;
         this.Normon.run_on_return = false;
         this.normon_canvas.ctx.clearRect(0, 0, this.width, this.height);
+        this.Normon.y_pos=this.height*2;
+        this.Normon.x_pos=this.width*2;
         this.Normon = null;
         clearInterval(this.normon_interval);
 
         console.log("END");
         this.parent.end_tutorial(this.failed);
+
 }
     draw_clock_instruction(clock_x, clock_y, radius){
         this.allow_input = true;
