@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
-<title>Keyboard A</title>
+<title>Nomon Keyboard</title>
 <link rel="icon"
       type="image/png"
       href="../icon.png">
 <head>
-    <script defer src="../js/webcam_switch/face-api.min.js"></script>
     <meta charset="utf-8">
     <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0"/>
     <meta http-equiv="cache-control" content="max-age=0"/>
@@ -84,11 +83,16 @@ label {
   margin: 1px 1px;
   cursor: pointer;
   border-radius: 4px;
+  z-index: 6;
+    position: relative;
 }
-.clickable {
-    background-color: #0056ff;
+.darkhighlighted {
+    background-color: rgb(103, 0, 255);
 }
-.unclickable {
+.highlighted {
+    background-color: rgba(0, 89, 255, 0.83);
+}
+.unhighlighted {
     background-color: rgba(0, 89, 255, 0.32);
 }
 
@@ -99,10 +103,10 @@ label {
 <div class="container space-between" id="top_bar_top">
     <div>
         <div class="slidecontainer">
-            <label for="speed_slider" class="label toprow"><b>Clock Rotation Speed: </b></label>
-            <input type="range" min="1" max="20" value="1" class="slider" id="speed_slider">
-            <label for="speed_slider" class="label toprow"><b><span id="speed_slider_value"></span></b></label>
-            <input class='btn clickable' type="button" id = "tutorial_button" value = "Retrain"/>
+            <input class='btn unhighlighted' type="button" id = "dec_speed_button" value = "Clock Speed -"/>
+            <input class='btn unhighlighted' type="button" id = "inc_speed_button" value = "Clock Speed +"/>
+            <input class='btn unhighlighted' type="button" id = "abort_options_button" value = "Stop Scan    "/>
+            <label><b>Clock Speed: <span id="speed_text">0</span>/20</b></label>
         </div>
     </div>
     <div>
@@ -173,67 +177,41 @@ label {
 </div>
 <div class="container space-between" id="top_bar_bottom">
         <div>
-            <input class='btn clickable' type="button" id = "send_button" value = "Change User"/>
-            <input class='btn clickable' type="button" id = "session_button" value = "Start Session"/>
+            <input class='btn unhighlighted' type="button" id = "tutorial_button" value = "Help               "/>
+            <input class='btn unhighlighted' type="button" id = "send_button" value =     "Change User  "/>
+            <input class='btn unhighlighted' type="button" id = "session_button" value =  "Start Training "/>
             <label id = "session_timer"><b> </b></label>
-            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! Press Start Session to begin.</i></label>
-            <input class='btn clickable' type="button" id = "help_button" value = "?" >
-        </div>
-        <div class="container center_veritcal" id="webcam_div">
-            <canvas id="webcam_canvas" height="10px" width="300vw"></canvas>
-            <label for="checkbox"
-                onmousedown="event.preventDefault()"
-                onclick="
-                    console.log('label:click');
-                    if (this === event.target) {
-                        console.log('label === event.target');
-                        console.log('label:click preventDefault()');
-                        // prevent focus and click
-                        event.preventDefault();
-                        // call click on the labeled control
-                        this.control && this.control.click();
-                    }
-                "
-                class="label webcam">
-                <input id="checkbox_webcam" type="checkbox"
-                    onmousedown="event.preventDefault()"
-                    onclick="
-                        console.log('checkbox:click', `checked = ${this.checked}`);
-                    "
-                />
-            <b>Webcam Switch</b>
-            </label>
-            <input class='btn clickable' type="button" id = "recalibrate_button" value = "Recalibrate"/>
+            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! This is a Training Phase. Press Start Training to begin.</i></label>
         </div>
     </div>
     <textarea id="output_textbox"></textarea>
 </div>
 
-<video id="video" width="500" height="560"></video>
-<canvas id="video_canvas"></canvas>
 
 <!--<script type="module" src="webcam_switch/webcam_switch.js"></script>-->
 
 
 <canvas id="key_grid">
-Your browser does not support the canvas element.
+</canvas>
+
+<canvas id="highlights">
 </canvas>
 
 <canvas id="clock_face">
-Your browser does not support the canvas element.
 </canvas>
 
 <canvas id="clock_hand">
-Your browser does not support the canvas element.
 </canvas>
 
 <canvas id="output">
-Your browser does not support the canvas element.
 </canvas>
 
 <canvas id="info">
-Your browser does not support the canvas element.
 </canvas>
+
+<canvas id="normon_canvas">
+</canvas>
+
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script type="text/javascript">

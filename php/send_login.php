@@ -6,7 +6,7 @@ $exit_code = 0;
 $connection = mysqli_connect($host, $username, $password, $dbname);
 
 // create user table if not exists
-$query = "CREATE TABLE IF NOT EXISTS user_info (id INT, click_dist JSON, Z INT, ksigma FLOAT, ksigma0 FLOAT, rotate_index INT, scan_delay INT, extra_delay INT, y_li JSON, learn TINYINT, pause TINYINT, sound TINYINT, webcam_reset FLOAT, webcam_trigger FLOAT, webcam_type Varchar(7), webcam_bottom FLOAT)";
+$query = "CREATE TABLE IF NOT EXISTS user_info (id INT, click_dist JSON, Z INT, ksigma FLOAT, ksigma0 FLOAT, rotate_index INT, scan_delay INT, extra_delay INT, y_li JSON, learn TINYINT, pause TINYINT, sound TINYINT)";
 $result = mysqli_query($connection, $query);
 
 $user_id = $_GET['user_id'];

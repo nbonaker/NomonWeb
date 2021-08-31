@@ -4,6 +4,7 @@ export class OptionsManager{
         this.scan_delay = scan_delay;
         this.scan_abort_count = 2;
         this.parent=parent;
+        this.deleted = false;
 
         this.num_rows = options_array.length;
         this.row_lengths = [];
@@ -93,21 +94,23 @@ export class OptionsManager{
         console.log(this.row_scan, this.col_scan, press, this.next_scan_time);
     }
     update_highlights(){
-        for(var row_num = 0; row_num < this.num_rows; row_num += 1){
-            if(row_num === this.row_scan){
-                for(var col_num = 0; col_num <this.row_lengths[row_num]; col_num += 1){
-                    if (col_num === this.col_scan){
-                        this.options_array[row_num][col_num].darkhighlight();
-                    }else{
-                        this.options_array[row_num][col_num].highlight();
+        if (!this.deleted) {
+            for (var row_num = 0; row_num < this.num_rows; row_num += 1) {
+                if (row_num === this.row_scan) {
+                    for (var col_num = 0; col_num < this.row_lengths[row_num]; col_num += 1) {
+                        if (col_num === this.col_scan) {
+                            this.options_array[row_num][col_num].darkhighlight();
+                        } else {
+                            this.options_array[row_num][col_num].highlight();
+                        }
+                    }
+                } else {
+                    for (var col_num = 0; col_num < this.row_lengths[row_num]; col_num += 1) {
+                        this.options_array[row_num][col_num].unhighlight();
                     }
                 }
-            } else {
-                for(var col_num = 0; col_num <this.row_lengths[row_num]; col_num += 1){
-                    this.options_array[row_num][col_num].unhighlight();
-                }
-            }
 
+            }
         }
     }
     make_choice(selection){
@@ -115,11 +118,13 @@ export class OptionsManager{
         this.parent = null
     }
     animate() {
-        var time_in = Date.now() / 1000;
-        if (time_in >= this.next_scan_time) {
-            this.update_scan_time(false);
-            this.update_highlights();
-        }
+
+            var time_in = Date.now() / 1000;
+            if (time_in >= this.next_scan_time) {
+                this.update_scan_time(false);
+                this.update_highlights();
+            }
+
     }
 }
 

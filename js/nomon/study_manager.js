@@ -2,10 +2,10 @@ import * as widgets from "./widgets.js";
 import * as kconfig from './kconfig.js';
 
 export class studyManager {
-    constructor(parent, user_id, first_load, partial_session, prev_data){
+    constructor(parent, user_id, first_load, phase, prev_data){
         this.parent = parent;
-        this.partial_session = partial_session;
         this.user_id = user_id;
+        this.phase = phase;
         this.prev_data = prev_data;
         this.session_pause_time = 0;
 
@@ -39,7 +39,9 @@ export class studyManager {
             }).done(function (data) {
                 var result = $.parseJSON(data);
                 console.log(result);
-                study_manager.session_number = parseInt(result[0].nomon_sessions)+1;
+
+                study_manager.session_number = parseInt(result[0].nomon_practice) + parseInt(result[0].nomon_symbol)
+                    + parseInt(result[0].nomon_text) + 1;
                 study_manager.session_dates = JSON.parse(result[0].dates);
                 study_manager.phrase_queue = JSON.parse(result[0].nomon_phrase_queue);
                 study_manager.parse_phrases();
@@ -125,61 +127,21 @@ export class studyManager {
     }
     init_session_specifics(){
 
-        if (this.session_number <= 9){
-            if (this.session_number === 1){
-                this.session_length = 10*60;
+        this.session_length = 1*60;
 
-                // this.parent.change_speed(1);
-                // this.parent.pre_phrase_rotate_index = 1;
-
-                // this.parent.in_info_screen = true;
-                // this.parent.init_session_info_screen();
-
-                //remove after beta testing:
-                // this.intermediate_survey = true;
-                // this.full_tlx = true;
-
-            } else if (this.session_number === 2) {
-                this.session_length = 10*60;
-                this.parent.change_speed(this.parent.pre_phrase_rotate_index);
-
-                this.parent.in_info_screen = true;
-                this.parent.init_session_info_screen();
-                //tlx full and questionnaire
-                this.intermediate_survey = true;
-                this.full_tlx = true;
-
-            } else if (this.session_number === 5){
-                this.session_length = 20*60;
-                this.parent.change_speed(this.parent.pre_phrase_rotate_index);
-                //tlx short and questionnaire
-                this.intermediate_survey = true;
-                this.short_tlx = true;
-
-            } else if (this.session_number === 9){
-                this.session_length = 20*60;
-                this.parent.change_speed(this.parent.pre_phrase_rotate_index);
-                //tlx full and questionnaire
-                //final questionnaire
-                this.intermediate_survey = true;
-                this.final_survey = true;
-                this.full_tlx = true;
-
-            } else {
-                this.session_length = 20*60;
-                this.parent.change_speed(this.parent.pre_phrase_rotate_index);
-            }
-
-        } else if (this.session_number === 10){
-            this.session_length = 20*60;
-            this.parent.change_speed(this.parent.pre_phrase_rotate_index);
-            //tlx full and questionnaire
-            //final questionnaire
-            this.intermediate_survey = true;
-            this.final_survey = true;
-            this.full_tlx = true;
-
+        if (this.phase === "intro"){
+            this.init_session_help();
         }
+
+        // this.parent.change_speed(1);
+        // this.parent.pre_phrase_rotate_index = 1;
+
+        // this.parent.in_info_screen = true;
+        // this.parent.init_session_info_screen();
+
+        //remove after beta testing:
+        // this.intermediate_survey = true;
+        // this.full_tlx = true;
 
         this.parent.pause_checkbox.checked = true;
         this.parent.audio_checkbox.checked = true;
@@ -198,6 +160,8 @@ export class studyManager {
         this.parent.info_canvas.ctx.fill();
 
         this.parent.textbox.draw_text("");
+
+        this.session_continue();
     }
     session_continue(){
         var user_id = this.user_id;
@@ -214,7 +178,18 @@ export class studyManager {
         }
         var phrase_queue = JSON.stringify(this.unparse_phrases());
 
-        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue, "software": "nomon"};
+        var phase;
+        var new_phase;
+        if (this.phase === "intro"){
+            phase = "practice";
+            new_phase = "intro";
+        } else {
+            phase =  this.phase;
+            new_phase = this.phase;
+        }
+
+        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates,
+            "phrase_queue": phrase_queue, "software": "nomon", "phase": phase, "new_phase": new_phase};
         console.log(post_data);
 
         function increment_session() { // jshint ignore:line
@@ -228,7 +203,7 @@ export class studyManager {
             });
         }
         increment_session();
-        this.launch_surveys();
+        // this.launch_surveys();
 
     }
     launch_surveys() {

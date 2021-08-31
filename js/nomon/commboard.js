@@ -64,7 +64,7 @@ class rowcolButton{
 
 
 class Keyboard{
-    constructor(user_id, first_load, partial_session, prev_data){
+    constructor(user_id, first_load, phase, prev_data){
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
@@ -80,7 +80,7 @@ class Keyboard{
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
 
         if (this.user_id){
-            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
+            this.study_manager = new sm.studyManager(this, user_id, first_load, phase, prev_data);
         }
         this.phrase_arr = [];
         this.emojis_selected = 0;
@@ -88,10 +88,19 @@ class Keyboard{
 
         this.run_on_focus = false;
 
+        this.on_press_lock = false;
         window.addEventListener('keydown', function (e) {
             if (e.keyCode === 32) {
                 e.preventDefault();
                 this.on_press();
+                this.on_press_lock = true;
+            }
+        }.bind(this), false);
+
+        window.addEventListener('keyup', function (e) {
+            if (e.keyCode === 32) {
+                e.preventDefault();
+                this.on_press_lock = false;
             }
         }.bind(this), false);
         // document.onkeypress = function() {this.on_press();}.bind(this);
@@ -161,12 +170,12 @@ class Keyboard{
 
         this.speed_inc.onclick = function(){
             this.change_speed(Math.min(20, this.rotate_index + 1));
-            this.destroy_options_rcom();
+            // this.destroy_options_rcom();
         }.bind(this);
 
         this.speed_dec.onclick = function(){
             this.change_speed(Math.max(0, this.rotate_index - 1));
-            this.destroy_options_rcom();
+            // this.destroy_options_rcom();
         }.bind(this);
 
         this.abort_options_button = document.getElementById("abort_options_button");
@@ -200,7 +209,7 @@ class Keyboard{
         } else {
             this.change_user_button.value = "RCS Keyboard";
             this.change_user_button.onclick = function () {
-                var keyboard_url = "../rowcol/index.html?emoji=".concat(this.emoji_keyboard.toString());
+                var keyboard_url = "./rowcol.html?emoji=".concat(this.emoji_keyboard.toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
         }
@@ -210,7 +219,7 @@ class Keyboard{
             this.session_button.onclick = function () {
                 if (!this.in_tutorial) {
                     this.study_manager.request_session_data();
-                    this.init_session_help();
+
                 }
                 this.destroy_options_rcom();
             }.bind(this);
@@ -223,7 +232,7 @@ class Keyboard{
             }
 
             this.session_button.onclick = function () {
-                var keyboard_url = "commboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
+                var keyboard_url = "keyboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
             document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press Retrain for help.</b>`;
@@ -266,6 +275,7 @@ class Keyboard{
 
     }
     init_info_screen(){
+
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
         // this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
@@ -364,7 +374,11 @@ class Keyboard{
         this.init_info_screen();
     }
     destroy_options_rcom(){
+        if (!this.RCOM){
+            return;
+        }
         clearInterval(this.RCOM_interval);
+        this.RCOM.deleted = true;
         this.RCOM = null;
         if (!this.in_tutorial) {
             this.destroy_info_screen();
@@ -546,34 +560,22 @@ class Keyboard{
     }
     change_speed(index){
         var speed_index;
-        if (this.in_session){
-            if (this.allow_slider_input){
-                var sign_change = Math.sign(Math.floor(index) - this.pre_phrase_rotate_index);
-                speed_index = Math.min(Math.max(0, this.pre_phrase_rotate_index + sign_change), 20);
-                this.rotate_index = speed_index;
-                this.time_rotate = config.period_li[this.rotate_index];
-                this.bc.time_rotate = this.time_rotate;
-                this.bc.clock_inf.clock_util.change_period(this.time_rotate);
+        speed_index = Math.floor(index);
 
-                // # update the histogram
-                this.histogram.update(this.bc.clock_inf.kde.dens_li);
-            } else {
-                speed_index = this.pre_phrase_rotate_index;
-            }
-        } else {
-            speed_index = Math.floor(index);
+        this.rotate_index = speed_index;
+        this.time_rotate = config.period_li[this.rotate_index];
+        this.bc.time_rotate = this.time_rotate;
+        this.bc.clock_inf.clock_util.change_period(this.time_rotate);
 
-            this.rotate_index = speed_index;
-            this.time_rotate = config.period_li[this.rotate_index];
-            this.bc.time_rotate = this.time_rotate;
-            this.bc.clock_inf.clock_util.change_period(this.time_rotate);
+        // # update the histogram
+        this.histogram.update(this.bc.clock_inf.kde.dens_li);
 
-            // # update the histogram
-            this.histogram.update(this.bc.clock_inf.kde.dens_li);
-        }
         document.getElementById("speed_text").textContent = speed_index.toString();
     }
     on_press(){
+        if (this.on_press_lock){
+                return;
+        }
         if (document.hasFocus()) {
             this.play_audio();
             if (!this.in_info_screen && !this.in_finished_screen) {
@@ -1103,7 +1105,7 @@ class Keyboard{
 
             this.context = "";
         }
-        else if (new_char == "options"){
+        else if (new_char == "Options"){
             this.init_options_rcom();
         }
         else{
@@ -1156,7 +1158,7 @@ class Keyboard{
                 this.cur_emoji_target = ".";
                 this.highlight_emoji();
             }
-        }
+        }99
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
@@ -1266,10 +1268,9 @@ class Keyboard{
 
 const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
-const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
-const partial_session = params.get("partial_session") === 'true';
-const emoji = params.get("emoji") === 'true';
-console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Emoji: ", emoji);
+const first_load = (params.get("phase") === 'intro' || params.get("phase") === null);
+const phase = params.get("phase");
+console.log("User ID: ", user_id, " First Load: ", first_load, " phase: ", phase);
 
 function send_login() {
     $.ajax({
@@ -1339,7 +1340,7 @@ function send_login() {
 
         }
 
-        let keyboard = new Keyboard(user_id, first_load, partial_session, prev_data);
+        let keyboard = new Keyboard(user_id, first_load, phase, prev_data);
         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
     });
 }

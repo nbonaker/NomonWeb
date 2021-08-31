@@ -6,18 +6,8 @@ $connection = mysqli_connect($host, $username, $password, $dbname);
 
 $user_id = $_POST['user_id'];
 
-// create survey tables if they dont exist
-$query = "CREATE TABLE IF NOT EXISTS tlx_info (id INT, software Varchar(1), software_order INT, session INT,
-mental_load INT, physical_load INT, temporal_load INT, performance_load INT, effort_load INT, frustration_load INT,
-mental_weight INT, physical_weight INT, temporal_weight INT, performance_weight INT, effort_weight INT,
-frustration_weight INT)";
-
-$query = "CREATE TABLE IF NOT EXISTS survey_info (id INT, software Varchar(1), software_order INT, session INT, type_quick INT,
- type_accurate INT, many_errors INT, corr_ease INT, recovery INT, audio INT, free_response_1 TEXT, free_response_2 TEXT)";
-$result = mysqli_query($connection, $query);
-
 // check if study table exists
-$query = "CREATE TABLE IF NOT EXISTS study_info (id INT, nomon_sessions INT, rowcol_sessions INT, dates JSON, nomon_phrase_queue JSON, rowcol_phrase_queue JSON, first_software Varchar(6))";
+$query = "CREATE TABLE IF NOT EXISTS study_info (id INT, nomon_practice INT, rowcol_practice INT, rowcol_symbol INT, nomon_symbol INT, nomon_text INT, rowcol_text INT, dates JSON, nomon_phrase_queue JSON, rowcol_phrase_queue JSON, phase Varchar(10)";
 $result = mysqli_query($connection, $query);
 
 $result = mysqli_query($connection, $query);
@@ -76,34 +66,9 @@ if (!$user_exists){
 
         }
 
-        //determine starting software
-        $query = "SELECT first_software FROM study_info ORDER BY id DESC LIMIT 1";
-        $result = mysqli_query($connection, $query);
-        $result_array = array();
-
-        if ($result->num_rows > 0) {
-            while($row = $result->fetch_assoc()) {
-                array_push($result_array, $row);
-            }
-        }
-        if (count($result_array) > 0){
-            $last_software = $result_array[0]['first_software'];
-        } else {
-            $last_software = 0;
-        }
-
-        if (!$last_software){
-                $last_software = "nomon";
-        }else{
-                if ($last_software == "nomon"){
-                        $last_software = "rowcol";
-                }else{
-                        $last_software = "nomon";
-                }
-        }
 
         //insert user into study_info table
-        $query = "INSERT INTO study_info (id, nomon_sessions, rowcol_sessions, nomon_phrase_queue, rowcol_phrase_queue, first_software) VALUES ('$user_id', 0, 0, '$nomon_phrases_json', '$rowcol_phrases_json', '$last_software')";
+        $query = "INSERT INTO study_info (id, nomon_phrase_queue, rowcol_phrase_queue) VALUES ('$user_id', '$nomon_phrases_json', '$rowcol_phrases_json')";
         $result = mysqli_query($connection, $query);
 }
 

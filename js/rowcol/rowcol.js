@@ -3,10 +3,9 @@ import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as lm from './lm.js';
 import * as sm from './study_manager.js';
-import * as webswitch from "../webcam_switch/webcam_switch.js";
 import {makeCorsRequest} from "../cors_request.js";
 import * as infoscreen from './info_screens.js';
-import * as webswitchlight from "../webcam_switch/webcam_switch_light.js";
+import * as rcom from "../rowcol_options_manager.js";
 
 function log_add_exp(a_1, a_2){
     var b = Math.max(a_1, a_2);
@@ -14,48 +13,61 @@ function log_add_exp(a_1, a_2){
     return sum;
 }
 
+class rowcolButton{
+    constructor(button, value) {
+        this.value = value;
+        this.button = button;
+    }
+    darkhighlight(){
+        this.button.className = "btn darkhighlighted";
+    }
+    highlight(){
+        this.button.className = "btn highlighted";
+    }
+    unhighlight(){
+        this.button.className = "btn unhighlighted";
+    }
+    select(){
+        this.button.onclick();
+    }
+}
+
+
 class Keyboard{
-    constructor(user_id, first_load, emoji, partial_session, prev_data){
+    constructor(user_id, first_load, phase, prev_data){
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
 
-        this.emoji_keyboard = emoji;
+        this.emoji_keyboard = false;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
-        this.webcam_canvas = new webswitch.WebcamCanvas("webcam_canvas", 1);
-
-        this.webcam_type = this.prev_data.webcam_type;
-
-        this.webcam_enabled = false;
-        this.webcam_info_complete=false;
-        this.in_webcam_info_screen = false;
-        this.in_webcam_calibration = false;
-        this.ws = null;
 
         if (this.user_id){
-            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
-            this.webcam_enabled = true;
-            this.delay_webcam_info = true;
-            this.init_webcam_switch();
-        } else {
-            this.webcam_enabled = false;
-            this.delay_webcam_info = false;
-            document.getElementById("webcam_div").style.display="none";
+            this.study_manager = new sm.studyManager(this, user_id, first_load, phase, prev_data);
         }
         this.in_session = false;
 
         this.run_on_focus = false;
 
+        this.on_press_lock = false;
         window.addEventListener('keydown', function (e) {
             if (e.keyCode === 32) {
                 e.preventDefault();
                 this.on_press();
+                this.on_press_lock = true;
             }
         }.bind(this), false);
+
+        window.addEventListener('keyup', function (e) {
+            if (e.keyCode === 32) {
+                e.preventDefault();
+                this.on_press_lock = false;
+            }
+        }.bind(this), false);
+
         // document.onkeypress = function() {this.on_press();}.bind(this);
-        document.onmousedown = function() {this.increment_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
@@ -103,119 +115,72 @@ class Keyboard{
         this.fetched_words = false;
         this.lm = new lm.LanguageModel(this);
 
-        this.in_info_screen = first_load;
+        this.in_info_screen = false;
         this.in_finished_screen = false;
         this.init_ui();
     }
-    init_webcam_switch(){
-        this.webcam_enabled = document.getElementById("checkbox_webcam").checked;
-        if (!this.webcam_enabled){
-            this.webcam_canvas.draw_grey();
-            if (this.ws != null) {
-                var stream = document.getElementById('video').srcObject;
-                stream.getTracks().forEach(function(track) {
-                  track.stop();
-                });
-                // this.ws.face_finder.mycamvas = null;
-                // this.ws.face_finder = null;
-                this.ws = null;
-            }
-        }else {
-            document.getElementById("checkbox_webcam").disabled = true;
-            setTimeout(function(){document.getElementById("checkbox_webcam").disabled = false}, 1500);
-            if (this.webcam_type === "face") {
-                this.ws = new webswitch.WebcamSwitch(this);
-                if (!this.webcam_info_complete && !this.delay_webcam_info) {
-                    this.in_webcam_info_screen = true;
-                    this.webcam_info_complete = true;
-                    this.init_webcam_info_screen();
-                }
-                this.ws.face_x_calibration = this.prev_data["webcam_reset"];
-                this.ws.triger_x_calibration = this.prev_data["webcam_trigger"];
-            } else {
-                this.ws = new webswitchlight.WebcamSwitch(this);
 
-                this.ws.video_canvas.style.visibility = "hidden";
-
-                if (!this.webcam_info_complete && !this.delay_webcam_info) {
-                    this.in_webcam_info_screen = true;
-                    this.webcam_info_complete = true;
-                    this.init_webcam_info_screen();
-                }
-                this.ws.reset_pos = this.prev_data["webcam_reset"];
-                this.ws.trigger_pos = this.prev_data["webcam_trigger"];
-                this.ws.bottom_offset = this.prev_data["webcam_bottom"];
-            }
-        }
-    }
-    update_webcam_calibration(){
-        function get_data(keyboard) {
-            $.ajax({
-                method: "GET",
-                url: "../php/send_login.php",
-                data: {"user_id": keyboard.user_id}
-            }).done(function (data) {
-                var result = $.parseJSON(data);
-                result = result[0];
-
-                var webcam_reset = JSON.parse(result.webcam_reset);
-                if (webcam_reset !== null) {
-                    console.log("Retrieved Webcam Reset!");
-                }
-                keyboard.prev_data["webcam_reset"]= webcam_reset;
-
-                var webcam_trigger = JSON.parse(result.webcam_trigger);
-                if (webcam_trigger !== null) {
-                    console.log("Retrieved Webcam Trigger!");
-                }
-                keyboard.prev_data["webcam_trigger"]= webcam_trigger;
-
-                var webcam_bottom = JSON.parse(result.webcam_bottom);
-                if (webcam_trigger !== null) {
-                    console.log("Retrieved Webcam Bottom!");
-                }
-                keyboard.prev_data["webcam_bottom"]= webcam_bottom;
-
-                document.getElementById("checkbox_webcam").checked = true;
-                keyboard.init_webcam_switch();
-            });
-        }
-        this.in_webcam_calibration = false;
-        get_data(this);
-    }
     init_ui(){
-        this.speed_slider = document.getElementById("speed_slider");
-        this.speed_slider_output = document.getElementById("speed_slider_value");
-        this.speed_slider_output.innerHTML = this.scan_delay_index;
-        this.speed_slider.value = this.scan_delay_index;
 
-        this.speed_slider.oninput = function() {
-            this.speed_slider_output.innerHTML = this.speed_slider.value;
-            this.change_scan_delay(this.speed_slider.value);
+        // Speed Buttons
+        this.scan_delay_inc = document.getElementById("inc_scan_delay_button");
+        this.scan_delay_dec = document.getElementById("dec_scan_delay_button");
+        
+        this.scan_delay_inc.onclick = function(){
+            this.change_scan_delay(Math.min(20, this.scan_delay_index + 1));
+            // this.destroy_options_rcom();
         }.bind(this);
 
-        this.extra_delay_slider = document.getElementById("extra_delay_slider");
-        this.extra_delay_slider_output = document.getElementById("extra_delay_slider_value");
-        this.extra_delay_slider_output.innerHTML = this.extra_delay_index;
-        this.extra_delay_slider.value = this.extra_delay_index;
+        this.scan_delay_dec.onclick = function(){
+            this.change_scan_delay(Math.max(0, this.scan_delay_index - 1));
+            // this.destroy_options_rcom();
+        }.bind(this);
+        
+        this.extra_delay_inc = document.getElementById("inc_extra_delay_button");
+        this.extra_delay_dec = document.getElementById("dec_extra_delay_button");
+        
+        this.extra_delay_inc.onclick = function(){
+            this.change_extra_delay(Math.min(10, this.extra_delay_index + 1));
+            // this.destroy_options_rcom();
+        }.bind(this);
 
-        this.extra_delay_slider.oninput = function() {
-            this.extra_delay_slider_output.innerHTML = this.extra_delay_slider.value;
-            this.change_extra_delay(this.extra_delay_slider.value);
+        this.extra_delay_dec.onclick = function(){
+            this.change_extra_delay(Math.max(0, this.extra_delay_index - 1));
+            // this.destroy_options_rcom();
+        }.bind(this);
+
+        document.getElementById("scan_delay_text").textContent = this.scan_delay_index.toString();
+        document.getElementById("extra_delay_text").textContent = this.extra_delay_index.toString();
+
+
+        // Session Control Buttons
+        this.abort_options_button = document.getElementById("abort_options_button");
+        this.abort_options_button.onclick = function(){
+            this.destroy_options_rcom();
+        }.bind(this);
+
+
+        this.tutorial_button = document.getElementById("tutorial_button");
+        this.tutorial_button.onclick = function(){
+            if (!this.in_session) {
+                this.init_info_screen();
+            }
+            this.destroy_options_rcom();
         }.bind(this);
 
         this.change_user_button = document.getElementById("send_button");
         if (this.user_id) {
             this.change_user_button.onclick = function () {
-                if (!this.in_session && !this.in_info_screen) {
+                if (!this.in_tutorial && !this.in_session) {
                     var login_url = "../index.php";
                     window.open(login_url, '_self');
                 }
+                this.destroy_options_rcom();
             }.bind(this);
         } else {
-            this.change_user_button.value = "Nomon Keyboard";
+            this.change_user_button.value = "RCS Keyboard";
             this.change_user_button.onclick = function () {
-                var keyboard_url = "../index.html?emoji=".concat(this.emoji_keyboard.toString());
+                var keyboard_url = "./rowcol.html?emoji=".concat(this.emoji_keyboard.toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
         }
@@ -223,62 +188,26 @@ class Keyboard{
         this.session_button = document.getElementById("session_button");
         if (this.user_id) {
             this.session_button.onclick = function () {
-                if (!this.in_info_screen) {
+                if (!this.in_tutorial) {
                     this.study_manager.request_session_data();
+                    // this.init_session_help();
                 }
+                this.destroy_options_rcom();
             }.bind(this);
             this.session_time_label = document.getElementById("session_timer");
         } else {
             if (this.emoji_keyboard) {
-                this.session_button.value = "ABC";
+                this.session_button.value = "ABC            ";
             } else {
-                this.session_button.value = `😃😮😒`;
+                this.session_button.value = `😃😮😒      `;
             }
 
             this.session_button.onclick = function () {
-                var keyboard_url = "index.html?emoji=".concat((this.emoji_keyboard === false).toString());
+                var keyboard_url = "keyboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
-
-            document.getElementById("info_label").innerHTML =`<b>Welcome to the Row Column Scanner! Press ? for help.</b>`;
+            document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press Retrain for help.</b>`;
         }
-
-        this.info_button = document.getElementById("help_button");
-        this.info_button.onclick = function () {
-            if (this.in_info_screen) {
-                this.destroy_info_screen();
-            } else {
-                this.in_info_screen = true;
-                if (this.in_session) {
-                    this.init_session_info_screen();
-                } else {
-                    this.init_info_screen();
-                }
-            }
-        }.bind(this);
-
-        this.recalibrate_button = document.getElementById("recalibrate_button");
-        this.recalibrate_button.onclick = function () {
-            this.in_webcam_calibration = true;
-            this.run_on_focus = true;
-            if (this.webcam_enabled) {
-                document.getElementById("checkbox_webcam").checked = false;
-                this.init_webcam_switch();
-            }
-
-            if (this.in_session){
-                this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
-            }
-
-            var url;
-            if (this.webcam_type === "face") {
-                url = "webcam_setup.html".concat('?user_id=', this.user_id.toString());
-            } else {
-                url = "webcam_setup_light.html".concat('?user_id=', this.user_id.toString());
-            }
-            var new_win = window.open(url, '_blank');
-            new_win.focus();
-        }.bind(this);
 
         this.audio = new Audio('../audio/bell.wav');
         this.audio_checkbox = document.getElementById("checkbox_sound");
@@ -287,11 +216,6 @@ class Keyboard{
         }else {
             this.audio_checkbox.checked = true;
         }
-
-        this.checkbox_webcam = document.getElementById("checkbox_webcam");
-        this.checkbox_webcam.onchange = function () {
-            this.init_webcam_switch();
-        }.bind(this);
 
         if (this.emoji_keyboard) {
             this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.emoji_target_layout);
@@ -309,23 +233,49 @@ class Keyboard{
             this.keygrid.draw_layout(this.row_scan, this.col_scan);
         }
     }
-    init_webcam_info_screen(){
-        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
-        this.info_canvas.calculate_size(0);
-        this.info_canvas.canvas.style.top = "75px";
-        this.info_screen = new infoscreen.WebcamInfoScreen(this.info_canvas);
+    init_options_rcom(){
+        var options_array = [
+            [new rowcolButton(this.scan_delay_dec, "1"), new rowcolButton(this.scan_delay_inc, "2"),
+                new rowcolButton(this.extra_delay_dec, "3"), new rowcolButton(this.extra_delay_inc, "4")],
+            [new rowcolButton(this.tutorial_button, "5"), new rowcolButton(this.change_user_button, "6"),
+                new rowcolButton(this.session_button, "7"), new rowcolButton(this.abort_options_button, "8")]
+            ];
 
-        if (this.in_session){
-            this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
+        if (this.in_tutorial) {
+            this.RCOM = new rcom.OptionsManager(options_array, this.scan_delay, this.tutorial_manager, false);
+        } else {
+            this.RCOM = new rcom.OptionsManager(options_array, this.scan_delay, null, false);
         }
+        this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05*1000);
+        this.in_info_screen = true;
+        this.init_info_screen();
+    }
+    destroy_options_rcom(){
+        if (!this.RCOM){
+            return;
+        }
+        clearInterval(this.RCOM_interval);
+        this.RCOM.deleted = true;
+        this.RCOM = null;
+        if (!this.in_tutorial) {
+            this.destroy_info_screen();
+        }
+
+        this.scan_delay_dec.className = "btn unhighlighted";
+        this.scan_delay_inc.className = "btn unhighlighted";
+        this.extra_delay_dec.className = "btn unhighlighted";
+        this.extra_delay_inc.className = "btn unhighlighted";
+        this.abort_options_button.className = "btn unhighlighted";
+        this.tutorial_button.className = "btn unhighlighted";
+        this.change_user_button.className = "btn unhighlighted";
+        this.session_button.className = "btn unhighlighted";
+
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
-
-        this.session_button.className = "btn unclickable";
-        this.change_user_button.className = "btn unclickable";
+        // this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
+        this.info_canvas.grey();
     }
     init_session_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -348,25 +298,17 @@ class Keyboard{
         }
     }
     destroy_info_screen(){
-        if (this.in_info_screen || this.in_webcam_info_screen) {
+        if (this.in_info_screen) {
             this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
 
             this.in_info_screen = false;
-            this.in_webcam_info_screen = false;
 
-            if (this.delay_webcam_info) {
-                this.delay_webcam_info = false;
-                this.webcam_info_complete = false;
-                document.getElementById("checkbox_webcam").checked = true;
-                this.init_webcam_switch();
-            } else if (this.in_session){
+            if (this.in_session){
                 if (this.study_manager.session_pause_start_time !== Infinity) {
                     this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
                 }
                 this.study_manager.session_pause_start_time = Infinity;
-                if (!this.webcam_info_complete) {
-                    this.init_webcam_switch();
-                }
+
             } else {
                 this.session_button.className = "btn clickable";
                 this.change_user_button.className = "btn clickable";
@@ -415,51 +357,29 @@ class Keyboard{
 
     }
     change_scan_delay(index){
-        var speed_index;
-        if (this.in_session){
-            if (this.allow_slider_input){
-                var sign_change = Math.sign(Math.floor(index) - this.pre_phrase_scan_delay_index);
-                speed_index = Math.min(Math.max(0, this.pre_phrase_scan_delay_index + sign_change), 20);
-                // # period (as stored in config.py)
-                this.scan_delay_index = speed_index;
-                this.scan_delay = config.scan_delay_li[this.scan_delay_index];
-            } else {
-                speed_index = this.pre_phrase_scan_delay_index;
-            }
-        } else {
-            speed_index = Math.floor(index);
-            // # period (as stored in config.py)
-            this.scan_delay_index = speed_index;
-            this.scan_delay = config.scan_delay_li[this.scan_delay_index];
-        }
-        this.speed_slider_output.innerHTML = speed_index;
-        this.speed_slider.value = speed_index;
+        var speed_index = Math.floor(index);
+        // # period (as stored in config.py)
+        this.scan_delay_index = speed_index;
+        this.scan_delay = config.scan_delay_li[this.scan_delay_index];
+
+        document.getElementById("scan_delay_text").textContent = speed_index.toString();
         this.send_user_data();
     }
     change_extra_delay(index){
-        var speed_index;
-        if (this.in_session){
-            if (this.allow_slider_input){
-                var sign_change = Math.sign(Math.floor(index) - this.pre_phrase_extra_delay_index);
-                speed_index = Math.min(Math.max(0, this.pre_phrase_extra_delay_index + sign_change), 20);
-                // # period (as stored in config.py)
-                this.extra_delay_index = speed_index;
-                this.extra_delay = config.extra_delay_li[this.extra_delay_index];
-            } else {
-                speed_index = this.pre_phrase_extra_delay_index;
-            }
-        } else {
-            speed_index = Math.floor(index);
-            // # period (as stored in config.py)
-            this.extra_delay_index = speed_index;
-            this.extra_delay = config.extra_delay_li[this.extra_delay_index];
-        }
-        this.extra_delay_slider_output.innerHTML = speed_index;
-        this.extra_delay_slider.value = speed_index;
+        var speed_index = Math.floor(index);
+        // # period (as stored in config.py)
+        this.extra_delay_index = speed_index;
+        this.extra_delay = config.extra_delay_li[this.extra_delay_index];
+
+        document.getElementById("extra_delay_text").textContent = speed_index.toString();
+
         this.send_user_data();
 
     }
     on_press(){
+        if (this.on_press_lock){
+            return;
+        }
         if (document.hasFocus()) {
             this.play_audio();
             if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
@@ -469,6 +389,9 @@ class Keyboard{
                     this.pre_phrase_extra_delay_index = this.extra_delay_index;
                 }
                 this.update_scan_time(true);
+            }
+            if (this.RCOM){
+                this.RCOM.update_scan_time(true);
             }
         }
     }
@@ -1023,6 +946,9 @@ class Keyboard{
                 //     self.last_add_li.concat(2);
                 //     self.typed = self.typed.replace(" " + new_char, new_char + " ");
             }
+            else if (new_char == "%"){
+                this.init_options_rcom();
+            }
             else{
                 this.old_context_li.push(this.context);
                 this.typed = this.typed.concat(new_char);
@@ -1067,28 +993,17 @@ class Keyboard{
         }
         // # update the word prior
 
-        if (this.emoji_keyboard) {
-            this.fetched_words = true;
-            this.update_scan_time(false);
-
-            if (this.in_session) {
-                var phrase_arr = Array.from(this.study_manager.cur_phrase);
-                var typed_arr = Array.from(this.typed);
-                if (typed_arr.length < phrase_arr.length) {
-                    this.cur_emoji_target = phrase_arr[typed_arr.length];
-                    this.highlight_emoji();
-                } else {
-                    this.cur_emoji_target = null;
-                    this.highlight_emoji();
-                }
+        if (this.in_session) {
+            if (this.typed.length > 2 && this.typed.slice(-2) === "..") {
+                this.study_manager.phrase_complete();
+                // this.init_options_rcom()
             }
-
-            this.keygrid.draw_layout(this.row_scan, this.col_scan);
-        } else {
-            this.fetched_words = false;
-            this.skip_hist = false;
-            this.lm.update_cache(this.left_context, this.lm_prefix, selection);
         }
+
+        this.fetched_words = false;
+        this.skip_hist = false;
+        this.lm.update_cache(this.left_context, this.lm_prefix, selection);
+
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
@@ -1279,8 +1194,6 @@ class Keyboard{
         }
     }
     displayWindowSize(){
-        this.webcam_canvas.calculate_size();
-
         this.keygrid_canvas.calculate_size();
         this.keygrid.generate_layout();
         this.keygrid.draw_layout();
@@ -1302,10 +1215,9 @@ class Keyboard{
 
 const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
-const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
-const partial_session = params.get("partial_session") === 'true';
-const emoji = params.get("emoji") === 'true';
-console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session);
+const first_load = (params.get("phase") === 'intro' || params.get("phase") === null);
+const phase = params.get("phase");
+console.log("User ID: ", user_id, " First Load: ", first_load, " phase: ", phase);
 
 function send_login() {
     $.ajax({
@@ -1337,32 +1249,9 @@ function send_login() {
             }
             prev_data["sound"]= sound;
 
-            var webcam_type = result.webcam_type;
-            if (webcam_type !== null) {
-                console.log("Retrieved Webcam Type!");
-            }
-            prev_data["webcam_type"]= webcam_type;
-
-            var webcam_reset = JSON.parse(result.webcam_reset);
-            if (webcam_reset !== null) {
-                console.log("Retrieved Webcam Reset!");
-            }
-            prev_data["webcam_reset"]= webcam_reset;
-
-            var webcam_trigger = JSON.parse(result.webcam_trigger);
-            if (webcam_trigger !== null) {
-                console.log("Retrieved Webcam Trigger!");
-            }
-            prev_data["webcam_trigger"]= webcam_trigger;
-
-            var webcam_bottom = JSON.parse(result.webcam_bottom);
-            if (webcam_bottom !== null) {
-                console.log("Retrieved Webcam Bottom!");
-            }
-            prev_data["webcam_bottom"]= webcam_bottom;
         }
 
-        let keyboard = new Keyboard(user_id, first_load, emoji, partial_session, prev_data);
+        let keyboard = new Keyboard(user_id, first_load, phase, prev_data);
         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
     });
 }
@@ -1370,7 +1259,7 @@ function send_login() {
 if (user_id) {
     send_login();
 } else {
-    let keyboard = new Keyboard(user_id, false, emoji, false, null);
+    let keyboard = new Keyboard(user_id, first_load, false, null);
     setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
 }
 

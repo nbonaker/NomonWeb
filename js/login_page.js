@@ -13,49 +13,6 @@ function create_user(user_id) {
     });
 }
 
-function handle_partial_sessions(nomon_sessions, rowcol_sessions, first_software) {
-    var session_num = Math.min(nomon_sessions, rowcol_sessions);
-    var partial_session;
-    var next_software;
-    var cur_info_text = document.getElementById("info_text").textContent;
-
-    if (nomon_sessions < rowcol_sessions) {
-        document.getElementById("info_text").innerHTML =
-            `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
-
-        next_software = "A";
-        partial_session = true;
-
-    } else if (rowcol_sessions < nomon_sessions) {
-
-        document.getElementById("info_text").innerHTML =
-            `<strong>${cur_info_text} <br> You have not completed session ${session_num}. Click to continue.</strong>`;
-
-        next_software = "B";
-        partial_session = true;
-
-    } else {
-
-        document.getElementById("info_text").innerHTML =
-            `<strong>${cur_info_text} <br> You have completed ${session_num} sessions. Click to launch the keyboard software.</strong>`;
-
-        if (session_num % 2) {
-            if (first_software === "nomon") {
-                first_software = "rowcol";
-            } else {
-                first_software = "nomon";
-            }
-        }
-        if (first_software === "nomon") {
-            next_software = "A";
-        } else {
-            next_software = "B";
-        }
-        partial_session = false;
-    }
-
-    return [session_num, next_software, partial_session];
-}
 
 function init_study(user_id, webcam_type) {
     $.ajax({
@@ -66,64 +23,40 @@ function init_study(user_id, webcam_type) {
         var result = $.parseJSON(data);
         console.log(result);
         var user_id = result[0].id;
-        var first_software = result[0].first_software;
 
-        var next_session_results = handle_partial_sessions(parseInt(result[0].nomon_sessions), parseInt(result[0].rowcol_sessions), first_software);
-        var session_num = next_session_results[0];
-        var next_software = next_session_results[1];
-        var partial_session = next_session_results[2];
+        var phase = result[0].phase;
+        var redirect_url;
 
-        var first_load;
-        if (session_num == 0) {
-            first_load = "true";
-        } else {
-            first_load = "false";
+        if (phase ===  "intro") {
+            if (result[0].nomon_practice <= result[0].rowcol_practice) {
+                redirect_url = "../html/commboard.html";
+            } else {
+                redirect_url = "../html/commboard_rcs.html";
+            }
+
+        } else if (phase ===  "practice") {
+            redirect_url = "../html/training_menu.html";
+
+        } else if (phase ===  "symbol") {
+            if (result[0].nomon_symbol <= result[0].rowcol_symbol) {
+                redirect_url = "../html/commboard.html";
+            } else {
+                redirect_url = "../html/commboard_rcs.html";
+            }
+
+        }
+        else if (phase ===  "text") {
+            if (result[0].nomon_text <= result[0].rowcol_text) {
+                redirect_url = "../html/keyboard.html";
+            } else {
+                redirect_url = "../html/rowcol.html";
+            }
         }
 
-        var emoji;
-
-        if (session_num == 5) {
-            emoji = "false";
-            launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, true);
-        } else if (session_num == 6) {
-            emoji = "false";
-            launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, false);
-        } else if (session_num == 9) {
-            emoji = "true";
-            launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
-        } else if (session_num >= 10) {
-            alert("You have completed all sessions in this study. Please contact us at mitkbstudy@gmail.com to discuss payment. Thank you for participating!")
-        } else {
-            emoji = "false";
-            launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type);
-        }
+        redirect_url = redirect_url.concat('?user_id=', user_id.toString(), '&phase=', phase);
+        window.open(redirect_url, '_self');
 
     });
-
-}
-
-function launch_software(user_id, next_software, partial_session, first_load, emoji, webcam_type, webcam = null) {
-
-    document.getElementById("send_button").value = "Launch Software";
-    document.getElementById("send_button").className = "btn darkhighlighted";
-    for (var button_num = 0; button_num < 10 ; button_num += 1){
-        document.getElementById("button".concat(button_num.toString())).style.display = "none"
-    }
-
-    redirect_url = "../html/commboard.html".concat('?user_id=', user_id.toString(), '&first_load=', first_load,
-        '&partial_session=', partial_session.toString(), '&software=', next_software, '&emoji=', emoji, '&forward=true');
-
-    clearInterval(RCOM_interval);
-    RCOM = null;
-
-    document.getElementById("send_button").onclick = function () {window.open(redirect_url, '_self')};
-
-    window.addEventListener('keydown', function (e) {
-        if (e.keyCode === 32) {
-            e.preventDefault();
-            window.open(redirect_url, '_self');
-        }
-    }, false);
 
 }
 
@@ -138,7 +71,6 @@ function send_login() {
         console.log(result);
         var user_id;
         var click_dist;
-        var webcam_type = "face";
         if (result.length > 0) {
             result = result[0];
         }
@@ -157,7 +89,7 @@ function send_login() {
                 create_user(user_id);
                 document.getElementById("info_text").innerHTML =
                     `<strong>Created user with ID ${user_id}!</strong>`;
-                init_study(user_id, webcam_type);
+                init_study(user_id);
             }
         } else if ("id" in result) {  // Load previous user
             user_id = requested_user_id;
@@ -169,9 +101,8 @@ function send_login() {
                 document.getElementById("info_text").innerHTML =
                     `<strong>Loading User ${user_id}... User preferences loaded!</strong>`;
             }
-            webcam_type = result.webcam_type;
-            console.log("given_id:", user_id, "webcam switch:", webcam_type);
-            init_study(user_id, webcam_type);
+            console.log("given_id:", user_id);
+            init_study(user_id);
         } else {  //  User not found
             document.getElementById("info_text").innerHTML =
                 `<strong>We could not find a user with ID ${requested_user_id}. Please try again.</strong>`;

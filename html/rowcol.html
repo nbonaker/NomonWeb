@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
-<title>Keyboard B</title>
+<title>RCS Keyboard</title>
 <link rel="icon"
       type="image/png"
       href="../icon.png">
 <head>
-    <script defer src="../js/webcam_switch/face-api.min.js"></script>
+    <meta charset="utf-8">
     <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0"/>
     <meta http-equiv="cache-control" content="max-age=0"/>
     <meta http-equiv="expires" content="0"/>
@@ -30,7 +30,7 @@ label {
 
 .slider {
   -webkit-appearance: none;
-  width: 25vw ;
+  width: 35vw ;
   height: 25px;
   background: #d3d3d3;
   outline: none;
@@ -82,11 +82,16 @@ label {
   margin: 1px 1px;
   cursor: pointer;
   border-radius: 4px;
+  z-index: 6;
+    position: relative;
 }
-.clickable {
-    background-color: #0056ff;
+.darkhighlighted {
+    background-color: rgb(103, 0, 255);
 }
-.unclickable {
+.highlighted {
+    background-color: rgba(0, 89, 255, 0.83);
+}
+.unhighlighted {
     background-color: rgba(0, 89, 255, 0.32);
 }
 
@@ -94,17 +99,16 @@ label {
 
 <body scroll="no" style="overflow: hidden">
 
+
 <div class="container space-between" id="top_bar_top">
     <div>
         <div class="slidecontainer">
-            <label for="speed_slider" class="label toprow"><b>Scan Speed: </b></label>
-            <input type="range" min="1" max="20" value="1" class="slider" id="speed_slider">
-            <label for="speed_slider" class="label toprow"><b><span id="speed_slider_value"></span></b></label>
-        </div>
-        <div class="slidecontainer">
-            <label for="extra_delay_slider" class="label toprow" style="padding-left: 20px"><b>First Row Scan Speed: </b></label>
-            <input type="range" min="1" max="10" value="1" class="slider" id="extra_delay_slider" >
-            <label for="extra_delay_slider" class="label toprow"><b><span id="extra_delay_slider_value"></span></b></label>
+            <input class='btn unhighlighted' type="button" id = "dec_scan_delay_button" value = "Scan Delay -  "/>
+            <input class='btn unhighlighted' type="button" id = "inc_scan_delay_button" value = "Scan Delay +  "/>
+            <input class='btn unhighlighted' type="button" id = "dec_extra_delay_button" value = "Extra Delay -"/>
+            <input class='btn unhighlighted' type="button" id = "inc_extra_delay_button" value = "Extra Delay +"/>
+            <label><b>Scan Delay: <span id="scan_delay_text">0</span>/20</b></label>
+            <label><b>Extra Delay: <span id="extra_delay_text">0</span>/10</b></label>
         </div>
     </div>
     <div>
@@ -133,58 +137,30 @@ label {
 </div>
 <div class="container space-between" id="top_bar_bottom">
         <div>
-            <input class='btn clickable' type="button" id = "send_button" value = "Change User"/>
-            <input class='btn clickable' type="button" id = "session_button" value = "Start Session"/>
+            <input class='btn unhighlighted' type="button" id = "tutorial_button" value = "Help               "/>
+            <input class='btn unhighlighted' type="button" id = "send_button" value =     "Change User  "/>
+            <input class='btn unhighlighted' type="button" id = "session_button" value =  "Start Training"/>
+            <input class='btn unhighlighted' type="button" id = "abort_options_button" value = "Stop Scan     "/>
             <label id = "session_timer"><b> </b></label>
-            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! Press Start Session to begin.</i></label>
-            <input class='btn clickable' type="button" id = "help_button" value = "?" >
-        </div>
-         <div class="container center_veritcal" id="webcam_div">
-            <canvas id="webcam_canvas" height="10px" width="300vw"></canvas>
-            <label for="checkbox"
-                onmousedown="event.preventDefault()"
-                onclick="
-                    console.log('label:click');
-                    if (this === event.target) {
-                        console.log('label === event.target');
-                        console.log('label:click preventDefault()');
-                        // prevent focus and click
-                        event.preventDefault();
-                        // call click on the labeled control
-                        this.control && this.control.click();
-                    }
-                "
-                class="label webcam">
-                <input id="checkbox_webcam" type="checkbox"
-                    onmousedown="event.preventDefault()"
-                    onclick="
-                        console.log('checkbox:click', `checked = ${this.checked}`);
-                    "
-                />
-            <b>Webcam Switch</b>
-            </label>
-                <input class='btn clickable' type="button" id = "recalibrate_button" value = "Recalibrate"/>
+            <label id="info_label" style="padding-left: 20px"/><i>Welcome User! This is a Training Phase. Press Start Training to begin.</i></label>
         </div>
     </div>
     <textarea id="output_textbox"></textarea>
 </div>
 
-<video id="video" width="500" height="560"></video>
-<canvas id="video_canvas"></canvas>
-
 <!--<script type="module" src="webcam_switch/webcam_switch.js"></script>-->
 
 
 <canvas id="key_grid">
-Your browser does not support the canvas element.
+</canvas>
+
+<canvas id="highlights">
 </canvas>
 
 <canvas id="output">
-Your browser does not support the canvas element.
 </canvas>
 
 <canvas id="info">
-Your browser does not support the canvas element.
 </canvas>
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
@@ -194,11 +170,6 @@ Your browser does not support the canvas element.
     const user_id = params.get("user_id");
     document.getElementById("info_label").innerHTML =`<b>Welcome user ${user_id}! Press Start Session to begin.</b>`;
 
-    document.getElementById("send_button").onclick = function(){
-        var login_url = "../index.php";
-        // keyboard_url = keyboard_url.concat('?user_id=', user_id.toString(), '&first_load=true');
-        window.open(login_url,'_self');
-    };
 </script>
 
 <script type="module" src="../js/rowcol/rowcol.js"></script>

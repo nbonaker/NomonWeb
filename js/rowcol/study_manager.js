@@ -3,9 +3,9 @@ import * as kconfig from "./kconfig.js";
 
 
 export class studyManager {
-    constructor(parent, user_id, first_load, partial_session, prev_data){
+    constructor(parent, user_id, first_load, phase, prev_data){
         this.parent = parent;
-        this.partial_session = partial_session;
+        this.phase = phase;
         this.user_id = user_id;
         this.prev_data = prev_data;
         this.session_pause_time = 0;
@@ -38,9 +38,10 @@ export class studyManager {
             }).done(function (data) {
                 var result = $.parseJSON(data);
                 console.log(result);
-                study_manager.session_number = parseInt(result[0].rowcol_sessions)+1;
+                study_manager.session_number = parseInt(result[0].rowcol_practice) + parseInt(result[0].rowcol_symbol)
+                    + parseInt(result[0].rowcol_text) + 1;
                 study_manager.session_dates = JSON.parse(result[0].dates);
-                study_manager.phrase_queue = JSON.parse(result[0].rowcol_phrase_queue);
+                study_manager.phrase_queue = JSON.parse(result[0].nomon_phrase_queue);
                 study_manager.parse_phrases();
 
                 study_manager.starting_software = "rocol";
@@ -64,14 +65,19 @@ export class studyManager {
         } else {
             last_session = "";
         }
-        var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
+        // var response = confirm(`Starting session ${this.session_number}. ${last_session}You will start this session with ${software_name}. Please ensure you can commit to the full hour before you press ok.`);
+        var response = true;
         if (response){
-             window.addEventListener('keydown', function (e) {
-                if (e.keyCode === 13) {
-                    e.preventDefault();
-                    this.phrase_complete();
-                }
-            }.bind(this), false);
+            //  window.addEventListener('keydown', function (e) {
+            //     if (e.keyCode === 13) {
+            //         e.preventDefault();
+            //         this.phrase_complete();
+            //     }
+            //     else if (e.keyCode === 32) {
+            //         e.preventDefault();
+            //         this.parent.on_press();
+            //     }
+            // }.bind(this), false);
 
             this.parent.in_session = true;
 
@@ -81,11 +87,8 @@ export class studyManager {
             this.parent.session_button.onclick = null;
             this.parent.session_button.className = "btn unclickable";
 
-            document.getElementById("checkbox_webcam").disabled = true;
-
+            // this.parent.change_user_button.className = "btn unclickable";
             this.parent.change_user_button.style.display = "none";
-
-            this.parent.checkbox_webcam.checked = true;
 
             // this.init_webcam_switch();
             // document.onkeypress = null;
@@ -116,70 +119,20 @@ export class studyManager {
         }
     }
     init_session_specifics(){
-        this.parent.init_webcam_switch();
 
-        if (this.session_number <= 9){
-            if (this.session_number === 1){
-                this.session_length = 10*60;
-                this.parent.change_scan_delay(1);
-                this.parent.change_extra_delay(1);
+                this.session_length = 1*60;
+                // this.parent.change_scan_delay(1);
+                // this.parent.change_extra_delay(1);
 
-                this.parent.pre_phrase_scan_delay_index = 1;
-                this.parent.pre_phrase_extra_delay_index = 1;
+                // this.parent.pre_phrase_scan_delay_index = 1;
+                // this.parent.pre_phrase_extra_delay_index = 1;
 
-                this.parent.in_info_screen = true;
-                this.parent.init_session_info_screen();
+                // this.parent.in_info_screen = true;
+                // this.parent.init_session_info_screen();
 
                 //remove after beta testing:
                 // this.intermediate_survey = true;
                 // this.full_tlx = true;
-
-            } else if (this.session_number === 2) {
-                this.session_length = 20*60;
-                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
-                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
-
-                this.parent.in_info_screen = true;
-                this.parent.init_session_info_screen();
-                //tlx full and questionnaire
-                this.intermediate_survey = true;
-                this.full_tlx = true;
-
-            } else if (this.session_number === 5){
-                this.session_length = 20*60;
-                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
-                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
-                //tlx short and questionnaire
-                this.intermediate_survey = true;
-                this.short_tlx = true;
-
-            } else if (this.session_number === 9){
-                this.session_length = 20*60;
-                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
-                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
-                //tlx full and questionnaire
-                //final questionnaire
-                this.intermediate_survey = true;
-                this.final_survey = true;
-                this.full_tlx = true;
-
-            } else {
-                this.session_length = 20*60;
-                this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
-                this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
-            }
-
-        } else if (this.session_number === 10){
-            this.session_length = 20*60;
-            this.parent.change_scan_delay(this.parent.pre_phrase_scan_delay_index);
-            this.parent.change_extra_delay(this.parent.pre_phrase_extra_delay_index);
-            //tlx full and questionnaire
-            //final questionnaire
-            this.intermediate_survey = true;
-            this.final_survey = true;
-            this.full_tlx = true;
-
-        }
 
         this.parent.audio_checkbox.checked = true;
     }
@@ -203,11 +156,9 @@ export class studyManager {
         this.parent.info_canvas.ctx.rect(0, 0, this.parent.info_canvas.screen_width, this.parent.info_canvas.screen_height);
         this.parent.info_canvas.ctx.fill();
 
-        this.parent.info_button.disabled = true;
-        this.parent.info_button.className = "btn unclickable";
-        document.getElementById("info_label").innerHTML =`<i>press Finished Typing</i>`;
         this.parent.textbox.draw_text("");
 
+        this.session_continue();
     }
     session_continue(){
         var user_id = this.user_id;
@@ -224,7 +175,18 @@ export class studyManager {
         }
         var phrase_queue = JSON.stringify(this.unparse_phrases());
 
-        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates, "phrase_queue": phrase_queue, "software": "rowcol"};
+        var phase;
+        var new_phase;
+        if (this.phase === "intro"){
+            phase = "practice";
+            new_phase = "practice";
+        } else {
+            phase =  this.phase;
+            new_phase = this.phase;
+        }
+
+        var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates,
+            "phrase_queue": phrase_queue, "software": "rowcol", "phase": phase, "new_phase": new_phase};
         console.log(post_data);
 
         function increment_session() { // jshint ignore:line
@@ -303,24 +265,11 @@ export class studyManager {
     }
     launch_next_software(){
         var keyboard_url;
-        if (this.partial_session){
-            alert(`You have finished typing for this session. Click to exit.`);
-            keyboard_url = "../index.php";
-            window.open(keyboard_url, '_self');
-        } else {
-            alert(`You have finished typing with Software B in this session. You will now be redirected to Software A to finish this session.`);
-            keyboard_url = "../html/keyboard.html";
 
-            var first_load;
-            if (this.session_number === 1){
-                first_load = "true";
-            } else {
-                first_load = "false";
-            }
-            keyboard_url = keyboard_url.concat('?user_id=', this.user_id.toString(), '&first_load=', first_load,
-                '&partial_session=true&emoji=', this.parent.emoji_keyboard.toString());
-            window.open(keyboard_url, '_self');
-        }
+        alert(`You have finished typing for this session. Click to exit.`);
+        keyboard_url = "../index.php";
+        window.open(keyboard_url, '_self');
+
     }
     parse_phrases(){
         var temp_phrase_queue = this.phrase_queue.slice();
@@ -377,15 +326,9 @@ export class studyManager {
         var phrase;
         var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
 
-        if (this.parent.emoji_keyboard){
-            phrase = this.parse_emojis(this.cur_phrase);
-            typed_text = this.parse_emojis(typed_text);
-            selection = this.parse_emojis(selection);
-        } else {
-            phrase = this.cur_phrase.replace("'", "8");
-            typed_text = typed_text.replace("'", "8");
-            selection = selection.replace("'", "8");
-        }
+        phrase = this.cur_phrase.replace("'", "8");
+        typed_text = typed_text.replace("'", "8");
+        selection = selection.replace("'", "8");
 
         var phrase_num = this.phrase_num;
 

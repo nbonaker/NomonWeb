@@ -20,23 +20,23 @@ export class KeyboardCanvas{
         this.ctx = this.canvas.getContext("2d");
 
         this.resolution_factor = 2;
-        this.screen_fill_factor = 0.98;
+        this.screen_fill_factor = 0.989;
         this.bottom_height_factor = bottom_height_factor;
 
-        this.canvas.width = (this.window_width) * this.resolution_factor;
+        this.canvas.width = this.window_width * this.resolution_factor;
         this.canvas.height = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
         this.canvas.style.width = (this.window_width * this.screen_fill_factor).toString().concat("px");
         this.canvas.style.height = ((this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.screen_fill_factor).toString().concat("px");
 
         this.screen_width = this.window_width * this.resolution_factor;
-        this.v = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
+        this.screen_height = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
     }
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
     }
     grey(){
         this.ctx.beginPath();
-        this.ctx.fillStyle = "rgb(232,232,232)";
+        this.ctx.fillStyle = "rgba(232,232,232,0.76)";
         this.ctx.rect(0, 0, this.screen_width, this.screen_height);
         this.ctx.fill();
     }
@@ -149,7 +149,7 @@ export class KeyGrid {
                         if (this.highlighted_indices[0] === parseInt(row) &&
                             this.highlighted_indices[1] === parseInt(col)){
 
-                            this.keygrid_canvas.ctx.fillStyle = "rgb(145,242,194)";
+                            this.keygrid_canvas.ctx.fillStyle = "#b480ff";
                         } else {
                             this.keygrid_canvas.ctx.fillStyle = "rgb(113,160,255)";
                         }
@@ -161,7 +161,7 @@ export class KeyGrid {
                         if (this.highlighted_indices[0] === parseInt(row) &&
                             this.highlighted_indices[1] === parseInt(col)) {
 
-                            this.keygrid_canvas.ctx.fillStyle = "rgb(197,240,224)";
+                            this.keygrid_canvas.ctx.fillStyle = "#ee6dab";
                         } else {
                             this.keygrid_canvas.ctx.fillStyle = "rgb(197,219,255)";
                         }
@@ -173,7 +173,7 @@ export class KeyGrid {
                         if (this.highlighted_indices[0] === parseInt(row) &&
                             this.highlighted_indices[1] === parseInt(col)) {
 
-                            this.keygrid_canvas.ctx.fillStyle = "#bfeec2";
+                            this.keygrid_canvas.ctx.fillStyle = "#ee6dab";
                         } else {
                             this.keygrid_canvas.ctx.fillStyle = "#ffffff";
                         }
@@ -189,6 +189,8 @@ export class KeyGrid {
                 cell_text = cell_text.replace(kconfig.mybad_char, "Undo");
                 cell_text = cell_text.replace(kconfig.back_char, "Backspace");
                 cell_text = cell_text.replace(kconfig.clear_char, "Clear");
+                cell_text = cell_text.replace(kconfig.option_char, "Options");
+                cell_text = cell_text.replace(kconfig.space_char, "Space");
 
                 this.keygrid_canvas.ctx.fillStyle = "#000000";
                 var cell_height = y_end - y_start;
@@ -200,8 +202,13 @@ export class KeyGrid {
                     font_width = font_width * font_shrink_factor;
                     this.keygrid_canvas.ctx.font = (font_height * font_shrink_factor).toString().concat("px Helvetica");
                 }
-                this.keygrid_canvas.ctx.fillText(cell_text, (x_end + x_start - font_width) / 2,
-                    y_end - font_height * 2 / 3);
+                if (parseInt(cell_text) >= 10) {
+                    let tile = new CommTile(this.keygrid_canvas, x_start + (x_end-x_start)/2 - cell_height*0.9/2,
+                        y_start+cell_height*0.05, cell_height*0.9, parseInt(cell_text));
+                } else {
+                    this.keygrid_canvas.ctx.fillText(cell_text, (x_end + x_start - font_width) / 2,
+                            y_end - font_height * 2 / 3);
+                }
             }
         }
     }
@@ -222,7 +229,7 @@ export class KeyGrid {
                     if (this.highlighted_indices[0] === 0 &&
                         this.highlighted_indices[1] === parseInt(col)){
 
-                        this.keygrid_canvas.ctx.fillStyle = "rgb(145,242,194)";
+                        this.keygrid_canvas.ctx.fillStyle = "#ee6dab";
                     } else {
                         this.keygrid_canvas.ctx.fillStyle = "rgb(113,160,255)";
                     }
@@ -234,7 +241,7 @@ export class KeyGrid {
                     if (this.highlighted_indices[0] === 0 &&
                         this.highlighted_indices[1] === parseInt(col)) {
 
-                        this.keygrid_canvas.ctx.fillStyle = "rgb(197,240,224)";
+                        this.keygrid_canvas.ctx.fillStyle = "#ee6dab";
                     } else {
                         this.keygrid_canvas.ctx.fillStyle = "rgb(197,219,255)";
                     }
@@ -273,6 +280,46 @@ export class KeyGrid {
             this.keygrid_canvas.ctx.fillText(cell_text, (x_end + x_start - font_width) / 2,
                 y_end - font_height * 2 / 3);
         }
+    }
+    highlight_square(row, col){
+        var y_start = this.y_positions[row][0];
+        var y_end = this.y_positions[row][1];
+
+        var x_start = this.x_positions[row][col][0];
+        var x_end = this.x_positions[row][col][1];
+
+        this.keygrid_canvas.ctx.beginPath();
+        this.keygrid_canvas.ctx.fillStyle = "#ee6dab";
+        this.keygrid_canvas.ctx.strokeStyle = "#000000";
+        this.keygrid_canvas.ctx.rect(x_start, y_start, x_end - x_start, y_end - y_start);
+        this.keygrid_canvas.ctx.fill();
+        this.keygrid_canvas.ctx.stroke();
+    }
+}
+
+export class CommTile {
+    constructor(face_canvas, x_pos, y_pos, height, num) {
+        this.face_canvas = face_canvas;
+        this.crop_x = 0;
+        this.crop_y = 0;
+        this.scale = 1.847;
+        this.crop_h = 170*this.scale;
+        this.crop_w = 170*this.scale;
+        this.x_pos = x_pos;
+        this.y_pos = y_pos;
+        this.height = height;
+        this.get_crop_pos(parseInt(num) - 10);
+        this.draw_text();
+    }
+    get_crop_pos(num){
+        this.crop_x = 193.5*(num % kconfig.comm_num_columns)*this.scale;
+        this.crop_y = 193.5*Math.floor(num / kconfig.comm_num_columns)*this.scale;
+    }
+    draw_text() {
+        this.face_canvas.ctx.fillStyle = "#000000";
+        var base_image = document.getElementById("commboard");
+        this.face_canvas.ctx.drawImage(base_image, this.crop_x, this.crop_y, this.crop_w, this.crop_h,
+            this.x_pos, this.y_pos, this.height, this.height);
     }
 }
 
