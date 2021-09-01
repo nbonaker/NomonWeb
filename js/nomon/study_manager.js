@@ -127,7 +127,7 @@ export class studyManager {
     }
     init_session_specifics(){
 
-        this.session_length = 1*60;
+        this.session_length = 10*60;
 
         if (this.phase === "intro"){
             this.init_session_help();

@@ -120,7 +120,7 @@ export class studyManager {
     }
     init_session_specifics(){
 
-                this.session_length = 1*60;
+                this.session_length = 10*60;
                 // this.parent.change_scan_delay(1);
                 // this.parent.change_extra_delay(1);
 

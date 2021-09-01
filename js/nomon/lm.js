@@ -253,7 +253,9 @@ export class LanguageModel{
                 key_probs.push(break_prob);
             }else if (char == kconfig.mybad_char){
                 key_probs.push(undo_prob);
-            }else if (char == kconfig.back_char || char == kconfig.clear_char){
+            }else if (char == kconfig.back_char || char == kconfig.clear_char || char == kconfig.option_char){
+                key_probs.push(back_prob);
+            }else {
                 key_probs.push(back_prob);
             }
         }

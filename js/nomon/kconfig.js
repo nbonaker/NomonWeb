@@ -8,7 +8,7 @@ export var option_char = '%';
 
 // TEXT KEYBOARD PARAMETERS
 export var key_chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                   'u', 'v', 'w', 'x', 'y', 'z', '.', '\'', '#', '$', '@', '_', '%'];
+                   'u', 'v', 'w', 'x', 'y', 'z', '.', '\'', '%', '#', '$', '@', '_'];
 export var main_chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
                    'u', 'v', 'w', 'x', 'y', 'z', '\''];
 

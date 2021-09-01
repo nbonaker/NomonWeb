@@ -133,9 +133,12 @@ class Keyboard{
         this.previous_undo_text = '';
         this.previous_winner = 0;
 
+        this.gen_word_prior(false);
+
         //
         this.bc = new bc.BroderClocks(this);
         this.full_init=true;
+        console.log(this.word_score_prior);
         this.bc.init_follow_up(this.word_score_prior);
 
         this.histogram.update(this.bc.clock_inf.kde.dens_li);
@@ -633,12 +636,12 @@ class Keyboard{
                     if (kconfig.main_chars.includes(key_chars[row][col]) && (key_chars[row].length == 1)){
                         this.N_alpha_keys = this.N_alpha_keys + 1;
                     }
-                    else if ((key_chars[row] == kconfig.space_char) && (key_chars[row].length == 1)){
-                        this.N_alpha_keys = this.N_alpha_keys + 1;
-                    }
-                    else if (key_chars[row] == kconfig.break_chars[1] && (key_chars[row].length == 1)) {
-                        this.N_alpha_keys = this.N_alpha_keys + 1;
-                    }
+                    // else if ((key_chars[row] == kconfig.space_char) && (key_chars[row].length == 1)){
+                    //     this.N_alpha_keys = this.N_alpha_keys + 1;
+                    // }
+                    // else if (key_chars[row] == kconfig.break_chars[1] && (key_chars[row].length == 1)) {
+                    //     this.N_alpha_keys = this.N_alpha_keys + 1;
+                    // }
                 }
             }
 
@@ -693,7 +696,7 @@ class Keyboard{
                 //  clock position for key character
                 this.clock_centers.push([0, 0]);
                 //  win diffs
-                if ((key_char == kconfig.mybad_char) || (key_char == kconfig.yourbad_char) || (
+                if ((key_char == kconfig.option_char) || (key_char == kconfig.mybad_char) || (key_char == kconfig.yourbad_char) || (
                         key_char == kconfig.back_char)){
                     this.win_diffs.push(config.win_diff_high);
                 }
@@ -1032,7 +1035,7 @@ class Keyboard{
 
 
             // # special characters
-            if (new_char == "Space" || new_char == ' '){
+            if (new_char == kconfig.space_char || new_char == ' ' || new_char == 'Space'){
                 new_char = '_'
                 this.old_context_li.push(this.context);
                 this.typed = this.typed.concat(new_char);
