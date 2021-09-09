@@ -83,7 +83,7 @@ export class studyManager {
 
             this.parent.in_session = true;
 
-            document.getElementById("info_label").innerHTML =`<i>Copy the phrase below. Press enter for the next phrase.</i>`;
+            document.getElementById("info_label").innerHTML =`<i>Copy the phrase below. Type two periods \"..\" for the next phrase.</i>`;
 
             this.parent.session_button.value = "End Session";
             this.parent.session_button.onclick = null;
