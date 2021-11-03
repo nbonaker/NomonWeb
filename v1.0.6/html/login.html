@@ -1,0 +1,218 @@
+<html>
+<link href="../../icon.png"
+      rel="icon"
+      type="image/png">
+<head>
+    <title>Nomon Keyboard Login</title>
+    <meta content="no-cache, must-revalidate, post-check=0, pre-check=0" http-equiv="cache-control"/>
+    <meta content="max-age=0" http-equiv="cache-control"/>
+    <meta content="0" http-equiv="expires"/>
+    <meta content="Tue, 01 Jan 1980 1:00:00 GMT" http-equiv="expires"/>
+    <meta content="no-cache" http-equiv="pragma"/>
+    <style>
+        body {
+            font-family: "Helvetica", Gadget, sans-serif;
+        }
+
+        #container {
+            text-align: center;
+        }
+
+        #container table {
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .btn {
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 20px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .darkhighlighted {
+            background-color: rgb(103, 0, 255);
+        }
+
+        .highlighted {
+            background-color: rgba(0, 89, 255, 0.83);
+        }
+
+        .unhighlighted {
+            background-color: rgba(0, 89, 255, 0.32);
+        }
+
+        input[type='text'] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .success, .error {
+            width: 20%;
+            border: 1px solid;
+            margin: 10px 0px;
+            padding: 15px 10px 15px 50px;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            display: inline-block;
+        }
+
+        .success {
+            color: #4F8A10;
+            background-color: #DFF2BF;
+        }
+
+        .error {
+            color: #D8000C;
+            background-color: #FFBABA;
+        }
+
+        p.centered_left {
+            width: 40em;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        footer {
+        position: fixed;
+        height: 2em;
+        width: 100%;
+        text-align: center;
+        line-height: 2em;
+        bottom: 1em;
+    }
+
+     .column {
+        float: left;
+        width: 33.33%;
+        padding:0px;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+        padding: 0px;
+    }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <h1>Welcome to the Keyboard Study!</h1>
+    <p id="info_text"><strong>Please enter your user ID below using the Row Column Scanning Interface</strong><br>
+        Supported switch events: <i>spacebar keypress</i> and <i>left mouse click</i></p>
+    <div id="message"></div>
+    <form name='form1'>
+        <table align="">
+            <tr>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    <label>User ID:</label>
+                </td>
+
+                <td colspan="2">
+                    <input id='user_id' name='user_id' placeholder='User ID' required type='text'><br/>
+                </td>
+            </tr>
+        </table>
+        <table align="">
+            <tr>
+                <td>
+                    <input class='btn unhighlighted' id="button1" type="button" value="1"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' id="button2" type="button" value="2"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' id="button3" type="button" value="3"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class='btn unhighlighted' id="button4" type="button" value="4"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' id="button5" type="button" value="5"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' id="button6" type="button" value="6"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class='btn unhighlighted' id="button7" type="button" value="7"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' id="button8" type="button" value="8"/>
+                </td>
+                <td>
+                    <input class='btn unhighlighted' id="button9" type="button" value="9"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class='btn unhighlighted' id="button0" type="button" value="0"/>
+                </td>
+                <td colspan="2">
+                    <input class='btn unhighlighted' formaction="html/keyboard.php" id="send_button" type="button"
+                           value="    Enter    "/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input class='btn unhighlighted' id="button_delete" type="button" value="   Delete    "/>
+                </td>
+                <td colspan="2">
+                    <input class='btn unhighlighted' id="button_clear" type="button" value="   Clear    "/>
+                </td>
+            </tr>
+        </table>
+    </form>
+    <p class="centered_left" id="info_text2">
+        <strong>How to use the Row Column Scanning Interface: </strong><br><br>
+
+        (1) Wait until the row containing the item you want to select is highlighted in
+        <span style="font-weight: bold; color: #0059FF">Dark Blue</span>.<br><br>
+        (2) At this time, activate your switch to select your desired row. The Interface will begin
+        scanning through each column in the selected row.<br><br>
+        (3) Wait until the column containing the item you want to select is highlighted in
+        <span style="font-weight: bold; color: #6700FF">Purple</span>.<br><br>
+        (4) At this time, activate your switch to select the item.<br><br>
+        (5) The interface will begin to scan through the rows as before. Repeat this process to select more
+        items.<br><br>
+        (6) If you've accidentally selected the wrong row, you can wait for two column scans to undo. <br><br>
+    </p>
+</div>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="../js/v1.0.6/login_page.js" type="module"></script>
+
+</body>
+<footer>
+    <div class="row">
+        <div class="column">
+            <p style="text-align: left; padding-left: 1em"> &copy; 2021 The Nomon Web Interface. </p>
+        </div>
+        <div class="column">
+            <p style="text-align: center"><img src="/icon.png" style="width: 1em;"> <span
+                    id="footer_version">v0.0.0</span></p>
+        </div>
+        <div class="column">
+            <p style="text-align: right; padding-right: 1em">This code is under MIT licence. </p>
+        </div>
+    </div>
+</footer>
+
+</html>
