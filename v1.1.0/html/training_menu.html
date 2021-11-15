@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<link href="../../icon.png"
+      rel="icon"
+      type="image/png">
+<head>
+    <meta charset="UTF-8">
+    <title>Nomon Study</title>
+    <style>
+        body {
+            font-family: "Helvetica", Gadget, sans-serif;
+        }
+
+        #container {
+            text-align: center;
+        }
+
+        #container table {
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .btn {
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            width: 15em;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 20px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .darkhighlighted {
+            background-color: rgb(103, 0, 255);
+        }
+
+        .highlighted {
+            background-color: rgba(0, 89, 255, 0.83);
+        }
+
+        .unhighlighted {
+            background-color: rgba(0, 89, 255, 0.32);
+        }
+
+        input[type='text'] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .success, .error {
+            width: 20%;
+            border: 1px solid;
+            margin: 10px 0px;
+            padding: 15px 10px 15px 50px;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            display: inline-block;
+        }
+
+        .success {
+            color: #4F8A10;
+            background-color: #DFF2BF;
+        }
+
+        .error {
+            color: #D8000C;
+            background-color: #FFBABA;
+        }
+
+        footer {
+            position: fixed;
+            height: 2em;
+            width: 100%;
+            text-align: center;
+            line-height: 2em;
+            bottom: 1em;
+        }
+
+        .column {
+            float: left;
+            width: 33.33%;
+            padding: 0px;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+            padding: 0px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="container">
+    <h1>Choose an Interface to practice:</h1>
+
+    <table align="">
+        <tr>
+            <td style="text-align:center">
+                <img alt="" border=0 height=100 id="nomon_img" src="../resources/clock.JPG" width=100></img>
+            </td>
+            <td style="text-align:center">
+                <img alt="" border=0 height=100 src="../resources/RCS_logo.jpg" width=150></img>
+            </td>
+<!--            <td style="text-align:center">-->
+<!--                <img alt="" border=0 height=100 src="../resources/back_arrow.svg" width=150></img>-->
+<!--            </td>-->
+        </tr>
+        <tr>
+            <td>
+                <input class='btn unhighlighted' id="button1" type="button" value="Nomon"/>
+            </td>
+            <td>
+                <input class='btn unhighlighted' id="button2" type="button" value="Row-Col"/>
+            </td>
+<!--            <td>-->
+<!--                <input class='btn unhighlighted' id="button3" type="button" value="Login Page (Change User)"/>-->
+<!--            </td>-->
+        </tr>
+    </table>
+    <p id="info_text"><strong>Select the interface with which you feel you need the most practice.<br>
+        This may be the same interface that you practiced last time.</strong></p>
+</div>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="../js/v1.1.0/training_menu.js" type="module"></script>
+</body>
+<footer>
+    <div class="row">
+        <div class="column">
+            <p style="text-align: left; padding-left: 1em"> &copy; 2021 The Nomon Web Interface. </p>
+        </div>
+        <div class="column">
+            <p style="text-align: center"><img src="/icon.png" style="width: 1em;"> <span
+                    id="footer_version">v0.0.0</span></p>
+        </div>
+        <div class="column">
+            <p style="text-align: right; padding-right: 1em">This code is under MIT license. </p>
+        </div>
+    </div>
+</footer>
+</html>

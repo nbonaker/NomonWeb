@@ -1,3 +1,4 @@
 <?php
-    header('Location: /v1.0.6/html/login.html');
+
+    header('Location: /v1.1.0/html/login.html?user_id=' . $_GET['user_id']);
 ?>
