@@ -94,4 +94,8 @@ function send_login(user_id) {
 const params = new URLSearchParams(document.location.search);
 const user_id = params.get("user_id");
 
+if (user_id == "data"){
+    window.open("../html/data_load.php", '_self');
+}
+
 send_login(user_id);

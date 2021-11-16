@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Nomon Keyboard</title>
+<title>RCS Symbols</title>
 <link href="../../icon.png"
       rel="icon"
       type="image/png">
@@ -14,6 +14,9 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
 
+    <div style="display: None">
+        <img id="commboard" src="../resources/Core-Board-63-Location-MJ-symbo.PNG">
+    </div>
 </head>
 <style>
     textarea {
@@ -28,7 +31,7 @@
 
     label {
         font-family: Helvetica, sans-serif;
-        font-size: 1.2vw;
+        font-size: 1em;
     }
 
     .toprow {
@@ -91,7 +94,7 @@
         text-decoration: none;
         display: inline-block;
         font-family: Helvetica, sans-serif;
-        font-size: 1.1vw;
+        font-size: 1em;
         width: 10em;
         margin: 1px 1px;
         cursor: pointer;
@@ -160,98 +163,40 @@
 
 <body scroll="no" style="overflow: hidden">
 <div class="se-pre-con">
-    <h1 style="text-align: center; font-size: 5vh">Give me a second while I load Nomon!</h1>
+    <h1 style="text-align: center; font-size: 5vh">Give me a second while I load RCS!</h1>
 
 </div>
 
 <div class="container space-between" id="top_bar_top">
     <div>
         <div class="slidecontainer">
-            <input class='btn unhighlighted' id="dec_speed_button" type="button" value="Clock Speed -"/>
-            <input class='btn unhighlighted' id="inc_speed_button" type="button" value="Clock Speed +"/>
-            <input class='btn unhighlighted' id="abort_options_button" type="button" value="Stop Scan"/>
-            <label><b>Clock Speed: <span id="speed_text">0</span>/20</b></label>
+            <input class='btn unhighlighted' id="dec_scan_delay_button" type="button" value="Scan Speed -"/>
+            <input class='btn unhighlighted' id="inc_scan_delay_button" type="button" value="Scan Speed +"/>
+            <input class='btn unclickable' id="tutorial_button" type="button" value="Help"/>
+            <input class='btn unhighlighted' id="abort_options_button" type="button" value="Exit Options"/>
+
+            <label style="padding-left: 2em;">Scan Speed:<b> <span id="scan_delay_text">0</span>/20</b></label>
+
+            <label style="padding-left: 2em;">First Row Speed:<b> <span id="extra_delay_text">0</span>/10</b></label>
         </div>
-    </div>
-    <div>
-        <label for="checkbox"
-               onclick="
-            console.log('label:click');
-            if (this === event.target) {
-              console.log('label === event.target');
-              console.log('label:click preventDefault()');
-              // prevent focus and click
-              event.preventDefault();
-              // call click on the labeled control
-              this.control && this.control.click();
-            }
-          "
-               onmousedown="event.preventDefault()">
-            <input id="checkbox_learn" onclick="
-              console.log('checkbox:click', `checked = ${this.checked}`);
-            "
-                   onmousedown="event.preventDefault()"
-                   type="checkbox"
-            />
-            <b>Learn</b>
-        </label>
-        <label for="checkbox"
-               onclick="
-            console.log('label:click');
-            if (this === event.target) {
-              console.log('label === event.target');
-              console.log('label:click preventDefault()');
-              // prevent focus and click
-              event.preventDefault();
-              // call click on the labeled control
-              this.control && this.control.click();
-            }
-          "
-               onmousedown="event.preventDefault()">
-            <input id="checkbox_pause" onclick="
-              console.log('checkbox:click', `checked = ${this.checked}`);
-            "
-                   onmousedown="event.preventDefault()"
-                   type="checkbox"
-            />
-            <b>Pause</b>
-        </label>
-        <label for="checkbox"
-               onclick="
-            console.log('label:click');
-            if (this === event.target) {
-              console.log('label === event.target');
-              console.log('label:click preventDefault()');
-              // prevent focus and click
-              event.preventDefault();
-              // call click on the labeled control
-              this.control && this.control.click();
-            }
-          "
-               onmousedown="event.preventDefault()">
-            <input id="checkbox_sound" onclick="
-              console.log('checkbox:click', `checked = ${this.checked}`);
-            "
-                   onmousedown="event.preventDefault()"
-                   type="checkbox"
-            />
-            <b>Sound</b>
-        </label>
     </div>
 </div>
 <div class="container space-between" id="top_bar_bottom">
     <div>
-        <input class='btn unhighlighted' id="tutorial_button" type="button" value="Help"/>
-        <input class='btn unhighlighted' id="send_button" type="button" value="Login Page"/>
-        <input class='btn unhighlighted' id="session_button" type="button" value="Start Session"/>
+        <input class='btn unhighlighted' id="dec_extra_delay_button" type="button" value="First Row Speed -"/>
+        <input class='btn unhighlighted' id="inc_extra_delay_button" type="button" value="First Row Speed +"/>
+        <input class='btn unclickable' id="session_button" type="button" value="End Session"/>
+
+        <label id="session_counter"><b> </b></label>
         <label id="session_timer"><b> </b></label>
+
         <label style="display: inline; padding-left: 20px; ">&#x1F6C8</label>
-        <label id="info_label"/><i>Welcome User! This is a Training Phase. Press Start Session to begin.</i></label>
-        <label style="display: inline;">&#x1F6C8</label></div>
+        <label id="info_label"/><i>Welcome to RCS! The session will start shortly...</i></label>
+        <label style="display: inline;">&#x1F6C8</label>
+    </div>
 </div>
 <textarea id="output_textbox"></textarea>
 </div>
-
 
 <!--<script type="module" src="webcam_switch/webcam_switch.js"></script>-->
 
@@ -262,13 +207,10 @@
 <canvas id="highlights">
 </canvas>
 
-<canvas id="clock_face">
-</canvas>
-
-<canvas id="clock_hand">
-</canvas>
-
 <canvas id="output">
+</canvas>
+
+<canvas id="shadow">
 </canvas>
 
 <canvas id="info">
@@ -277,17 +219,15 @@
 <canvas id="normon_canvas">
 </canvas>
 
-
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script type="text/javascript">
-
 
     const params = new URLSearchParams(document.location.search);
     const user_id = params.get("user_id");
 
 </script>
 
-<script src="../js/v1.1.0/nomon/keyboard.js" type="module"></script>
+<script src="../js/v1.1.1/rowcol/commboard_rcs.js" type="module"></script>
 
 </body>
 <footer>

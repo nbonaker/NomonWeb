@@ -163,7 +163,7 @@ export class studyManager {
             this.parent.help_manager.progress_screens();
         }
 
-        this.session_length = 2 * 60;
+        this.session_length = 10 * 60;
         // this.parent.change_scan_delay(1);
         // this.parent.change_extra_delay(1);
 

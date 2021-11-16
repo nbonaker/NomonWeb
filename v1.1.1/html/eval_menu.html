@@ -25,7 +25,6 @@
             border: none;
             color: white;
             padding: 15px 32px;
-            width: 15em;
             text-align: center;
             text-decoration: none;
             display: inline-block;
@@ -76,27 +75,6 @@
             color: #D8000C;
             background-color: #FFBABA;
         }
-
-        footer {
-            position: fixed;
-            height: 2em;
-            width: 100%;
-            text-align: center;
-            line-height: 2em;
-            bottom: 1em;
-        }
-
-        .column {
-            float: left;
-            width: 33.33%;
-            padding: 0px;
-        }
-
-        /* Clear floats after the columns */
-        .row:after {
-            padding: 0px;
-        }
-
     </style>
 </head>
 <body>
@@ -105,15 +83,12 @@
 
     <table align="">
         <tr>
-            <td style="text-align:center">
-                <img alt="" border=0 height=100 id="nomon_img" src="../resources/clock.JPG" width=100></img>
+            <td>
+                <img alt="" border=0 height=100 src="../resources/clock.JPG" width=100></img>
             </td>
-            <td style="text-align:center">
+            <td>
                 <img alt="" border=0 height=100 src="../resources/RCS_logo.jpg" width=150></img>
             </td>
-<!--            <td style="text-align:center">-->
-<!--                <img alt="" border=0 height=100 src="../resources/back_arrow.svg" width=150></img>-->
-<!--            </td>-->
         </tr>
         <tr>
             <td>
@@ -122,29 +97,15 @@
             <td>
                 <input class='btn unhighlighted' id="button2" type="button" value="Row-Col"/>
             </td>
-<!--            <td>-->
-<!--                <input class='btn unhighlighted' id="button3" type="button" value="Login Page (Change User)"/>-->
-<!--            </td>-->
+            <td>
+                <input class='btn unhighlighted' id="button3" type="button" value="I'm Done Practicing!"/>
+            </td>
         </tr>
     </table>
     <p id="info_text"><strong>Select the interface with which you feel you need the most practice.<br>
         This may be the same interface that you practiced last time.</strong></p>
 </div>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-<script src="../js/v1.1.0/training_menu.js" type="module"></script>
+<script src="../js/v1.1.1/training_menu.js" type="module"></script>
 </body>
-<footer>
-    <div class="row">
-        <div class="column">
-            <p style="text-align: left; padding-left: 1em"> &copy; 2021 The Nomon Web Interface. </p>
-        </div>
-        <div class="column">
-            <p style="text-align: center"><img src="/icon.png" style="width: 1em;"> <span
-                    id="footer_version">v0.0.0</span></p>
-        </div>
-        <div class="column">
-            <p style="text-align: right; padding-right: 1em">This code is under MIT license. </p>
-        </div>
-    </div>
-</footer>
 </html>
