@@ -1,5 +1,5 @@
 export class OptionsManager {
-    constructor(options_array, scan_delay = 1, parent = null, own_keyevent = true) {
+    constructor(options_array, scan_delay = 2.5, parent = null, own_keyevent = true) {
         this.options_array = options_array;
         this.scan_delay = scan_delay;
         this.scan_abort_count = 2;

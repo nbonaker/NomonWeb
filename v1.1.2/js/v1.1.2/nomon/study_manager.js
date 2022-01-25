@@ -1,12 +1,11 @@
 import * as widgets from "./widgets.js";
-import * as kconfig from "./kconfig.js";
-
+import * as kconfig from './kconfig.js';
 
 export class studyManager {
     constructor(parent, user_id, first_load, phase, prev_data) {
         this.parent = parent;
-        this.phase = phase;
         this.user_id = user_id;
+        this.phase = phase;
         this.prev_data = prev_data;
         this.session_pause_time = 0;
 
@@ -25,9 +24,9 @@ export class studyManager {
         this.short_tlx = false;
         this.full_tlx = false;
         this.in_survey = false;
+        this.survey_complete = false;
 
         this.sent_beacon = false;
-
     }
 
     request_session_data() {
@@ -42,13 +41,14 @@ export class studyManager {
             }).done(function (data) {
                 var result = $.parseJSON(data);
                 console.log(result);
-                study_manager.session_number = parseInt(result[0].rowcol_practice) + parseInt(result[0].rowcol_symbol)
-                    + parseInt(result[0].rowcol_text) + 1;
+
+                study_manager.session_number = parseInt(result[0].nomon_practice) + parseInt(result[0].nomon_symbol)
+                    + parseInt(result[0].nomon_text) + 1;
                 study_manager.session_dates = JSON.parse(result[0].dates);
                 study_manager.phrase_queue = JSON.parse(result[0].nomon_phrase_queue);
                 study_manager.parse_phrases();
 
-                study_manager.starting_software = "rocol";
+                study_manager.starting_software = "nomon";
 
                 study_manager.init_session();
             });
@@ -87,12 +87,12 @@ export class studyManager {
 
             window.addEventListener('beforeunload', this.finish_session.bind(this), false);
 
-
             this.parent.in_session = true;
 
             document.getElementById("info_label").innerHTML = `<i>Copy the phrase below. Type two periods \"..\" for the next phrase.</i>`;
 
-            this.parent.session_button.onclick = function(e){
+            this.parent.end_session_button = document.getElementById("end_session_button");
+            this.parent.end_session_button.onclick = function(e){
                 if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
                     return
                 }
@@ -100,11 +100,9 @@ export class studyManager {
                 this.end_session_alert();
 
             }.bind(this.parent);
-            this.parent.session_button.value = "End Session";
-            this.parent.session_button.className = "btn unhighlighted";
-            this.parent.tutorial_button.className = "btn unhighlighted";
 
-            // this.init_webcam_switch();
+            this.parent.end_session_button.className = "btn unhighlighted";
+            this.parent.tutorial_button.className = "btn unhighlighted";
             // document.onkeypress = null;
 
             this.session_start_time = Math.round(Date.now() / 1000);
@@ -121,13 +119,13 @@ export class studyManager {
             }else {
                 session_counter_text = session_counter_text.concat(this.session_number.toString(), "th ");
             }
-            session_counter_text = session_counter_text.concat("session with RCS.");
+            session_counter_text = session_counter_text.concat("session with Nomon.");
 
             document.getElementById("session_counter").innerText = session_counter_text;
 
-            this.parent.rel_click_times = [];
-            this.parent.abs_click_times = [];
-            this.parent.click_scan_positions = [];
+            this.parent.bc.abs_click_times = [];
+            this.parent.bc.rel_click_times = [];
+            this.parent.last_selection = null;
 
             this.parent.draw_phrase();
 
@@ -141,7 +139,7 @@ export class studyManager {
                     data: {
                         "user_id": study_manager.user_id.toString(),
                         "session": study_manager.session_number.toString(),
-                        "software": "rowcol"
+                        "software": "nomon"
                     }
                 }).done(function (data) {
                     var result = data;
@@ -155,6 +153,8 @@ export class studyManager {
 
     init_session_specifics() {
 
+        this.session_length = 10 * 60;
+
         if (this.phase === "intro") {
             this.parent.init_session_help();
         } else {
@@ -163,12 +163,8 @@ export class studyManager {
             this.parent.help_manager.progress_screens();
         }
 
-        this.session_length = 10 * 60;
-        // this.parent.change_scan_delay(1);
-        // this.parent.change_extra_delay(1);
-
-        // this.parent.pre_phrase_scan_delay_index = 1;
-        // this.parent.pre_phrase_extra_delay_index = 1;
+        // this.parent.change_speed(1);
+        // this.parent.pre_phrase_rotate_index = 1;
 
         // this.parent.in_info_screen = true;
         // this.parent.init_session_info_screen();
@@ -183,8 +179,9 @@ export class studyManager {
         document.getElementById("info_label").innerHTML = `<i>This is your last phrase.</i>`;
     }
 
-    finish_session() {
+    finish_session(exit=true) {
         this.in_finished_screen = true;
+
         this.parent.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.parent.info_canvas.calculate_size(0);
 
@@ -195,20 +192,22 @@ export class studyManager {
 
         this.parent.textbox.draw_text("");
 
-        if (this.parent.help_manager) {
-            this.parent.help_manager.monitor_study_end();
-        }
 
         this.session_continue();
 
-        document.getElementById("info_label").innerHTML = `<i>You have finished this session. Click to return to the login page.</i>`;
-        this.parent.on_press = function () {
-            var login_url = "./training_menu.html";
-            let anticache = (Math.random() + 1).toString(36).substring(7);
-            login_url = login_url.concat("?user_id=", user_id.toString(), "&phase=", this.study_manager.phase, "&anticache=", anticache);
-            window.open(login_url, '_self');
-        }
 
+        if (exit) {
+            if (this.parent.help_manager) {
+                this.parent.help_manager.monitor_study_end();
+            }
+            document.getElementById("info_label").innerHTML = `<i>You have finished this session. Click to return to the Interface Selection Page.</i>`;
+            this.parent.on_press = function () {
+                var login_url = "./training_menu.html";
+                let anticache = (Math.random() + 1).toString(36).substring(7);
+                login_url = login_url.concat("?user_id=", user_id.toString(), "&phase=", this.study_manager.phase, "&anticache=", anticache, "&sender=nomon");
+                window.open(login_url, '_self');
+            }
+        }
     }
 
     session_continue() {
@@ -230,7 +229,7 @@ export class studyManager {
         var new_phase;
         if (this.phase === "intro") {
             phase = "practice";
-            new_phase = "practice";
+            new_phase = "intro";
         } else {
             phase = this.phase;
             new_phase = this.phase;
@@ -243,29 +242,44 @@ export class studyManager {
         post_data.append("sessions", sessions);
         post_data.append("dates", dates);
         post_data.append("phrase_queue", phrase_queue);
-        post_data.append("software", "rowcol");
+        post_data.append("software", "nomon");
         post_data.append("phase", phase);
         post_data.append("new_phase", new_phase);
 
         // var post_data = {"user_id": user_id.toString(), "sessions": sessions, "dates": dates,
-        //     "phrase_queue": phrase_queue, "software": "rowcol", "phase": phase, "new_phase": new_phase};
-        console.log(post_data);
+        //     "phrase_queue": phrase_queue, "software": "nomon", "phase": phase, "new_phase": new_phase};
+
 
         if (this.sent_beacon){ // don't update server twice
             return
         } else{
             this.sent_beacon = true;
         }
+        console.log(post_data);
 
         let result = navigator.sendBeacon("../php/increment_session.php", post_data);
+        console.log(result);
+
+        // function increment_session() { // jshint ignore:line
+        //     $.ajax({
+        //         method: "POST",
+        //         url: "../php/increment_session.php",
+        //         data: post_data
+        //     }).done(function (data) {
+        //         var result = data;
+        //         console.log(result);
+        //     });
+        // }
+        // increment_session();
         // this.launch_surveys();
+
     }
 
     launch_surveys() {
         if (this.intermediate_survey) {
-            alert(`You will now fill out a couple of surveys about your experience using Keyboard B. The survey will open in a new tab. DO NOT CLOSE THIS TAB.`);
+            alert(`You will now fill out a couple of surveys about your experience using Keyboard A. The survey will open in a new tab. DO NOT CLOSE THIS TAB.`);
 
-            var survey_url = "../html/questionnaire_intermediate.html".concat('?user_id=', this.user_id.toString(), '&condition=B&session=',
+            var survey_url = "../html/questionnaire_intermediate.html".concat('?user_id=', this.user_id.toString(), '&condition=A&session=',
                 this.session_number.toString(), '&partial_session=', this.partial_session.toString());
 
             if (this.full_tlx) {
@@ -284,19 +298,19 @@ export class studyManager {
 
             this.survey_win = window.open(survey_url, '_blank');
             this.survey_win.focus();
+
             this.in_survey = true;
             this.parent.run_on_focus = true;
         } else {
             this.launch_next_software();
         }
-
     }
 
     check_survey_complete() {
         var get_data = {};
 
         get_data["user_id"] = this.user_id;
-        get_data["condition"] = "B";
+        get_data["condition"] = "A";
         get_data["order"] = 1 + (this.partial_session | 0);
         get_data["session"] = this.session_number;
 
@@ -364,13 +378,17 @@ export class studyManager {
         var min_rem = Math.floor((session_rem_time) / 60);
         var sec_rem = Math.floor(session_rem_time) - min_rem * 60;
 
+        console.log(min_rem, sec_rem);
 
         this.parent.draw_phrase();
-        this.parent.pre_phrase_scan_delay_index = this.parent.scan_delay_index;
-        this.parent.pre_phrase_extra_delay_index = this.parent.extra_delay_index;
+
+
+        // if (this.allow_session_finish){
+        //     this.finish_session();
+        // }
+
+        this.parent.pre_phrase_rotate_index = this.parent.rotate_index;
         this.parent.allow_slider_input = true;
-
-
     }
 
     parse_emojis(text) {
@@ -388,37 +406,28 @@ export class studyManager {
         var phrase;
         var typed_text = previous_text.slice(this.cur_phrase.length + 1, previous_text.length);
 
+
         phrase = this.cur_phrase.replace("'", "8");
         typed_text = typed_text.replace("'", "8");
         selection = selection.replace("'", "8");
 
+
         var phrase_num = this.phrase_num;
 
-        var timestamp = Date.now() / 1000;
-        var scan_delay = this.parent.scan_delay_index;
-        var extra_delay = this.parent.extra_delay_index;
-        var abs_click_times = JSON.stringify(this.parent.abs_click_times);
-        var rel_click_times = JSON.stringify(this.parent.rel_click_times);
-        var click_scan_positions = JSON.stringify(this.parent.click_scan_positions);
 
-        this.parent.abs_click_times = [];
-        this.parent.rel_click_times = [];
-        this.parent.click_scan_positions = [];
+        var timestamp = Date.now() / 1000;
+        var rotate_ind = this.parent.rotate_index;
+        var abs_click_times = JSON.stringify(this.parent.bc.abs_click_times);
+        var rel_click_times = JSON.stringify(this.parent.bc.rel_click_times);
+
+        this.parent.bc.abs_click_times = [];
+        this.parent.bc.rel_click_times = [];
 
         var post_data = {
-            "user_id": this.user_id.toString(),
-            "session": this.session_number.toString(),
-            "software": "rowcol",
-            "phrase": phrase,
-            "phrase_num": phrase_num,
-            "typed_text": typed_text,
-            "timestamp": timestamp,
-            "scan_delay": scan_delay,
-            "extra_delay": extra_delay,
-            "abs_click_times": abs_click_times,
-            "rel_click_times": rel_click_times,
-            "click_scan_pos": click_scan_positions,
-            "selection": selection
+            "user_id": this.user_id.toString(), "session": this.session_number.toString(),
+            "software": "nomon", "phrase": phrase, "phrase_num": phrase_num, "typed_text": typed_text,
+            "timestamp": timestamp, "rotate_ind": rotate_ind, "abs_click_times": abs_click_times,
+            "rel_click_times": rel_click_times, "selection": selection
         };
 
         console.log(post_data);
@@ -453,17 +462,16 @@ export class studyManager {
             }
             this.parent.session_time_label.innerHTML = `<b>Time remaining: ${min_rem}:${sec_rem}</b>`;
         }
-
+        // else{
+        //     if (!this.allow_session_finish) {
+        //         this.allow_session_continue();
+        //     }
+        // }
         if (session_rem_time <= 0 && !this.sent_beacon){
             if (this.parent.RCOM){
                 this.parent.destroy_options_rcom();
             }
             this.finish_session();
         }
-        // else{
-        //     if (!this.allow_session_finish) {
-        //         this.allow_session_continue();
-        //     }
-        // }
     }
 }

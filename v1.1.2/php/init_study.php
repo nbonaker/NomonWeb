@@ -27,11 +27,11 @@ $user_exists = $result_array[0]['COUNT(id)'];
 // if new user, construct entry in study_info table
 if (!$user_exists){
         // shuffle iv and oov phrase data with 2 to 1 mix
-        $file_path = '/var/www/keyboardstudy.csail.mit.edu/html/resources/phrases_iv.json';
+        $file_path = '/var/www/keyboardstudy.csail.mit.edu/html/phrases/phrases_iv.json';
         $data = file_get_contents($file_path);
         $phrases_iv = json_decode($data);
 
-        $file_path = '/var/www/keyboardstudy.csail.mit.edu/html/resources/phrases_oov.json';
+        $file_path = '/var/www/keyboardstudy.csail.mit.edu/html/phrases/phrases_oov.json';
         $data = file_get_contents($file_path);
         $phrases_oov = json_decode($data);
 

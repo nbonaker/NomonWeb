@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Nomon Keyboard</title>
+<title>Nomon Symbols</title>
 <link href="../../icon.png"
       rel="icon"
       type="image/png">
@@ -13,7 +13,6 @@
     <meta content="no-cache" http-equiv="pragma"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
-
 </head>
 <style>
     textarea {
@@ -83,6 +82,11 @@
         width: 40%;
     }
 
+    .container input {
+        z-index: 6;
+        position: relative;
+    }
+
     .btn {
         border: none;
         color: white;
@@ -90,9 +94,9 @@
         text-align: center;
         text-decoration: none;
         display: inline-block;
+        width: 10em;
         font-family: Helvetica, sans-serif;
         font-size: 1.1vw;
-        width: 10em;
         margin: 1px 1px;
         cursor: pointer;
         border-radius: 4px;
@@ -156,12 +160,18 @@
         background: url(https://keyboardstudy.csail.mit.edu/nomon_loading_animation.gif) center no-repeat #fff;
     }
 
+
 </style>
 
-<body scroll="no" style="overflow: hidden">
+<body onload="loadfun()" scroll="no" style="overflow: hidden">
 <div class="se-pre-con">
     <h1 style="text-align: center; font-size: 5vh">Give me a second while I load Nomon!</h1>
 
+</div>
+
+
+<div style="display: None">
+    <img id="commboard" src="../resources/Core-Board-63-Location-MJ-symbo.PNG">
 </div>
 
 <div class="container space-between" id="top_bar_top">
@@ -242,7 +252,7 @@
 <div class="container space-between" id="top_bar_bottom">
     <div>
         <input class='btn unhighlighted' id="tutorial_button" type="button" value="Help"/>
-        <input class='btn unhighlighted' id="send_button" type="button" value="Login Page"/>
+        <input class='btn unhighlighted' id="send_button" type="button" value="Change User"/>
         <input class='btn unhighlighted' id="session_button" type="button" value="Start Session"/>
         <label id="session_timer"><b> </b></label>
         <label style="display: inline; padding-left: 20px; ">&#x1F6C8</label>
@@ -277,7 +287,6 @@
 <canvas id="normon_canvas">
 </canvas>
 
-
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script type="text/javascript">
 
@@ -285,9 +294,10 @@
     const params = new URLSearchParams(document.location.search);
     const user_id = params.get("user_id");
 
+
 </script>
 
-<script src="../js/v1.1.1/nomon/keyboard.js" type="module"></script>
+<script src="../js/v1.1.2/nomon/kde_unit_test.js" type="module"></script>
 
 </body>
 <footer>
@@ -300,7 +310,7 @@
                     id="footer_version">v0.0.0</span></p>
         </div>
         <div class="column">
-            <p style="text-align: right; padding-right: 1em">This code is under MIT license. </p>
+            <p style="text-align: right; padding-right: 1em">This code is under MIT licence. </p>
         </div>
     </div>
 </footer>

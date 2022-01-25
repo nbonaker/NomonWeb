@@ -50,7 +50,7 @@
 <?php
     include '/var/www/keyboardstudy.csail.mit.edu/mysql_login.php';
     $connection = mysqli_connect($host, $username, $password, $dbname);
-    $participant_ids = array(7, 63, 70, 77);
+    $participant_ids = array(7, 63, 70, 77, 84, 85, 36, 35, 98);
 ?>
 
 <h2><b>Study Data</b></h2>

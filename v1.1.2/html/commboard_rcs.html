@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Nomon Symbols</title>
+<title>RCS Symbols</title>
 <link href="../../icon.png"
       rel="icon"
       type="image/png">
@@ -13,10 +13,10 @@
     <meta content="no-cache" http-equiv="pragma"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
+
     <div style="display: None">
         <img id="commboard" src="../resources/Core-Board-63-Location-MJ-symbo.PNG">
     </div>
-
 </head>
 <style>
     textarea {
@@ -86,11 +86,6 @@
         width: 40%;
     }
 
-    .container input {
-        z-index: 6;
-        position: relative;
-    }
-
     .btn {
         border: none;
         color: white;
@@ -98,9 +93,9 @@
         text-align: center;
         text-decoration: none;
         display: inline-block;
-        width: 10em;
         font-family: Helvetica, sans-serif;
         font-size: 1em;
+        width: 10em;
         margin: 1px 1px;
         cursor: pointer;
         border-radius: 4px;
@@ -164,40 +159,44 @@
         background: url(https://keyboardstudy.csail.mit.edu/nomon_loading_animation.gif) center no-repeat #fff;
     }
 
-
 </style>
 
 <body scroll="no" style="overflow: hidden">
 <div class="se-pre-con">
-    <h1 style="text-align: center; font-size: 5vh">Give me a second while I load Nomon!</h1>
+    <h1 style="text-align: center; font-size: 5vh">Give me a second while I load RCS!</h1>
 
 </div>
-
 
 <div class="container space-between" id="top_bar_top">
     <div>
         <div class="slidecontainer">
-            <input class='btn unhighlighted' id="dec_speed_button" type="button" value="Clock Speed -"/>
-            <input class='btn unhighlighted' id="inc_speed_button" type="button" value="Clock Speed +"/>
+            <input class='btn unhighlighted' id="dec_scan_delay_button" type="button" value="Scan Speed -"/>
+            <input class='btn unhighlighted' id="inc_scan_delay_button" type="button" value="Scan Speed +"/>
+            <input class='btn unclickable' id="tutorial_button" type="button" value="Help"/>
             <input class='btn unhighlighted' id="abort_options_button" type="button" value="Exit Options"/>
-            <label style="padding-left: 2em;">Clock Speed: <b><span id="speed_text">0</span>/20</b></label>
+
+            <label style="padding-left: 2em;">Scan Speed:<b> <span id="scan_delay_text">0</span>/20</b></label>
+
+            <label style="padding-left: 2em;">First Row Speed:<b> <span id="extra_delay_text">0</span>/10</b></label>
         </div>
     </div>
 </div>
 <div class="container space-between" id="top_bar_bottom">
     <div>
-        <input class='btn unclickable' id="tutorial_button" type="button" value="Help"/>
-        <input class='btn unclickable' id="end_session_button" type="button" value="End Session"/>
-<!--        <input class='btn unhighlighted' id="send_button" type="button" value="Change Interface"/>-->
+        <input class='btn unhighlighted' id="dec_extra_delay_button" type="button" value="First Row Speed -"/>
+        <input class='btn unhighlighted' id="inc_extra_delay_button" type="button" value="First Row Speed +"/>
+        <input class='btn unclickable' id="session_button" type="button" value="End Session"/>
+
         <label id="session_counter"><b> </b></label>
         <label id="session_timer"><b> </b></label>
-        <label style="display: inline; padding-left: 20px; ">&#9432</label>
-        <label id="info_label"/><i>Welcome to Nomon! The session will start shortly...</i></label>
-        <label style="display: inline;">&#9432</label></div>
+
+        <label style="display: inline; padding-left: 20px; ">&#x1F6C8</label>
+        <label id="info_label"/><i>Welcome to RCS! The session will start shortly...</i></label>
+        <label style="display: inline;">&#x1F6C8</label>
+    </div>
 </div>
 <textarea id="output_textbox"></textarea>
 </div>
-
 
 <!--<script type="module" src="webcam_switch/webcam_switch.js"></script>-->
 
@@ -206,12 +205,6 @@
 </canvas>
 
 <canvas id="highlights">
-</canvas>
-
-<canvas id="clock_face">
-</canvas>
-
-<canvas id="clock_hand">
 </canvas>
 
 <canvas id="output">
@@ -229,14 +222,12 @@
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script type="text/javascript">
 
-
     const params = new URLSearchParams(document.location.search);
     const user_id = params.get("user_id");
 
-
 </script>
 
-<script src="../js/v1.1.1/nomon/commboard.js" type="module"></script>
+<script src="../js/v1.1.2/rowcol/commboard_rcs.js" type="module"></script>
 
 </body>
 <footer>

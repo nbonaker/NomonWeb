@@ -6,9 +6,11 @@ import * as bc from './broderclocks.js';
 import * as tm from './tutorial.js';
 import * as hm from './session_help.js';
 import * as sm from './study_manager.js';
+import * as sg from './session_greeting.js';
 import * as lm from './lm.js';
 import * as rcom from '../rowcol_options_manager.js';
 import * as normon from "../normon/normontheclock.js";
+import * as alerts from "../alerts.js"
 
 
 // Update Footer with JS Version
@@ -17,6 +19,26 @@ var path = scripts[scripts.length - 1].src.split('?')[0];
 var js_version = path.split('/')[5];
 document.getElementById("footer_version").innerText = js_version;
 
+
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (stroke) {
+        ctx.stroke();
+    }
+    if (fill) {
+        ctx.fill();
+    }
+}
 
 function log_add_exp(a_1, a_2) {
     var b = Math.max(a_1, a_2);
@@ -175,6 +197,9 @@ class Keyboard {
 
         this.histogram.update(this.bc.clock_inf.kde.dens_li);
 
+        //remove Loading Screen
+        $(".se-pre-con").fadeOut("slow");;
+
     }
 
     init_ui() {
@@ -213,93 +238,17 @@ class Keyboard {
             if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
                 return
             }
-            if (!this.in_session) {
-                if (this.in_tutorial) {
-                    this.tutorial_manager.end_tutorial();
-                    this.end_tutorial();
-                } else {
-                    this.init_tutorial();
-                }
-            }
             this.destroy_options_rcom();
+
+            if (!this.in_session) {
+                this.start_tutorial_alert();
+            } else {
+                this.init_session_help();
+            }
+
         }.bind(this);
 
-        this.change_user_button = document.getElementById("send_button");
-        if (this.user_id) {
-            this.change_user_button.onclick = function (e) {
-                if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
-                    return
-                }
-                if (!this.in_tutorial && !this.in_session) {
-                    var login_url = "../index.php";
-                    window.open(login_url, '_self');
-                }
-                this.destroy_options_rcom();
-            }.bind(this);
-        } else {
-            this.change_user_button.value = "RCS Keyboard";
-            this.change_user_button.onclick = function (e) {
-                if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
-                    return
-                }
-                var keyboard_url = "./rowcol.html?emoji=".concat(this.emoji_keyboard.toString());
-                window.open(keyboard_url, '_self');
-            }.bind(this);
-        }
-
-        this.session_button = document.getElementById("session_button");
-        if (this.user_id) {
-            this.session_button.onclick = function (e) {
-                if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
-                    return
-                }
-                if (!this.in_tutorial) {
-                    this.study_manager.request_session_data();
-                    // this.init_session_help();
-                }
-                this.destroy_options_rcom();
-            }.bind(this);
-            this.session_time_label = document.getElementById("session_timer");
-            document.getElementById("info_label").innerHTML = `<b>Welcome user ${this.user_id}! Select the "Options" clock and then "Start Session" to begin.</b>`;
-
-        } else {
-            if (this.emoji_keyboard) {
-                this.session_button.value = "ABC            ";
-            } else {
-                this.session_button.value = `😃😮😒          `;
-            }
-
-            this.session_button.onclick = function (e) {
-                if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
-                    return
-                }
-                var keyboard_url = "keyboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
-                window.open(keyboard_url, '_self');
-            }.bind(this);
-            document.getElementById("info_label").innerHTML = `<b>Welcome to the Nomon Keyboard! Press Retrain for help.</b>`;
-        }
-
-        this.learn_checkbox = document.getElementById("checkbox_learn");
-        if (this.prev_data && this.prev_data.learn !== null) {
-            this.learn_checkbox.checked = this.prev_data.learn;
-        } else {
-            this.learn_checkbox.checked = true;
-        }
-
-        this.pause_checkbox = document.getElementById("checkbox_pause");
-        if (this.prev_data && this.prev_data.pause !== null) {
-            this.pause_checkbox.checked = this.prev_data.pause;
-        } else {
-            this.pause_checkbox.checked = true;
-        }
-
         this.audio = new Audio('../audio/bell.wav');
-        this.audio_checkbox = document.getElementById("checkbox_sound");
-        if (this.prev_data && this.prev_data.sound !== null) {
-            this.audio_checkbox.checked = this.prev_data.sound;
-        } else {
-            this.audio_checkbox.checked = true;
-        }
 
         this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.alpha_target_layout);
         this.clockgrid = new widgets.ClockGrid(this, this.clockface_canvas, this.clockhand_canvas, this.keygrid,
@@ -309,15 +258,131 @@ class Keyboard {
         this.histogram = new widgets.Histogram(this.output_canvas);
 
         if (this.in_tutorial) {
-            this.init_tutorial();
+            this.start_tutorial_alert();
+        } else {
+            this.session_greeting = new sg.sessionGreeting(this);
+            this.in_info_screen = true;
         }
 
+    }
 
+    begin_session(){
+        this.study_manager.request_session_data();
+        this.session_time_label = document.getElementById("session_timer");
+    }
+
+    end_session_alert(){
+        this.init_info_screen();
+
+        let on_response = function (response) {
+            console.log(response);
+            if (response === "Yes"){
+                this.study_manager.session_continue();
+
+                var login_url = "./training_menu.html";
+                let anticache = (Math.random() + 1).toString(36).substring(7);
+                login_url = login_url.concat("?user_id=", this.user_id.toString(), "&phase=", this.study_manager.phase, "&anticache=", anticache, "&sender=nomon");
+                window.open(login_url, '_self');
+            } else {
+                this.destroy_info_screen();
+                this.destroy_alert_rcom();
+                this.alert = null;
+            }
+
+        }.bind(this);
+        this.in_info_screen = true;
+        this.init_info_screen();
+
+        this.alert = new alerts.alertConfirmation(this.info_canvas, "Are you sure you want to end the session?",
+            ["Yes", "No"], "warning", on_response);
+
+        this.RCOM = new rcom.OptionsManager(this.alert.options_array, 2, null, false);
+
+        this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05 * 1000);
+        this.RCOM.skip_next_press = false;
+    }
+
+    start_tutorial_alert(){
+
+        this.init_info_screen();
+
+        let on_response = function (response) {
+            console.log(response);
+            this.destroy_alert_rcom();
+
+            if (response === "Yes"){
+                this.in_tutorial = true;
+                this.init_tutorial();
+            } else {
+                this.session_greeting = new sg.sessionGreeting(this);
+                this.in_info_screen = true;
+                this.in_tutorial = false;
+            }
+
+            this.alert = null;
+
+        }.bind(this);
+        this.in_info_screen = true;
+        this.init_info_screen();
+
+        this.alert = new alerts.alertConfirmation(this.info_canvas, "Would you like a 5min tutorial for Nomon?",
+            ["Yes", "No"], "info", on_response);
+
+        this.RCOM = new rcom.OptionsManager(this.alert.options_array, 2, null, false);
+
+        this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05 * 1000);
+        this.RCOM.skip_next_press = false;
+    }
+
+    start_session_tutorial_alert(){
+
+        this.init_info_screen();
+
+        let on_response = function (response) {
+            console.log(response);
+            this.destroy_alert_rcom();
+
+            if (response === "Yes"){
+                this.study_manager.finish_session(false);
+
+                this.in_tutorial = true;
+                this.init_tutorial();
+            } else {
+                this.init_session_help();
+            }
+
+            this.alert = null;
+
+        }.bind(this);
+        this.in_info_screen = true;
+        this.init_info_screen();
+
+         this.alert = new alerts.alertConfirmation(this.info_canvas, "Do you need help with how to use Nomon?",
+            ["Yes", "No"], "info", on_response);
+
+
+        this.RCOM = new rcom.OptionsManager(this.alert.options_array, 2, null, false);
+
+        this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05 * 1000);
+        this.RCOM.skip_next_press = false;
+    }
+
+    destroy_alert_rcom() {
+        if (!this.RCOM) {
+            return;
+        }
+        clearInterval(this.RCOM_interval);
+        this.RCOM.deleted = true;
+        this.RCOM = null;
+        this.destroy_info_screen();
 
     }
 
     init_info_screen() {
-        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.shadow_canvas = new widgets.KeyboardCanvas("shadow", 4);
+        this.shadow_canvas.calculate_size(0);
+
+        this.info_canvas = new widgets.KeyboardCanvas("info", 5);
         this.info_canvas.calculate_size(0);
         // this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
         this.info_canvas.grey();
@@ -325,7 +390,10 @@ class Keyboard {
     }
 
     init_session_info_screen() {
-        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.shadow_canvas = new widgets.KeyboardCanvas("shadow", 4);
+        this.shadow_canvas.calculate_size(0);
+
+        this.info_canvas = new widgets.KeyboardCanvas("info", 5);
         this.info_canvas.calculate_size(0);
         this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas);
 
@@ -347,6 +415,7 @@ class Keyboard {
     destroy_info_screen() {
         if (this.in_info_screen || this.in_tutorial) {
             this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
+            this.shadow_canvas.ctx.clearRect(0, 0, this.shadow_canvas.screen_width, this.shadow_canvas.screen_height);
 
             this.in_info_screen = false;
 
@@ -360,6 +429,9 @@ class Keyboard {
 
             }
         }
+        if (this.session_greeting){
+            this.session_greeting = null;
+        }
     }
 
     init_session_help() {
@@ -368,8 +440,6 @@ class Keyboard {
     }
 
     init_tutorial() {
-
-        this.tutorial_button.value = "Abort Help      ";
 
         this.left_context = "";
         this.typed = "";
@@ -392,27 +462,38 @@ class Keyboard {
 
             this.left_context = "";
             this.typed = "";
+            this.typed_versions = [];
             this.lm_prefix = "";
+            this.btyped = "";
+            this.ctyped = [];
+            this.context = "";
+            this.old_context_li = [""];
+            this.last_add_li = [0];
             this.textbox.draw_text("");
             this.lm.update_cache(this.left_context, this.lm_prefix);
 
-            this.tutorial_button.value = "Help               ";
+            this.tutorial_button.value = "Help";
+
+            this.bc.clock_inf.save_click_dist();
+            this.begin_session();
+
         }
     }
 
     init_options_rcom() {
         var options_array = [
             [new rowcolButton(this.speed_dec, "1"), new rowcolButton(this.speed_inc, "2"), new rowcolButton(this.abort_options_button, "3")],
-            [new rowcolButton(this.tutorial_button, "4"), new rowcolButton(this.change_user_button, "5"), new rowcolButton(this.session_button, "6")]
+            [new rowcolButton(this.tutorial_button, "4"), new rowcolButton(document.getElementById("end_session_button"), "5")]
         ];
 
         if (this.in_tutorial) {
+            // options_array = options_array.slice(0, 1);
             this.RCOM = new rcom.OptionsManager(options_array, 2, this.tutorial_manager, false);
-        } else if (this.in_session) {
-            this.RCOM = new rcom.OptionsManager(options_array.slice(0, 1), 2, null, false);
         } else {
             this.RCOM = new rcom.OptionsManager(options_array, 2, null, false);
         }
+
+
         this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05 * 1000);
         this.in_info_screen = true;
         this.init_info_screen();
@@ -422,7 +503,6 @@ class Keyboard {
         if (!this.RCOM) {
             return;
         }
-
         clearInterval(this.RCOM_interval);
         this.RCOM.deleted = true;
         this.RCOM = null;
@@ -433,14 +513,13 @@ class Keyboard {
         this.speed_inc.className = "btn unhighlighted";
         this.speed_dec.className = "btn unhighlighted";
         this.abort_options_button.className = "btn unhighlighted";
-        this.change_user_button.className = "btn unhighlighted";
 
         if (this.in_session) {
             this.tutorial_button.className = "btn unclickable";
-            this.session_button.className = "btn unclickable";
+            this.end_session_button.className = "btn unhighlighted";
+            this.end_session_button.className = "btn unhighlighted";
         } else {
             this.tutorial_button.className = "btn unhighlighted";
-            this.session_button.className = "btn unhighlighted";
         }
 
     }
@@ -637,9 +716,14 @@ class Keyboard {
                     }
                 }
             }
-            if (this.in_info_screen && this.info_screen) {
-                this.increment_info_screen();
+            if (this.in_info_screen) {
+                if (this.info_screen) {
+                    this.increment_info_screen();
+                } else if (this.session_greeting){
+                    this.session_greeting.on_press();
+                }
             }
+
             if (this.RCOM) {
                 this.RCOM.update_scan_time(true);
             }
@@ -1237,9 +1321,8 @@ class Keyboard {
 
         this.draw_typed();
 
-        if (this.pause_checkbox.checked) {
-            this.start_pause();
-        }
+        this.start_pause();
+
         this.highlight_winner(index);
 
         this.is_undo = is_undo;
@@ -1318,9 +1401,8 @@ class Keyboard {
     }
 
     play_audio() {
-        if (this.audio_checkbox.checked) {
-            this.audio.play();
-        }
+        this.audio.play();
+
     }
 
     displayWindowSize() {
@@ -1331,6 +1413,7 @@ class Keyboard {
 
         this.clockface_canvas.calculate_size();
         this.clockhand_canvas.calculate_size();
+        this.highlight_canvas.calculate_size();
         this.clockgrid.clocks = [];
         this.clockgrid.generate_layout();
         this.clockgrid.update_word_clocks(this.words_li);
@@ -1362,14 +1445,27 @@ class Keyboard {
         //         this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
         //     }
         // }
+
+        if (this.in_info_screen || this.in_tutorial || this.in_session_help || this.session_greeting) {
+            this.info_canvas.calculate_size(0);
+            this.shadow_canvas.calculate_size(0);
+        }
+
         if (this.Normon) {
             this.normon_canvas.calculate_size();
             this.info_canvas.calculate_size();
+            this.shadow_canvas.calculate_size();
             this.progress_screens();
         }
         if (this.in_tutorial) {
             this.tutorial_manager.change_focus();
-
+            this.tutorial_manager.progress_screens();
+        }
+        if (this.in_session_help){
+            this.help_manager.progress_screens();
+        }
+        if (this.session_greeting){
+            this.session_greeting.progress_screens();
         }
     }
 }
@@ -1446,7 +1542,7 @@ function send_login() {
             }
             prev_data["sound"] = sound;
 
-            var input_method = result.input_method;
+            var input_method = result["input_method"];
             if (input_method !== null) {
                 console.log("Retrieved Input Method!");
             }
@@ -1459,9 +1555,14 @@ function send_login() {
     });
 }
 
-if (user_id) {
-    send_login();
+var img = document.querySelector('img');
+
+if (img.complete) {
+    send_login()
+    console.log("loaded")
 } else {
-    let keyboard = new Keyboard(user_id, first_load, false, null);
-    setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s * 1000);
+  img.addEventListener('load', send_login);
+  img.addEventListener('error', function() {
+      alert('error')
+  })
 }

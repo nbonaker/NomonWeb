@@ -18,7 +18,6 @@ var js_version = path.split('/')[5];
 document.getElementById("footer_version").innerText = js_version;
 
 
-
 function log_add_exp(a_1, a_2) {
     var b = Math.max(a_1, a_2);
     var sum = b + Math.log(Math.exp(a_1 - b) + Math.exp(a_2 - b));
@@ -56,7 +55,7 @@ class Keyboard {
         this.prev_data = prev_data;
         this.input_method = prev_data.input_method;
 
-        this.emoji_keyboard = true;
+        this.emoji_keyboard = false;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
@@ -64,8 +63,6 @@ class Keyboard {
         if (this.user_id) {
             this.study_manager = new sm.studyManager(this, user_id, first_load, phase, prev_data);
         }
-        this.phrase_arr = [];
-        this.emojis_selected = 0;
         this.in_session = false;
 
         this.run_on_focus = false;
@@ -88,7 +85,6 @@ class Keyboard {
             }.bind(this), false);
         } else if (this.input_method === "left_mouse") {
             var keygrid_y_offset = this.keygrid_canvas.canvas.getBoundingClientRect().top;
-            var keygrid_y_offset = 0; // change made for participant 70 with eyegaze
 
             window.addEventListener("mousedown", function (e) {
                 if (e.which === 1 && e.clientY > keygrid_y_offset) {
@@ -149,7 +145,6 @@ class Keyboard {
         this.old_context_li = [""];
         this.last_add_li = [0];
         this.skip_hist = false;
-        this.last_selection;
 
         this.full_init = true;
         this.fetched_words = false;
@@ -241,8 +236,11 @@ class Keyboard {
 
         this.audio = new Audio('../audio/bell.wav');
 
-        this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.comm_target_layout);
-
+        if (this.emoji_keyboard) {
+            this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.emoji_target_layout);
+        } else {
+            this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.target_layout);
+        }
         this.textbox = new widgets.Textbox(this.output_canvas);
 
         if (this.in_info_screen) {
@@ -281,7 +279,7 @@ class Keyboard {
 
                 var login_url = "./training_menu.html";
                 let anticache = (Math.random() + 1).toString(36).substring(7);
-                login_url = login_url.concat("?user_id=", this.user_id.toString(), "&phase=", this.study_manager.phase, "&anticache=", anticache);
+                login_url = login_url.concat("?user_id=", this.user_id.toString(), "&phase=", this.study_manager.phase, "&anticache=", anticache, "&sender=rcs");
                 window.open(login_url, '_self');
             } else {
                 this.destroy_info_screen();
@@ -455,22 +453,29 @@ class Keyboard {
     draw_phrase() {
         this.typed_versions = [''];
         this.typed = "";
-        this.study_manager.cur_phrase = "";
-        this.phrase_arr = [];
-        this.emojis_selected = 0;
+        if (this.emoji_keyboard) {
+            this.study_manager.cur_phrase = "";
+            for (var i = 0; i < 5; i++) {
+                var emoji_index = Math.floor(Math.random() * kconfig.emoji_main_chars.length);
+                var emoji = kconfig.emoji_main_chars[emoji_index];
+                this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
+            }
 
-        for (var i = 0; i < 5; i++) {
-            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length);
-            var comm_word = kconfig.comm_phrase_lookup[comm_index].concat(" ");
-            this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(comm_word);
-            this.phrase_arr.push(comm_index);
+            var phrase_arr = Array.from(this.study_manager.cur_phrase);
+            this.cur_emoji_target = phrase_arr[0];
+            this.highlight_emoji();
+
+        } else {
+            this.lm_prefix = "";
+            this.left_context = "";
+            this.fetched_words = false;
+            this.is_undo = false;
+            this.is_equalize = false;
+            this.skip_hist = true;
+            this.lm.update_cache(this.left_context, this.lm_prefix, null);
+
+            this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
         }
-
-        this.cur_emoji_target = (this.phrase_arr[this.emojis_selected] + 10).toString();
-
-        this.keygrid.draw_layout();
-        this.highlight_emoji();
-
         this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
         this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
     }
@@ -478,10 +483,11 @@ class Keyboard {
     highlight_emoji() {
         console.log("CUR TARGET: ", this.cur_emoji_target);
 
-        var indicies = widgets.indexOf_2d(kconfig.comm_target_layout, this.cur_emoji_target.toString());
-        console.log(indicies);
+        var indicies = widgets.indexOf_2d(kconfig.emoji_target_layout, this.cur_emoji_target);
         if (indicies !== false) {
             this.keygrid.highlighted_indices = indicies;
+        } else {
+            this.keygrid.highlighted_indices = [-1, -1];
         }
 
 
@@ -515,12 +521,12 @@ class Keyboard {
         }
         if (document.hasFocus()) {
             this.play_audio();
-            if (this.in_tutorial) {
-                this.tutorial_manager.on_press();
-            }else if (this.in_session_help) {
-                this.help_manager.on_press();
-
-            } else if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_finished_screen) {
+            if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_webcam_info_screen && !this.in_finished_screen) {
+                if (this.in_session) {
+                    this.allow_slider_input = false;
+                    this.pre_phrase_scan_delay_index = this.scan_delay_index;
+                    this.pre_phrase_extra_delay_index = this.extra_delay_index;
+                }
                 this.update_scan_time(true);
             }
             if (this.RCOM) {
@@ -547,9 +553,6 @@ class Keyboard {
         this.keygrid.in_pause = false;
         this.keygrid.draw_layout();
         this.clockgrid.undo_label.draw_text();
-        if (this.emoji_keyboard && this.in_session) {
-            this.highlight_emoji();
-        }
     }
 
     highlight_winner(clock_index) {
@@ -567,16 +570,16 @@ class Keyboard {
     on_word_load(update_scan = true) {
         this.fetched_words = true;
 
-        // if (!this.full_init) {
-        //     this.keygrid.update_words(this.lm.word_predictions);
-        // } else {
-        //     this.keygrid.update_words(this.lm.word_predictions);
-        //     var results = [this.words_on, this.words_off, this.word_score_prior, this.is_undo, this.is_equalize, this.skip_hist];
-        // }
+        if (!this.full_init) {
+            this.keygrid.update_words(this.lm.word_predictions);
+        } else {
+            this.keygrid.update_words(this.lm.word_predictions);
+            var results = [this.words_on, this.words_off, this.word_score_prior, this.is_undo, this.is_equalize, this.skip_hist];
+        }
         this.update_scan_time(false);
 
         this.keygrid.draw_layout(this.row_scan, this.col_scan);
-        // this.keygrid.update_words(this.lm.word_predictions, this.row_scan, this.col_scan);
+        this.keygrid.update_words(this.lm.word_predictions, this.row_scan, this.col_scan);
 
         if (this.in_session && this.last_selection != null) {
             this.study_manager.save_selection_data(this.last_selection);
@@ -833,7 +836,7 @@ class Keyboard {
         }
     }
 
- draw_typed(text) {
+    draw_typed(text) {
         var new_text = '';
         var redraw_words = false;
 
@@ -845,6 +848,9 @@ class Keyboard {
 
         if (this.in_session) {
             previous_text = previous_text.slice(this.study_manager.cur_phrase.length + 1, previous_text.length);
+        }
+        if (previous_text.length > 0 && previous_text.charAt(previous_text.length - 1) == "_") {
+            previous_text = previous_text.slice(0, previous_text.length - 1).concat(" ");
         }
 
         var last_add;
@@ -863,6 +869,11 @@ class Keyboard {
             new_text = '';
             undo_text = new_text;
         }
+
+        previous_text = previous_text.replace(" .", ". ");
+        previous_text = previous_text.replace(" ,", ", ");
+        previous_text = previous_text.replace(" ?", "? ");
+        previous_text = previous_text.replace(" !", "! ");
 
         var index = this.previous_winner;
         if ([kconfig.mybad_char, 'Undo'].includes(text)) {
@@ -915,9 +926,9 @@ class Keyboard {
                 this.typed_versions.pop();
 
                 new_text = this.typed_versions[this.typed_versions.length - 1];
-                // if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " ") {
-                //     new_text = new_text.slice(0, new_text.length - 1);
-                // }
+                if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " ") {
+                    new_text = new_text.slice(0, new_text.length - 1);
+                }
                 input_text = new_text;
                 if (this.in_session) {
                     new_text = this.study_manager.cur_phrase.concat('\n', new_text);
@@ -925,12 +936,18 @@ class Keyboard {
                 this.textbox.draw_text(new_text);
             } else {
                 input_text = "";
-                this.textbox.draw_text(input_text);
             }
         } else {
             this.typed_versions.push(previous_text.concat(new_text));
-
+            if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " ") {
+                new_text = new_text.slice(0, new_text.length - 1);
+            }
             input_text = previous_text.concat(new_text);
+
+            input_text = input_text.replace(" .", "._");
+            input_text = input_text.replace(" ,", ",_");
+            input_text = input_text.replace(" ?", "?_");
+            input_text = input_text.replace(" !", "!_");
 
             if (this.in_session) {
                 input_text = this.study_manager.cur_phrase.concat('\n', input_text);
@@ -945,16 +962,14 @@ class Keyboard {
             undo_text = "Clear";
         }
 
-        this.previous_undo_text = undo_text;
     }
 
     make_choice(text) {
-        console.log(text);
         var is_undo = false;
         var is_equalize = false;
         var is_backspace = false;
 
-        var new_char = text;
+        var new_char = null;
         var new_word = null;
         var selection = null;
 
@@ -973,56 +988,123 @@ class Keyboard {
 
         var i;
 
-        if (new_char == kconfig.mybad_char || new_char == kconfig.yourbad_char) {
-            // # if added characters that turn
-            if (this.last_add_li.length > 1) {
-                var last_add = this.last_add_li.pop();
-                this.context = this.old_context_li.pop();
-                if (last_add > 0) {
-                    this.typed = this.typed.slice(0, this.typed.length - last_add);
-                } else if (last_add == -1) {
-                    var letter = this.btyped.charAt(this.btyped.length - 1);
+        // # if selected an emoji
+        if (kconfig.emoji_main_chars.includes(text)) {
+            this.old_context_li.push(this.context);
+            this.context.concat(text);
+            this.last_add_li.push(text.length);
+            this.typed = this.typed.concat(text);
+            console.log("EMOJI");
+            selection = text;
 
-                    this.btyped = this.btyped.slice(0, this.btyped.length - 1);
-                    this.typed = this.typed.concat(letter);
-                } else if (last_add == -2) {
-                    var prev_typed = this.ctyped.pop();
-                    this.typed = prev_typed;
+            // # if selected a key
+        } else if (text.length === 1) {
+            new_char = text;
+
+            selection = new_char;
+
+
+            // # special characters
+            if (new_char == kconfig.space_char || new_char == ' ') {
+                new_char = '_'
+                this.old_context_li.push(this.context);
+                this.typed = this.typed.concat(new_char);
+                this.context = "";
+                this.last_add_li.push(1);
+            } else if (new_char == kconfig.mybad_char || new_char == kconfig.yourbad_char) {
+                // # if added characters that turn
+                if (this.last_add_li.length > 1) {
+                    var last_add = this.last_add_li.pop();
+                    this.context = this.old_context_li.pop();
+                    if (last_add > 0) {
+                        this.typed = this.typed.slice(0, this.typed.length - last_add);
+                    } else if (last_add == -1) {
+                        var letter = this.btyped.charAt(this.btyped.length - 1);
+
+                        this.btyped = this.btyped.slice(0, this.btyped.length - 1);
+                        this.typed = this.typed.concat(letter);
+                    } else if (last_add == -2) {
+                        var prev_typed = this.ctyped.pop();
+                        this.typed = prev_typed;
+                    }
                 }
-            }
-            if (new_char == kconfig.yourbad_char) {
-                is_equalize = true;
-            }
-            new_char = '@';
-            is_undo = true;
-            this.emojis_selected -= 1;
-        } else if (new_char == kconfig.clear_char) {
-            new_char = '_';
-            this.old_context_li.push(this.context);
-            this.context = "";
-            this.ctyped.push(this.typed);
-            this.typed = "";
-            this.last_add_li.push(-2);
+                if (new_char == kconfig.yourbad_char) {
+                    is_equalize = true;
+                }
+                new_char = '';
+                is_undo = true;
+            } else if (new_char == kconfig.back_char) {
+                is_backspace = true;
+                // # if delete the last character that turn
+                this.old_context_li.push(this.context);
 
-            this.clear_text = true;
-            this.emojis_selected = 0;
-        } else if (new_char == ".") {
-            this.old_context_li.push(this.context);
-            this.typed = this.typed.concat(new_char);
-            this.last_add_li.push(new_char.length);
+                var lt = this.typed.length;
+                if (lt > 0) {
+                    this.btyped = this.btyped.concat(this.typed.charAt(this.typed.length - 1));
+                    this.last_add_li.push(-1);
+                    this.typed = this.typed.slice(0, this.typed.length - 1);
+                    lt -= 1;
+                    if (lt == 0) {
+                        this.context = "";
+                    } else if (this.context.length > 0)
+                        this.context = this.context.slice(0, this.context.length - 1);
+                    // else if (!this.typed[-1].match(/[a-z]/i)) {
+                    //     this.context = "";
+                    // }
+                    // else{
+                    //     i = -1;
+                    //     while ((i >= -lt) && (this.typed[i].match(/[a-z]/i))){
+                    //         i -= 1;
+                    //         this.context = this.typed.splice(i + 1, lt);
+                    //     }
+                    // }
+                }
+                new_char = '';
+            } else if (new_char == kconfig.clear_char) {
+                new_char = '_';
+                this.old_context_li.push(this.context);
+                this.context = "";
+                this.ctyped.push(this.typed);
+                this.typed = "";
+                this.last_add_li.push(-2);
 
-            this.context = "";
-        } else if (new_char == "Options") {
-            this.init_options_rcom();
-            this.on_word_load();
-            return;
+                this.clear_text = true;
+            } else if (kconfig.main_chars.includes(new_char)) {
+                this.old_context_li.push(this.context);
+                this.context.concat(new_char);
+                this.last_add_li.push(1);
+                this.typed = this.typed.concat(new_char);
+            } else if (kconfig.break_chars.includes(new_char)) {
+                this.old_context_li.push(this.context);
+                this.context = "";
+                this.last_add_li.push(1);
+                this.typed = this.typed.concat(new_char);
+                // if " " + new_char in self.typed:
+                //     self.last_add_li.concat(2);
+                //     self.typed = self.typed.replace(" " + new_char, new_char + " ");
+            } else if (new_char == "%") {
+                this.init_options_rcom();
+            } else {
+                this.old_context_li.push(this.context);
+                this.typed = this.typed.concat(new_char);
+                this.last_add_li.push(1);
+            }
         } else {
-            new_char = kconfig.comm_phrase_lookup[parseInt(new_char) - 10].concat(" ");
-            this.old_context_li.push(this.context);
-            this.typed = this.typed.concat(new_char);
-            this.last_add_li.push(new_char.length);
-            this.emojis_selected += 1;
+            if (text.charAt(text.length - 1) !== "_") {
+                new_word = text.concat("_");
+            } else {
+                new_word = text;
+            }
+            selection = new_word;
+            var context_length = this.lm_prefix.length;
 
+            // if (context_length > 0){
+            //     this.typed = this.typed.slice(context_length, this.typed.length);
+            // }
+            this.typed = this.left_context.concat(new_word);
+            // this.typed = this.typed.concat(new_word);
+            this.last_add_li.push(new_word.length - this.lm_prefix.length);
+            this.old_context_li.push(this.context);
             this.context = "";
         }
         // # update the screen
@@ -1031,7 +1113,7 @@ class Keyboard {
         } else {
             this.left_context = this.typed;
         }
-        selection = new_char;
+
         // this.draw_words();
         this.update_context();
 
@@ -1040,30 +1122,18 @@ class Keyboard {
         this.is_undo = is_undo;
         this.is_equalize = is_equalize;
 
-
+        if (this.in_session) {
+            this.study_manager.save_selection_data(selection);
+        }
         // # update the word prior
 
-        this.fetched_words = false;
-        this.skip_hist = false;
-
-        this.last_selection = selection;
-
-
-        this.on_word_load();
         if (this.in_session) {
             if (this.typed.length > 2 && this.typed.slice(-2) === "..") {
                 this.study_manager.phrase_complete();
                 // this.init_options_rcom()
-            } else if (this.emojis_selected < this.phrase_arr.length) {
-                this.cur_emoji_target = this.phrase_arr[this.emojis_selected] + 10;
-                this.highlight_emoji();
-            } else if (this.emojis_selected < this.phrase_arr.length + 2) {
-                this.cur_emoji_target = ".";
-                this.highlight_emoji();
             }
         }
 
-        this.keygrid.draw_layout(this.row_scan, this.col_scan);
         this.fetched_words = false;
         this.skip_hist = false;
         this.lm.update_cache(this.left_context, this.lm_prefix, selection);
@@ -1077,15 +1147,14 @@ class Keyboard {
         console.log(this.user_id);
         var scan_delay = this.scan_delay_index;
         var extra_delay = this.extra_delay_index;
-        var is_sound = true;
 
         // noinspection JSAnnotator
         function send_data() { // jshint ignore:line
-            console.log({"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": is_sound});
+            console.log({"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": true});
             $.ajax({
                 method: "POST",
                 url: "../php/update_rowcol_data.php",
-                data: {"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": is_sound}
+                data: {"user_id": user_id, "scan_delay": scan_delay, "extra_delay": extra_delay, "sound": true}
             }).done(function (data) {
                 console.log("SENT DATA");
             });
@@ -1109,25 +1178,27 @@ class Keyboard {
 
     update_scan_time(press) {
         var time_in = Date.now() / 1000;
-        if (this.RCOM){
-            return;
-        }
 
-        if (press && this.row_scan >=0) {
+        if (press) {
             this.abs_click_times.push(time_in);
             this.rel_click_times.push(time_in - this.prev_scan_time);
             this.click_scan_positions.push([this.row_scan, this.col_scan]);
 
             if (this.col_scan == -1) { // in row scan
-                this.col_scan = kconfig.comm_num_columns;
+                this.col_scan = kconfig.num_cols;
                 this.next_scan_time = time_in;
             } else { // in col scan
                 var selected_text;
-
-                selected_text = kconfig.comm_target_layout[this.row_scan][this.col_scan];
+                if (this.emoji_keyboard) {
+                    selected_text = kconfig.emoji_target_layout[this.row_scan][this.col_scan];
+                } else if (this.row_scan == 0) {
+                    selected_text = this.lm.word_predictions[this.col_scan];
+                } else {
+                    selected_text = kconfig.target_layout[this.row_scan][this.col_scan];
+                }
 
                 this.col_scan = -1;
-                this.row_scan = kconfig.comm_num_rows - 1;
+                this.row_scan = kconfig.num_rows - 1;
                 this.next_scan_time = Infinity;
 
                 this.make_choice(selected_text);
@@ -1139,7 +1210,7 @@ class Keyboard {
             if (this.col_scan == -1) { // in row scan
                 this.col_scan_count = 0;
                 this.row_scan += 1;
-                if (this.row_scan >= kconfig.comm_num_rows) {
+                if (this.row_scan >= kconfig.num_rows) {
                     if (this.lm.word_predictions[0] === "" && !this.emoji_keyboard) {  // skip first row if no word predictions
                         this.row_scan = 1;
                     } else {
@@ -1147,7 +1218,7 @@ class Keyboard {
                     }
                 }
 
-                if (this.row_scan == 0) { // first row
+                if (this.row_scan == 0 && !this.emoji_keyboard) { // first row
                     this.next_scan_time = time_in + this.scan_delay + this.extra_delay;
                 } else {
                     this.next_scan_time = time_in + this.scan_delay;
@@ -1166,12 +1237,17 @@ class Keyboard {
                         this.col_scan_count += 1;
                     }
                 } else {
-
-                    if (this.col_scan >= kconfig.comm_row_lengths[this.row_scan]) {
-                        this.col_scan = 0;
-                        this.col_scan_count += 1;
+                    if (this.emoji_keyboard) {
+                        if (this.col_scan >= 8) {
+                            this.col_scan = 0;
+                            this.col_scan_count += 1;
+                        }
+                    } else {
+                        if (this.col_scan >= kconfig.row_lengths[this.row_scan]) {
+                            this.col_scan = 0;
+                            this.col_scan_count += 1;
+                        }
                     }
-
                 }
 
                 if (this.col_scan == 0) { // first row
@@ -1253,6 +1329,7 @@ class Keyboard {
 
     play_audio() {
         this.audio.play();
+
     }
 
     displayWindowSize() {
