@@ -1,0 +1,20 @@
+footer {
+    position: fixed;
+    height: 2.5em;
+    width: 100%;
+    text-align: center;
+    line-height: .5em;
+    bottom: 0em;
+    background-color: #ffffff;
+}
+
+.column {
+    float: left;
+    width: 33.33%;
+    padding: 0px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    padding: 0px;
+}

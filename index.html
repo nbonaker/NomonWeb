@@ -1,1 +1,166 @@
-<meta http-equiv="refresh" content="0; URL=./html/keyboard.html" />
+<!DOCTYPE html>
+<html>
+<title>Nomon Web App</title>
+<link rel="icon"
+      type="image/png"
+      href="./icon.png">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0"/>
+    <meta http-equiv="cache-control" content="max-age=0"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
+    <meta http-equiv="pragma" content="no-cache"/>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+</head>
+<link rel="stylesheet" href="style/sidebar.css">
+<link rel="stylesheet" href="style/footer.css">
+<style>
+    body {
+        margin: 0;
+        padding-bottom: 4em;
+        font-family: Helvetica, sans-serif;
+    }
+    html {
+        scroll-behavior: smooth;
+    }
+</style>
+<body>
+<body>
+
+<ul>
+    <li><a class="active" href="#about" id="about_ref">About</a></li>
+    <li><a href="#demo" id="demo_ref">Demo</a></li>
+    <li><a href="#research"  id="research_ref">Research</a></li>
+    <li style="font-family: 'Courier New', monospace"><a href="#code" id="code_ref">open_source_code</a></li>
+    <li><a href="#contact" id="contact_ref">Contact</a></li>
+</ul>
+
+<div style="margin-left:15%;padding:1px 16px">
+    <h1>Nomon Web Application</h1>
+    <h2 id="about" >About</h2>
+    <h3>Single Switch Communication</h3>
+    <p>For people living with severe motor impairments, Augmentative and Alternative Communication (AAC) devices with
+        a single-switch input can provide a means of computer interaction. Users control the activation time of their
+        single switch by, e.g., pressing a button, releasing a puﬀ of air, or blinking. These switch activations are
+        commonly sent into an AAC interface, such as a scanning system, which facilitates computer navigation or text
+        composition.
+    </p>
+    <figure>
+        <img src="resources/rcs_animation.gif">
+        <figcaption><b>Row Column Scanning</b> https://www.wikiwand.com/en/Switch_access_scanning</figcaption>
+    </figure>
+    <p> In a scanning
+        system, individual interface options or sets of options are highlighted in a fixed sequence. To select
+        something, the user waits for their target to be highlighted and then activates their switch. A common approach,
+        row column scanning, involves an activation to select a set of options arranged in a row followed by a second
+        activation to select a column. Such scanning systems are typically limited to displaying options in a fixed grid
+        and, when used for text composition, have extremely slow text entry rates — on the order of 0.3–2.9 words per
+        minute (wpm) and 1.9 wpm — with motor impaired users.</p>
+
+    <h3>Nomon</h3>
+    <p> <b>What is Nomon?</b> Our interface, Nomon, addresses the limitations of traditional single switch input methods through
+        its flexible selection scheme. Nomon has many potential uses such as drawing, general operating system control,
+        and even gaming. The interface places an indicator next to each option and uses a probabilistic selection
+        mechanism. This selection mechanism incorporates prior information on options and a model of user-input noise to
+        perform Bayesian updates that adapt its selection criteria to a user’s ability. This adaptation helps the user
+        type quickly while avoiding errors. Further, Nomon is not limited to a strict grid layout as these indicators
+        can be placed at arbitrary locations on the screen</p>
+    <figure>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/s8ul3y-Iaeg" title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+        <figcaption><b>Video demonstration:</b> typing text with the Nomon keyboard application.</figcaption>
+    </figure>
+
+    <p> <b>How does it work?</b> In Nomon, all options have a clock indicator to their left which allows for selection. Each clock has a
+        unique phase, and the minute hands of all clocks rotate at a constant, shared speed. A user can select an option
+        by
+        clicking when the clock adjacent to their desired option passes noon. The user needs to look only at the
+        adjacent clock
+        to select its corresponding target. After a click, all the clock hands change phase. This phase change is done
+        such that
+        the hour hands on the most likely clocks are maximally separated. The user then repeatedly clicks when the
+        minute
+        hand passes noon until their target is narrowed down and selected. The number of clicks required to select a
+        target is
+        dependent on the precision of the user and on how probable the target is. In a writing application that makes
+        use of a
+        language model, an experienced user can select targets in around two clicks. A demonstration of how typing with
+        the Nomon interface works is included below.</p>
+
+    <figure>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/eIm5G1sqHAM"
+                title="YouTube video player" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+        <figcaption><b>Video:</b> A deep dive into Nomon's unique, probabilistic selection mechanism.</figcaption>
+    </figure>
+
+    <h2 id="demo">Demo </h2>
+    <p> We provide three demos of the Nomon interface below: (1) a <b>Guided Tutorial</b> on selecting items with
+        Nomon clocks,
+        (2) an <b>Emoji Selection Interface</b> that demonstrates Nomon's ability to select between many options
+        at once, and (3) a full <b>Text Keyboard</b> with word completions.</p>
+
+    <h2 id="research">Research </h2>
+
+    <h2 style="font-family: 'Courier New', monospace" id="code">open_source_code</h2>
+
+    <h2 id="contact">Contact </h2>
+
+</div>
+
+<script>
+    $(document).ready(function() {
+        $(window).scroll(function () {
+            var scroll = $(window).height()*5/6+$(window).scrollTop();
+
+            var about_pos = $("#about").offset().top;
+            var demo_pos = $("#demo").offset().top;
+            var research_pos = $("#research").offset().top;
+            var code_pos = $("#code").offset().top;
+            var contact_pos = $("#contact").offset().top;
+
+            document.getElementById("about_ref").classList.remove('active');
+            document.getElementById("demo_ref").classList.remove('active');
+            document.getElementById("research_ref").classList.remove('active');
+            document.getElementById("code_ref").classList.remove('active');
+            document.getElementById("contact_ref").classList.remove('active');
+
+            if (scroll < demo_pos){
+                document.getElementById("about_ref").classList.add('active');
+            }
+            else if (scroll < research_pos){
+                document.getElementById("demo_ref").classList.add('active');
+            }
+            else if (scroll < code_pos){
+                document.getElementById("research_ref").classList.add('active');
+            }
+            else if (scroll < contact_pos){
+                document.getElementById("code_ref").classList.add('active');
+            }
+            else {
+                document.getElementById("contact_ref").classList.add('active');
+            }
+        });
+    });
+</script>
+
+</body>
+<footer>
+    <div class="row">
+        <div class="column">
+            <p style="text-align: left; padding-left: 1em"> &copy; 2021 The Nomon Web Application. </p>
+        </div>
+        <div class="column">
+            <p style="text-align: center"><img src="/icon.png" style="width: 1em;"> <span
+                    id="footer_version">v0.0.0</span></p>
+        </div>
+        <div class="column">
+            <p style="text-align: right; padding-right: 1em">This code is under MIT license. </p>
+        </div>
+    </div>
+</footer>
+</html>
