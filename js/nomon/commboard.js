@@ -1,12 +1,35 @@
-import * as widgets from './widgets.js';
+import * as widgets from './commboard_widgets.js';
 import * as infoscreen from './info_screens.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
-import * as tm from './tutorial.js';
+import * as tm from './tutorial_new.js';
 import * as lm from './lm.js';
+import * as rcom from '../rowcol_options_manager.js';
+import * as normon from "./normon/normontheclock.js";
 
 import {makeCorsRequest} from "../cors_request.js";
+
+
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (stroke) {
+    ctx.stroke();
+    }
+    if (fill) {
+    ctx.fill();
+    }
+}
 
 function log_add_exp(a_1, a_2){
     var b = Math.max(a_1, a_2);
@@ -18,36 +41,58 @@ function emoji_count(str){
     return Array.from(str.split(/[\ufe00-\ufe0f]/).join("")).length;
 }
 
+class rowcolButton{
+    constructor(button, value) {
+        this.value = value;
+        this.button = button;
+    }
+    darkhighlight(){
+        this.button.className = "btn darkhighlighted";
+    }
+    highlight(){
+        this.button.className = "btn highlighted";
+    }
+    unhighlight(){
+        this.button.className = "btn unhighlighted";
+    }
+    select(){
+        this.button.onclick();
+    }
+}
+
+
 class Keyboard{
-    constructor(user_id, first_load, emoji, partial_session, prev_data){
+    constructor(user_id, first_load, partial_session, prev_data){
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
-        this.emoji_keyboard = emoji;
 
-        if (this.emoji_keyboard){
-            this.n_pred = 0;
-        } else {
-            this.n_pred = kconfig.n_pred;
-        }
+        this.emoji_keyboard = true;
 
+        this.n_pred = 0;
 
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
-        this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
-        this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
+        this.highlight_canvas = new widgets.KeyboardCanvas("highlights", 2);
+        this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 3);
+        this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 4);
         this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
+
+        if (this.user_id){
+            this.study_manager = new sm.studyManager(this, user_id, first_load, partial_session, prev_data);
+        }
+        this.phrase_arr = [];
+        this.emojis_selected = 0;
+        this.in_session = false;
 
         this.run_on_focus = false;
 
         window.addEventListener('keydown', function (e) {
-            e.preventDefault();
             if (e.keyCode === 32) {
+                e.preventDefault();
                 this.on_press();
             }
         }.bind(this), false);
         // document.onkeypress = function() {this.on_press();}.bind(this);
-        document.onmousedown = function() {
-            this.increment_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
 
         this.left_context = "";
@@ -62,6 +107,7 @@ class Keyboard{
         this.time_rotate = config.period_li[this.rotate_index];
         this.pre_phrase_rotate_index = this.rotate_index;
         this.allow_slider_input = true;
+        document.getElementById("speed_text").innerText = this.rotate_index.toString();
 
         this.typed = "";
         this.btyped = "";
@@ -77,9 +123,14 @@ class Keyboard{
         this.lm = new lm.LanguageModel(this);
 
         this.start_tutorial = first_load;
-        this.in_info_screen = first_load;
+        this.in_info_screen = false;
 
-        this.in_tutorial = false;
+        this.Normon;
+        this.normon_interval;
+        this.normon_pos = 0;
+
+        this.in_tutorial = first_load;
+        this.in_session_help = false;
         this.in_finished_screen = false;
         this.init_ui();
     }
@@ -88,14 +139,10 @@ class Keyboard{
 
         console.log(this.words_on);
 
-
         this.bc_init = false;
         this.previous_undo_text = '';
         this.previous_winner = 0;
 
-        if (!this.emoji_keyboard) {
-            this.gen_word_prior(false);
-        }
         //
         this.bc = new bc.BroderClocks(this);
         this.full_init=true;
@@ -105,41 +152,48 @@ class Keyboard{
 
     }
     init_ui(){
-        this.speed_slider = document.getElementById("speed_slider");
-        this.speed_slider_output = document.getElementById("speed_slider_value");
-        this.speed_slider_output.innerHTML = this.rotate_index;
-        this.speed_slider.value = this.rotate_index;
+        this.normon_canvas = new normon.NormonCanvas("normon_canvas", 5);
 
-        this.speed_slider.oninput = function() {
-            this.speed_slider_output.innerHTML = this.speed_slider.value;
-            this.change_speed(this.speed_slider.value);
+        this.speed_inc = document.getElementById("inc_speed_button");
+        this.speed_dec = document.getElementById("dec_speed_button");
+
+        this.speed_inc.onclick = function(){
+            this.change_speed(Math.min(20, this.rotate_index + 1));
+            this.destroy_options_rcom();
         }.bind(this);
+
+        this.speed_dec.onclick = function(){
+            this.change_speed(Math.max(0, this.rotate_index - 1));
+            this.destroy_options_rcom();
+        }.bind(this);
+
+        this.abort_options_button = document.getElementById("abort_options_button");
+        this.abort_options_button.onclick = function(){
+            this.destroy_options_rcom();
+        }.bind(this);
+
 
         this.tutorial_button = document.getElementById("tutorial_button");
         this.tutorial_button.onclick = function(){
-            if (!this.in_session && !this.in_info_screen) {
+            if (!this.in_session) {
                 if (this.in_tutorial){
+                    this.tutorial_manager.end_tutorial();
                     this.end_tutorial();
-                    this.session_button.className = "btn clickable";
-                    this.change_user_button.className = "btn clickable";
-                    this.info_button.className = "btn clickable";
                 } else {
                     this.init_tutorial();
-                    this.session_button.className = "btn unclickable";
-                    this.change_user_button.className = "btn unclickable";
-                    this.info_button.className = "btn unclickable";
                 }
-
             }
+            this.destroy_options_rcom();
         }.bind(this);
 
         this.change_user_button = document.getElementById("send_button");
         if (this.user_id) {
             this.change_user_button.onclick = function () {
-                if (!this.in_tutorial && !this.in_session && !this.in_info_screen) {
+                if (!this.in_tutorial && !this.in_session) {
                     var login_url = "../index.php";
                     window.open(login_url, '_self');
                 }
+                this.destroy_options_rcom();
             }.bind(this);
         } else {
             this.change_user_button.value = "RCS Keyboard";
@@ -152,48 +206,26 @@ class Keyboard{
         this.session_button = document.getElementById("session_button");
         if (this.user_id) {
             this.session_button.onclick = function () {
-                if (!this.in_tutorial && !this.in_info_screen) {
+                if (!this.in_tutorial) {
                     this.study_manager.request_session_data();
+                    this.init_session_help();
                 }
+                this.destroy_options_rcom();
             }.bind(this);
             this.session_time_label = document.getElementById("session_timer");
         } else {
             if (this.emoji_keyboard) {
-                this.session_button.value = "ABC";
+                this.session_button.value = "ABC            ";
             } else {
-                this.session_button.value = `😃😮😒`;
+                this.session_button.value = `😃😮😒          `;
             }
 
             this.session_button.onclick = function () {
                 var keyboard_url = "keyboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
-            document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
+            document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press Retrain for help.</b>`;
         }
-
-        this.commboard_button = document.getElementById("commboard_button");
-        if (!this.user_id) {
-            this.commboard_button.onclick = function () {
-                var keyboard_url = "./commboard.html?emoji=".concat(this.emoji_keyboard.toString());
-                window.open(keyboard_url, '_self');
-            }.bind(this);
-        }
-
-        this.info_button = document.getElementById("help_button");
-        this.info_button.onclick = function () {
-            if (!this.in_tutorial) {
-                if (this.in_info_screen) {
-                    this.destroy_info_screen();
-                } else {
-                    this.in_info_screen = true;
-                    if (this.in_session) {
-                        this.init_session_info_screen();
-                    } else {
-                        this.init_info_screen();
-                    }
-                }
-            }
-        }.bind(this);
 
         this.learn_checkbox = document.getElementById("checkbox_learn");
         if (this.prev_data && this.prev_data.learn !== null){
@@ -217,35 +249,26 @@ class Keyboard{
             this.audio_checkbox.checked = true;
         }
 
-
-        if (this.emoji_keyboard) {
-            this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.emoji_target_layout);
-            this.clockgrid = new widgets.ClockGrid(this, this.clockface_canvas, this.clockhand_canvas, this.keygrid,
-                kconfig.emoji_target_layout, kconfig.emoji_key_chars, kconfig.emoji_main_chars, this.n_pred);
-        } else {
-            this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.alpha_target_layout);
-            this.clockgrid = new widgets.ClockGrid(this, this.clockface_canvas, this.clockhand_canvas, this.keygrid,
-                kconfig.alpha_target_layout, kconfig.key_chars, kconfig.main_chars, this.n_pred);
-        }
+        this.keygrid = new widgets.KeyGrid(this.keygrid_canvas, kconfig.comm_target_layout);
+        this.clockgrid = new widgets.ClockGrid(this, this.clockface_canvas, this.clockhand_canvas, this.keygrid,
+            kconfig.comm_target_layout, kconfig.comm_key_chars, kconfig.comm_main_chars, this.n_pred);
         this.textbox = new widgets.Textbox(this.output_canvas);
 
         this.histogram = new widgets.Histogram(this.output_canvas);
 
-        if (this.in_info_screen){
-            this.init_info_screen();
+        this.continue_init();
+
+        if (this.in_tutorial){
+            this.init_tutorial();
         }
-        if (this.emoji_keyboard){
-            this.continue_init();
-        }
+
     }
     init_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
         this.info_canvas.calculate_size(0);
-        this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
+        // this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas);
+        this.info_canvas.grey();
 
-        this.session_button.className = "btn unclickable";
-        this.change_user_button.className = "btn unclickable";
-        this.tutorial_button.className = "btn unclickable";
     }
     init_session_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -271,17 +294,24 @@ class Keyboard{
 
             this.in_info_screen = false;
 
-            if (this.start_tutorial){
-                this.init_tutorial();
+            if (this.in_session) {
+                if (this.study_manager.session_pause_start_time !== Infinity) {
+                    this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
+                }
+                this.study_manager.session_pause_start_time = Infinity;
+
             } else {
-                this.tutorial_button.className = "btn clickable";
+
             }
         }
     }
+    init_session_help(){
+        this.help_manager = new hm.helpManager(this, this.bc);
+        this.in_session_help = true;
+    }
     init_tutorial(){
-        this.info_button.className = "btn unclickable";
-        this.tutorial_button.className = "btn clickable";
-        this.tutorial_button.value = "Abort Retrain";
+
+        this.tutorial_button.value = "Abort Help      ";
 
         this.left_context = "";
         this.typed = "";
@@ -292,56 +322,223 @@ class Keyboard{
         this.in_tutorial = true;
         this.start_tutorial = false;
     }
-    end_tutorial(){
-        this.destroy_info_screen();
-        this.in_tutorial = false;
-        this.tutorial_manager = null;
+    end_tutorial(failed=false){
+        if (failed) {
+            this.tutorial_manager = null;
+            this.init_tutorial();
+        } else {
+            this.destroy_info_screen();
+            this.in_tutorial = false;
+            this.tutorial_manager = null;
 
-        this.left_context = "";
-        this.typed = "";
-        this.lm_prefix = "";
-        this.textbox.draw_text("");
-        this.lm.update_cache(this.left_context, this.lm_prefix);
+            this.left_context = "";
+            this.typed = "";
+            this.typed_versions = [];
+            this.lm_prefix = "";
+            this.btyped = "";
+            this.ctyped = [];
+            this.context = "";
+            this.old_context_li = [""];
+            this.last_add_li = [0];
+            this.textbox.draw_text("");
+            this.lm.update_cache(this.left_context, this.lm_prefix);
 
-        this.info_button.className = "btn clickable";
-        this.tutorial_button.value = "Retrain";
+            this.tutorial_button.value = "Help               ";
+        }
+    }
+    init_options_rcom(){
+        var options_array = [
+            [new rowcolButton(this.speed_dec, "1"), new rowcolButton(this.speed_inc, "2"), new rowcolButton(this.abort_options_button, "3")],
+            [new rowcolButton(this.tutorial_button, "4"), new rowcolButton(this.change_user_button, "5"), new rowcolButton(this.session_button, "6")]
+            ];
+
+        if (this.in_tutorial) {
+            this.RCOM = new rcom.OptionsManager(options_array, 2, this.tutorial_manager, false);
+        } else {
+            this.RCOM = new rcom.OptionsManager(options_array, 2, null, false);
+        }
+        this.RCOM_interval = setInterval(this.RCOM.animate.bind(this.RCOM), 0.05*1000);
+        this.in_info_screen = true;
+        this.init_info_screen();
+    }
+    destroy_options_rcom(){
+        clearInterval(this.RCOM_interval);
+        this.RCOM = null;
+        if (!this.in_tutorial) {
+            this.destroy_info_screen();
+        }
+
+        this.speed_inc.className = "btn unhighlighted";
+        this.speed_dec.className = "btn unhighlighted";
+        this.abort_options_button.className = "btn unhighlighted";
+        this.tutorial_button.className = "btn unhighlighted";
+        this.change_user_button.className = "btn unhighlighted";
+        this.session_button.className = "btn unhighlighted";
+
+    }
+    moniter_click_dist(){
+        // if (this.bc && this.bc.clock_inf && !this.in_info_screen ) {
+        //     var click_performance = this.evaluate_click_dist();
+        //
+        //     if (click_performance === "poor" || click_performance === "redo"){
+        //         this.launch_normon();
+        //         this.in_info_screen = true;
+        //         this.nomon_pos = 0;
+        //
+        //         this.progress_screens();
+        //     }
+        // }
+    }
+    launch_normon(){
+        this.destroy_normon();
+        this.nomon_pos = 0;
+
+        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
+        this.info_canvas.calculate_size(0);
+
+        var normon_x = this.normon_canvas.screen_width*1.3;
+        var normon_y = this.normon_canvas.screen_height*3/4;
+        var normon_r = this.normon_canvas.screen_height/15;
+
+        this.Normon = new normon.Normon(this.normon_canvas, normon_x, normon_y, normon_r, this);
+        this.normon_interval = setInterval(this.Normon.animate.bind(this.Normon), 20);
+
+    }
+    progress_screens(){
+        var normon_x;
+        var normon_y;
+
+        this.info_canvas.ctx.beginPath();
+        this.info_canvas.ctx.globalCompositeOperation = 'source-over';
+        this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.width, this.info_canvas.height);
+
+        if (this.normon_pos === 0) {
+            normon_x = this.normon_canvas.screen_width * 0.8;
+            normon_y = this.normon_canvas.screen_height * 3 / 4;
+            this.Normon.update_target_coords(normon_x, normon_y);
+
+            this.Normon.pause = 1;
+            this.Normon.run_on_return = true;
+
+        } else if (this.normon_pos === 1) {
+
+            var font_height = this.info_canvas.screen_width / 55;
+            var rect_x = this.info_canvas.screen_width * 0.22;
+            var rect_y = this.info_canvas.screen_height * 0.1 + font_height*12;
+
+            normon_x = this.normon_canvas.screen_width * 0.8;
+            normon_y = this.normon_canvas.screen_height * 3 / 4;
+
+            this.Normon.update_target_coords(normon_x, normon_y);
+            this.info_canvas.ctx.beginPath();
+
+            this.info_canvas.ctx.fillStyle = "#ffffff";
+            this.info_canvas.ctx.strokeStyle = "#404040";
+            this.info_canvas.ctx.lineWidth = font_height * 0.3;
+            roundRect(this.info_canvas.ctx, rect_x, rect_y, font_height * 31, font_height * 5.4,
+                20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.font = "".concat(font_height.toString(), "px Helvetica");
+            this.info_canvas.ctx.fillText("Hey! It looks like the clocks are going a bit too fast..",
+                rect_x + font_height, rect_y + font_height * 2.8);
+            this.info_canvas.ctx.fillText("Let's slow them down a bit so you can click more precisely!",
+                rect_x + font_height, rect_y + font_height * 4.1);
+
+            this.Normon.pause = 7;
+            this.Normon.run_on_return = true;
+        }
+        else if (this.normon_pos === 2) {
+            normon_x = this.normon_canvas.screen_width * 1.5;
+            normon_y = this.normon_canvas.screen_height * 3 / 4;
+            this.Normon.run_on_return = true;
+        }
+        else if (this.normon_pos === 3) {
+            this.normon_canvas.ctx.beginPath();
+            this.normon_canvas.ctx.globalCompositeOperation = 'source-over';
+            this.normon_canvas.ctx.clearRect(0, 0, this.normon_canvas.width, this.normon_canvas.height);
+
+            this.change_speed(Math.max(0, Math.min(this.rotate_index-4, 1)));
+            this.destroy_normon();
+
+        }
+        this.normon_pos += 1;
+    }
+    destroy_normon(){
+
+        if (this.Normon) {
+            this.Normon.run_on_return = false;
+            clearInterval(this.normon_interval);
+            this.normon_canvas.ctx.clearRect(0, 0, this.normon_canvas.width, this.normon_canvas.height);
+            this.Normon = null;
+        }
+
+    }
+    evaluate_click_dist(){
+        var dens_li = this.bc.clock_inf.kde.dens_li.slice();
+        var mode = dens_li.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+        var percentile_25th = 0;
+        var percentile_75th = 0;
+        var cum_sum = 0;
+        var dens_sum = dens_li.reduce((a, b) => a + b, 0);
+
+        for (var i = 0; i <= dens_li.length; i++) {
+            cum_sum += dens_li[i];
+            if (cum_sum/dens_sum < 0.25) {
+                percentile_25th = i;
+            } else if (cum_sum/dens_sum < 0.75) {
+                percentile_75th = i;
+            }
+        }
+
+        var  dens_mean = dens_li.reduce((a, b) => (a + b)) / dens_li.length;
+        var dens_sigma = Math.sqrt(dens_li.map(x => Math.pow(x - dens_mean, 2)).reduce((a, b) => a + b) / (dens_li.length - 1));
+
+        console.log(dens_sigma);
+        var dist_range = percentile_75th - percentile_25th;
+        console.log(percentile_25th, percentile_75th, dist_range);
+
+        if (dist_range < 5){
+            return "excelent";
+        } else if (dist_range < 9){
+            return "good";
+        } else if (dist_range < 12){
+            return "ok";
+        } else if (dist_range < 16){
+            return "poor";
+        } else {
+            return "redo";
+        }
+
     }
     draw_phrase(){
         this.typed_versions = [''];
         this.typed = "";
-        if (this.emoji_keyboard){
-            this.study_manager.cur_phrase = "";
-            for (var i = 0; i<5; i++) {
-                var emoji_index = Math.floor(Math.random() * kconfig.emoji_main_chars.length);
-                var emoji = kconfig.emoji_main_chars[emoji_index];
-                this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
-            }
+        this.study_manager.cur_phrase = "";
+        this.phrase_arr = [];
+        this.emojis_selected = 0;
 
-            var phrase_arr = Array.from(this.study_manager.cur_phrase);
-            this.cur_emoji_target = phrase_arr[0];
-
-            this.keygrid.draw_layout();
-            this.highlight_emoji();
-        } else {
-            this.lm_prefix = "";
-            this.left_context = "";
-            this.fetched_words = false;
-            this.is_undo = false;
-            this.is_equalize = false;
-            this.skip_hist = true;
-            this.lm.update_cache(this.left_context, this.lm_prefix, null);
-
-            this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
+        for (var i = 0; i<5; i++) {
+            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length);
+            var comm_word = kconfig.comm_phrase_lookup[comm_index].concat(" ");
+            this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(comm_word);
+            this.phrase_arr.push(comm_index);
         }
+
+        this.cur_emoji_target = (this.phrase_arr[this.emojis_selected] + 10).toString();
+
+        this.keygrid.draw_layout();
+        this.highlight_emoji();
+
         this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
         this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
     }
     highlight_emoji(){
         console.log("CUR TARGET: ", this.cur_emoji_target);
 
-        var indicies = widgets.indexOf_2d(kconfig.emoji_target_layout, this.cur_emoji_target);
+        var indicies = widgets.indexOf_2d(kconfig.comm_target_layout, this.cur_emoji_target.toString());
+        console.log(indicies);
         if (indicies !== false) {
-            this.keygrid.highlight_square(indicies[0], indicies[1])
+            this.keygrid.highlight_square(indicies[0], indicies[1]);
         }
 
     }
@@ -372,32 +569,38 @@ class Keyboard{
             // # update the histogram
             this.histogram.update(this.bc.clock_inf.kde.dens_li);
         }
-        this.speed_slider_output.innerHTML = speed_index;
-        this.speed_slider.value = speed_index;
+        document.getElementById("speed_text").textContent = speed_index.toString();
     }
     on_press(){
         if (document.hasFocus()) {
             this.play_audio();
-            if ((this.fetched_words || this.emoji_keyboard) && !this.in_info_screen && !this.in_finished_screen) {
+            if (!this.in_info_screen && !this.in_finished_screen) {
                 var time_in = Date.now() / 1000;
 
                 if (this.in_tutorial) {
                     console.log("cur_hour", this.bc.clock_inf.clock_util.cur_hours[this.tutorial_manager.target_clock]);
-                    this.tutorial_manager.on_press(time_in);
-
+                        this.tutorial_manager.on_press(time_in);
+                }else if (this.in_session_help) {
+                    this.help_manager.on_press(time_in);
+                } else {
+                    this.bc.select(time_in);
+                    if (this.in_session) {
+                        this.allow_slider_input = false;
+                        this.pre_phrase_rotate_index = this.rotate_index;
+                    }
                 }
-
-                this.bc.select(time_in);
-                if (this.in_session) {
-                    this.allow_slider_input = false;
-                    this.pre_phrase_rotate_index = this.rotate_index;
-                }
+            }
+            if (this.in_info_screen && this.info_screen){
+                this.increment_info_screen();
+            }
+            if (this.RCOM){
+                this.RCOM.update_scan_time(true);
             }
         }
     }
     start_pause(){
-        this.keygrid.in_pause = true;
-        this.keygrid.draw_layout();
+        // this.keygrid.in_pause = true;
+        // this.keygrid.draw_layout();
         setTimeout(this.end_pause.bind(this), kconfig.pause_length);
         this.clockgrid.undo_label.draw_text();
     }
@@ -413,11 +616,17 @@ class Keyboard{
         this.winner_clock = this.clockgrid.clocks[clock_index];
         this.winner_clock.winner = true;
         this.winner_clock.draw_face();
-        setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
+        if (this.in_tutorial && this.tutorial_manager.target_num === 1){
+            setTimeout(this.unhighlight_winner.bind(this), 8000);
+        } else {
+            setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
+        }
+        this.highlight_canvas.radial_highlight(this.winner_clock.x_pos, this.winner_clock.y_pos)
     }
     unhighlight_winner(){
         this.winner_clock.winner = false;
         this.winner_clock.draw_face();
+        this.highlight_canvas.clear()
     }
     on_word_load(){
         this.fetched_words = true;
@@ -445,11 +654,9 @@ class Keyboard{
     }
     init_locs(){
         var key_chars;
-        if (this.emoji_keyboard){
-            key_chars = kconfig.emoji_key_chars;
-        } else {
-            key_chars = kconfig.key_chars;
-        }
+
+        key_chars = kconfig.comm_key_chars;
+
         this.N_rows = key_chars.length;
         this.N_keys_row = [];
         this.N_keys = 0;
@@ -458,11 +665,8 @@ class Keyboard{
         var col;
         for (row = 0; row < this.N_rows; row++){
 
-            if (this.emoji_keyboard){
-                var n_keys = 1;
-            } else {
-                var n_keys = key_chars[row].length;
-            }
+            var n_keys = 1;
+
             for (col = 0; col < n_keys; col++){
                 if (!(key_chars[row] instanceof Array)){
                     if (kconfig.main_chars.includes(key_chars[row][col]) && (key_chars[row].length == 1)){
@@ -666,11 +870,8 @@ class Keyboard{
                     this.word_score_prior.push(prob);
                 } else {
                     key = pair[0];
-                    if (this.emoji_keyboard){
-                        prob = Math.log(1/60);
-                    } else {
-                        prob = this.key_freq_li[key];
-                    }
+                    prob = Math.log(1/60);
+
 
                     // prob = prob + Math.log(kconfig.rem_prob);
                     // if (this.keys_li[key] == kconfig.mybad_char) {
@@ -738,11 +939,6 @@ class Keyboard{
             undo_text = new_text;
         }
 
-        previous_text = previous_text.replace(" .", ". ");
-        previous_text = previous_text.replace(" ,", ", ");
-        previous_text = previous_text.replace(" ?", "? ");
-        previous_text = previous_text.replace(" !", "! ");
-
         var index = this.previous_winner;
         if ( [kconfig.mybad_char, 'Undo'].includes(this.clockgrid.clocks[index].text)){
             is_undo = true;
@@ -797,7 +993,7 @@ class Keyboard{
 
                 new_text = this.typed_versions[this.typed_versions.length -1];
                 if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
-                    new_text = new_text.slice(0, new_text.length - 1);
+                    new_text = new_text.slice(0, new_text.length);
                 }
                 input_text = new_text;
                 if (this.in_session) {
@@ -811,15 +1007,8 @@ class Keyboard{
         }
         else{
             this.typed_versions.push(previous_text.concat(new_text));
-            if (new_text.length > 0 && new_text.charAt(new_text.length - 1) == " "){
-                    new_text = new_text.slice(0, new_text.length - 1);
-            }
-            input_text = previous_text.concat(new_text);
 
-            input_text = input_text.replace(" .", "._");
-            input_text = input_text.replace(" ,", ",_");
-            input_text = input_text.replace(" ?", "?_");
-            input_text = input_text.replace(" !", "!_");
+            input_text = previous_text.concat(new_text);
 
             if (this.in_session) {
                 input_text = this.study_manager.cur_phrase.concat('\n', input_text);
@@ -860,131 +1049,68 @@ class Keyboard{
 
         var i;
         // # if selected a key
-        if ((index - this.n_pred) % (this.n_pred + 1) == 0){
-            new_char = this.clockgrid.clocks[index].text;
-            new_char = new_char.replace("Undo", kconfig.mybad_char);
-            new_char = new_char.replace("Backspace", kconfig.back_char);
-            new_char = new_char.replace("Clear", kconfig.clear_char);
-            selection = new_char;
+        new_char = this.clockgrid.clocks[index].text;
+        new_char = new_char.replace("Undo", kconfig.mybad_char);
+        new_char = new_char.replace("Backspace", kconfig.back_char);
+        new_char = new_char.replace("Clear", kconfig.clear_char);
+        selection = new_char;
 
-
-            // # special characters
-            if (new_char == kconfig.space_char || new_char == ' '){
-                new_char = '_'
-                this.old_context_li.push(this.context);
-                this.typed = this.typed.concat(new_char);
-                this.context = "";
-                this.last_add_li.push(1);
-            }
-            else if (new_char == kconfig.mybad_char || new_char == kconfig.yourbad_char){
-                // # if added characters that turn
-                if (this.last_add_li.length > 1){
-                    var last_add = this.last_add_li.pop();
-                    this.context = this.old_context_li.pop();
-                    if (last_add > 0){
-                        this.typed = this.typed.slice(0, this.typed.length - last_add);
-                    }
-                    else if (last_add == -1){
-                        var letter = this.btyped.charAt(this.btyped.length - 1);
-
-                        this.btyped = this.btyped.slice(0, this.btyped.length-1);
-                        this.typed = this.typed.concat(letter);
-                    }
-                    else if (last_add == -2){
-                        var prev_typed = this.ctyped.pop();
-                        this.typed = prev_typed;
-                    }
+        console.log(selection);
+        // # special characters
+        if (new_char == kconfig.mybad_char || new_char == kconfig.yourbad_char){
+            // # if added characters that turn
+            if (this.last_add_li.length > 1){
+                var last_add = this.last_add_li.pop();
+                this.context = this.old_context_li.pop();
+                if (last_add > 0){
+                    this.typed = this.typed.slice(0, this.typed.length - last_add);
                 }
-                if (new_char == kconfig.yourbad_char) {
-                    is_equalize = true;
-                }
-                new_char = '';
-                is_undo = true;
-            }
-            else if (new_char == kconfig.back_char){
-                is_backspace = true;
-                // # if delete the last character that turn
-                this.old_context_li.push(this.context);
+                else if (last_add == -1){
+                    var letter = this.btyped.charAt(this.btyped.length - 1);
 
-                var lt = this.typed.length;
-                if (lt > 0){
-                    this.btyped = this.btyped.concat(this.typed.charAt(this.typed.length-1));
-                    this.last_add_li.push(-1);
-                    this.typed = this.typed.slice(0, this.typed.length-1);
-                    lt -= 1;
-                    if (lt == 0) {
-                        this.context = "";
-                    }
-                    else if (this.context.length > 0)
-                        this.context = this.context.slice(0, this.context.length - 1);
-                    // else if (!this.typed[-1].match(/[a-z]/i)) {
-                    //     this.context = "";
-                    // }
-                    // else{
-                    //     i = -1;
-                    //     while ((i >= -lt) && (this.typed[i].match(/[a-z]/i))){
-                    //         i -= 1;
-                    //         this.context = this.typed.splice(i + 1, lt);
-                    //     }
-                    // }
+                    this.btyped = this.btyped.slice(0, this.btyped.length-1);
+                    this.typed = this.typed.concat(letter);
                 }
-                new_char = '';
+                else if (last_add == -2){
+                    var prev_typed = this.ctyped.pop();
+                    this.typed = prev_typed;
+                }
             }
-            else if (new_char == kconfig.clear_char) {
-                new_char = '_';
-                this.old_context_li.push(this.context);
-                this.context = "";
-                this.ctyped.push(this.typed);
-                this.typed = ""
-                this.last_add_li.push(-2);
+            if (new_char == kconfig.yourbad_char) {
+                is_equalize = true;
+            }
+            new_char = '';
+            is_undo = true;
+            this.emojis_selected -= 1;
+        }
+        else if (new_char == kconfig.clear_char) {
+            new_char = '_';
+            this.old_context_li.push(this.context);
+            this.context = "";
+            this.ctyped.push(this.typed);
+            this.typed = "";
+            this.last_add_li.push(-2);
 
-                this.clear_text = true;
-            }
-            else if (kconfig.emoji_main_chars.includes(new_char)){
-                console.log("EMOJI");
-                this.old_context_li.push(this.context);
-                this.context.concat(new_char);
-                this.last_add_li.push(new_char.length);
-                this.typed = this.typed.concat(new_char);
-            }
-            else if (kconfig.main_chars.includes(new_char)) {
-                this.old_context_li.push(this.context);
-                this.context.concat(new_char);
-                this.last_add_li.push(1);
-                this.typed = this.typed.concat(new_char);
-            }
-            else if (kconfig.break_chars.includes(new_char)) {
-                this.old_context_li.push(this.context);
-                this.context = "";
-                this.last_add_li.push(1);
-                this.typed = this.typed.concat(new_char);
-                // if " " + new_char in self.typed:
-                //     self.last_add_li.concat(2);
-                //     self.typed = self.typed.replace(" " + new_char, new_char + " ");
-            }
-            else{
-                this.old_context_li.push(this.context);
-                this.typed = this.typed.concat(new_char);
-                this.last_add_li.push(1);
-            }
+            this.clear_text = true;
+            this.emojis_selected = 0;
+        }
+        else if (new_char == "."){
+            this.old_context_li.push(this.context);
+            this.typed = this.typed.concat(new_char);
+            this.last_add_li.push(new_char.length);
+
+            this.context = "";
+        }
+        else if (new_char == "options"){
+            this.init_options_rcom();
         }
         else{
-            var key = this.index_to_wk[index];
-            var pred = this.index_to_wk[index] % kconfig.n_pred;
-            new_word = this.clockgrid.clocks[index].text;
-            if (!this.emoji_keyboard && new_word.charAt(new_word.length - 1) !== "_"){
-                new_word = new_word.concat("_");
-            }
-            selection = new_word;
-            var context_length = this.lm_prefix.length;
-
-            // if (context_length > 0){
-            //     this.typed = this.typed.slice(context_length, this.typed.length);
-            // }
-            this.typed = this.left_context.concat(new_word);
-            // this.typed = this.typed.concat(new_word);
-            this.last_add_li.push(new_word.length - this.lm_prefix.length);
+            new_char = kconfig.comm_phrase_lookup[parseInt(new_char)-10].concat(" ");
             this.old_context_li.push(this.context);
+            this.typed = this.typed.concat(new_char);
+            this.last_add_li.push(new_char.length);
+            this.emojis_selected += 1;
+
             this.context = "";
         }
         // # update the screen
@@ -1015,21 +1141,19 @@ class Keyboard{
 
         this.last_selection = selection;
 
-        if (this.emoji_keyboard){
-            this.on_word_load();
-            if (this.in_session) {
-                var phrase_arr = Array.from(this.study_manager.cur_phrase);
-                var typed_arr = Array.from(this.typed);
-                if (typed_arr.length < phrase_arr.length) {
-                    this.cur_emoji_target = phrase_arr[typed_arr.length];
-                    this.highlight_emoji();
-                } else {
-                    this.cur_emoji_target = null;
-                    this.highlight_emoji();
-                }
+
+        this.on_word_load();
+        if (this.in_session) {
+            if (this.typed.length > 2 && this.typed.slice(-2) === ".."){
+                this.study_manager.phrase_complete();
+                // this.init_options_rcom()
+            }else if (this.emojis_selected < this.phrase_arr.length) {
+                this.cur_emoji_target = this.phrase_arr[this.emojis_selected] + 10;
+                this.highlight_emoji();
+            } else if (this.emojis_selected < this.phrase_arr.length + 2){
+                this.cur_emoji_target = ".";
+                this.highlight_emoji();
             }
-        } else  {
-            this.lm.update_cache(this.left_context, this.lm_prefix, selection);
         }
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
@@ -1117,23 +1241,110 @@ class Keyboard{
         this.histogram.draw_histogram();
         this.textbox.calculate_size();
 
-        if (this.in_info_screen){
-            this.info_canvas.calculate_size(0);
-            var info_screen_num = this.info_screen.screen_num - 1;
-            if (this.in_session){
-                this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas, info_screen_num);
-            } else {
-                this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
-            }
+        // if (this.in_info_screen){
+        //     this.info_canvas.calculate_size(0);
+        //     var info_screen_num = this.info_screen.screen_num - 1;
+        //     if (this.in_session){
+        //         this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas, info_screen_num);
+        //     } else {
+        //         this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
+        //     }
+        // }
+        if (this.Normon) {
+            this.normon_canvas.calculate_size();
+            this.info_canvas.calculate_size();
+            this.progress_screens();
         }
         if (this.in_tutorial){
             this.tutorial_manager.change_focus();
+
         }
     }
 }
 
 const params = new URLSearchParams(document.location.search);
+const user_id = params.get("user_id");
+const first_load = (params.get("first_load") === 'true' || params.get("first_load") === null);
+const partial_session = params.get("partial_session") === 'true';
 const emoji = params.get("emoji") === 'true';
+console.log("User ID: ", user_id, " First Load: ", first_load, " Partial Session: ", partial_session, " Emoji: ", emoji);
 
-let keyboard = new Keyboard(null, false, emoji, false, null);
-setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
+function send_login() {
+    $.ajax({
+        method: "GET",
+        url: "../php/send_login.php",
+        data: {"user_id": user_id}
+    }).done(function (data) {
+        var result = $.parseJSON(data);
+        var click_dist;
+        var prev_data;
+        if (result.length > 0) {
+            var prev_data = {};
+            result = result[0];
+            var click_dist = JSON.parse(result.click_dist);
+            if (click_dist !== null) {
+                console.log("Retrieved Click Dist!");
+            }
+            prev_data["click_dist"]= click_dist;
+
+            var y_li = JSON.parse(result.y_li);
+            if (y_li !== null) {
+                console.log("Retrieved y_li!");
+            }
+            prev_data["y_li"]= y_li;
+
+            var Z = JSON.parse(result.Z);
+            if (Z !== null) {
+                console.log("Retrieved Z!");
+            }
+            prev_data["Z"]= Z;
+
+            var ksigma = JSON.parse(result.ksigma);
+            if (ksigma !== null) {
+                console.log("Retrieved ksigma!");
+            }
+            prev_data["ksigma"]= ksigma;
+
+            var ksigma0 = JSON.parse(result.ksigma0);
+            if (ksigma0 !== null) {
+                console.log("Retrieved ksigma0!");
+            }
+            prev_data["ksigma0"]= ksigma0;
+
+            var rotate_index = JSON.parse(result.rotate_index);
+            if (rotate_index !== null) {
+                console.log("Retrieved Rotation Index!");
+            }
+            prev_data["rotate_index"]= rotate_index;
+
+            var learn = JSON.parse(result.learn);
+            if (learn !== null) {
+                console.log("Retrieved Learn Checkbox!");
+            }
+            prev_data["learn"]= learn;
+
+            var pause = JSON.parse(result.pause);
+            if (pause !== null) {
+                console.log("Retrieved Pause Checkbox!");
+            }
+            prev_data["pause"]= pause;
+
+            var sound = JSON.parse(result.sound);
+            if (sound !== null) {
+                console.log("Retrieved Sound Checkbox!");
+            }
+            prev_data["sound"]= sound;
+
+        }
+
+        let keyboard = new Keyboard(user_id, first_load, partial_session, prev_data);
+        setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
+    });
+}
+
+if (user_id) {
+    send_login();
+} else {
+    let keyboard = new Keyboard(user_id, first_load, false, null);
+    setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);
+}
