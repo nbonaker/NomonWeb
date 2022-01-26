@@ -1,0 +1,19 @@
+.btn {
+  border: none;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: Helvetica, sans-serif;
+  font-size: 2em ;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.clickable {
+    background-color: #0067ff;
+}
+.unclickable {
+    background-color: rgba(0, 89, 255, 0.32);
+}

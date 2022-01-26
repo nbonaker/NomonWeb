@@ -100,7 +100,7 @@ export class tutorialManager{
         this.circle_x;
         this.circle_y;
         this.circle_rel_size = 1.5;
-        this.target_num = 6;
+        this.target_num = 0;
         this.clock;
         this.Normon;
         this.normon_pause_length = 5;

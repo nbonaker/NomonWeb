@@ -14,6 +14,7 @@
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <link rel="stylesheet" href="style/sidebar.css">
+<link rel="stylesheet" href="style/buttons.css">
 <link rel="stylesheet" href="style/footer.css">
 <style>
     body {
@@ -21,8 +22,22 @@
         padding-bottom: 4em;
         font-family: Helvetica, sans-serif;
     }
+
+    h1 {
+        margin-top: 6vh;
+    }
+
     html {
         scroll-behavior: smooth;
+    }
+
+    div.spacer {
+        font-size: 0;
+        height: 3px;
+        padding-top: 6vh;
+        line-height: 0;
+        background-color: #f1f1f1;
+        background-clip: content-box;
     }
 </style>
 <body>
@@ -31,22 +46,23 @@
 <ul>
     <li><a class="active" href="#about" id="about_ref">About</a></li>
     <li><a href="#demo" id="demo_ref">Demo</a></li>
-    <li><a href="#research"  id="research_ref">Research</a></li>
+    <li><a href="#research" id="research_ref">Research</a></li>
     <li style="font-family: 'Courier New', monospace"><a href="#code" id="code_ref">open_source_code</a></li>
     <li><a href="#contact" id="contact_ref">Contact</a></li>
 </ul>
 
 <div style="margin-left:15%;padding:1px 16px">
-    <h1>Nomon Web Application</h1>
-    <h2 id="about" >About</h2>
-    <h3>Single Switch Communication</h3>
+    <img src="resources/title_logo.JPG" style="width: 100%">
+    <div class="spacer" style="padding-top: 0"></div>
+    <h1 id="about"><img src="resources/clock.jfif" style="width: 3vw; vertical-align: middle;">About</h1>
+    <h3><img src="resources/clock.jfif" style="width: 3vw; vertical-align: middle;">Single Switch Communication</h3>
     <p>For people living with severe motor impairments, Augmentative and Alternative Communication (AAC) devices with
         a single-switch input can provide a means of computer interaction. Users control the activation time of their
         single switch by, e.g., pressing a button, releasing a puﬀ of air, or blinking. These switch activations are
         commonly sent into an AAC interface, such as a scanning system, which facilitates computer navigation or text
         composition.
     </p>
-    <figure>
+    <figure  align="center">
         <img src="resources/rcs_animation.gif">
         <figcaption><b>Row Column Scanning</b> https://www.wikiwand.com/en/Switch_access_scanning</figcaption>
     </figure>
@@ -58,15 +74,16 @@
         and, when used for text composition, have extremely slow text entry rates — on the order of 0.3–2.9 words per
         minute (wpm) and 1.9 wpm — with motor impaired users.</p>
 
-    <h3>Nomon</h3>
-    <p> <b>What is Nomon?</b> Our interface, Nomon, addresses the limitations of traditional single switch input methods through
+    <h3><img src="resources/clock.jfif" style="width: 3vw; vertical-align: middle;">Nomon</h3>
+    <p><b>What is Nomon?</b> Our interface, Nomon, addresses the limitations of traditional single switch input methods
+        through
         its flexible selection scheme. Nomon has many potential uses such as drawing, general operating system control,
         and even gaming. The interface places an indicator next to each option and uses a probabilistic selection
         mechanism. This selection mechanism incorporates prior information on options and a model of user-input noise to
         perform Bayesian updates that adapt its selection criteria to a user’s ability. This adaptation helps the user
         type quickly while avoiding errors. Further, Nomon is not limited to a strict grid layout as these indicators
         can be placed at arbitrary locations on the screen</p>
-    <figure>
+    <figure align="center" >
         <iframe width="560" height="315" src="https://www.youtube.com/embed/s8ul3y-Iaeg" title="YouTube video player"
                 frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -74,7 +91,8 @@
         <figcaption><b>Video demonstration:</b> typing text with the Nomon keyboard application.</figcaption>
     </figure>
 
-    <p> <b>How does it work?</b> In Nomon, all options have a clock indicator to their left which allows for selection. Each clock has a
+    <p><b>How does it work?</b> In Nomon, all options have a clock indicator to their left which allows for selection.
+        Each clock has a
         unique phase, and the minute hands of all clocks rotate at a constant, shared speed. A user can select an option
         by
         clicking when the clock adjacent to their desired option passes noon. The user needs to look only at the
@@ -90,7 +108,7 @@
         language model, an experienced user can select targets in around two clicks. A demonstration of how typing with
         the Nomon interface works is included below.</p>
 
-    <figure>
+    <figure align="center" >
         <iframe width="560" height="315" src="https://www.youtube.com/embed/eIm5G1sqHAM"
                 title="YouTube video player" frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -98,24 +116,204 @@
         <figcaption><b>Video:</b> A deep dive into Nomon's unique, probabilistic selection mechanism.</figcaption>
     </figure>
 
-    <h2 id="demo">Demo </h2>
+    <div class="spacer"></div>
+    <h1 id="demo"><img src="resources/clock.jfif" style="width: 3vw; vertical-align: middle;">Demo </h1>
     <p> We provide three demos of the Nomon interface below: (1) a <b>Guided Tutorial</b> on selecting items with
         Nomon clocks,
         (2) an <b>Emoji Selection Interface</b> that demonstrates Nomon's ability to select between many options
         at once, and (3) a full <b>Text Keyboard</b> with word completions.</p>
 
-    <h2 id="research">Research </h2>
 
-    <h2 style="font-family: 'Courier New', monospace" id="code">open_source_code</h2>
+    <table align="" width="100%">
+        <tr>
+            <td style="text-align:center">
+                <img alt="" border=0 height=100 id="nomon_img" src="resources/clock.jfif" width=100></img>
+            </td>
+            <td style="text-align:center">
+                <h1 style="font-size: 60px">😃😮😒</h1>
+            </td>
+            <td style="text-align:center">
+                <h1 style="font-size: 70px">Abc</h1>
+            </td>
 
-    <h2 id="contact">Contact </h2>
+        </tr>
+        <tr>
+            <td style="text-align:center">
+                <a href='/html/commboard.html'>
+                    <input class='btn clickable' type="button" id="commboard_button" value="Guided Tutorial"/>
+                </a>
+            </td>
+            <td style="text-align:center">
+                <a href='/html/keyboard.html?emoji=true'>
+                    <input class='btn clickable' type="button" id="emoji_button" value="Emoji Interface"/>
+                </a>
+            </td>
+            <td style="text-align:center">
+                <a href='/html/keyboard.html'>
+                    <input class='btn clickable' type="button" id="alpha_button" value="Text Keyboard"/>
+                </a>
+            </td>
+
+        </tr>
+    </table>
+    <div class="spacer"></div>
+
+    <h1 id="research"><img src="resources/clock.jfif" style="width: 3vw; vertical-align: middle;">Research </h1>
+
+    <table align="center" width="100%">
+        <tr>
+            <td style="text-align:center; width: 25%">
+                <h3>Initial Study</h3>
+            </td>
+            <td style="text-align:center; width: 25%">
+                <h3>Nomon Technical Report</h3>
+            </td>
+            <td style="text-align:center; width: 25%">
+                <h3>Able-Bodied User Study</h3>
+            </td>
+            <td style="text-align:center; width: 25%">
+                <h3>Interactivity Demo</h3>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:center">
+                <a href='https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0007481' target="_blank">
+                    <img alt="" border=1px height=260 src="resources/plos_one_article.PNG" width=200></img>
+                </a>
+            </td>
+            <td style="text-align:center">
+                <a href='https://www.semanticscholar.org/paper/Nomon-%3A-Efficient-communication-with-a-single-Broderick-Hennig/10c22be1cbc60e00ab2a58d37f41b0647b01b9f8'
+                   target="_blank">
+                    <img alt="" border=1px height=260 src="resources/nomon_thesis.PNG" width=200></img>
+                </a>
+            </td>
+            <td style="text-align:center">
+                <a href='' target="_blank">
+                    <img alt="" border=1px height=260 src="resources/chi_22_article.PNG" width=200></img>
+                </a>
+            </td>
+            <td style="text-align:center">
+                <a href='' target="_blank">
+                    <img alt="" border=1px height=260 src="resources/chi_22_interactive.PNG" width=200></img>
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:center; font-size: .75em; width: 25%">
+                <p>Tamara Broderick and David J. C. MacKay</p>
+            </td>
+            <td style="text-align:center; font-size: .75em; width: 25%">
+            <p>Tamara Broderick</p>
+            </td>
+            <td style="text-align:center; font-size: .75em; width: 25%">
+            <p>Nicholas Bonaker, Keith Vertanen, <br> Emli-Mari Nel, and Tamara Broderick</p>
+            </td>
+            <td style="text-align:center; font-size: .75em; width: 25%">
+            <p>Nicholas Bonaker, Keith Vertanen, <br> Emli-Mari Nel, and Tamara Broderick</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:center; width: 25%">
+                <h3>GNOMON (Gaming)</h3>
+            </td>
+            </tr>
+        <tr>
+            <td style="text-align:center">
+                <a href='https://dl.acm.org/citation.cfm?id=3085957' target="_blank">
+                    <img alt="" border=1px height=260 src="resources/gnomon_paper.PNG" width=200></img>
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:center; font-size: .75em; width: 25%">
+            <p>Sebastián Aced López, Fulvio Corno, and Luigi De Russis</p>
+            </td>
+        </tr>
+    </table>
+    <div class="spacer"></div>
+
+    <h1 style="font-family: 'Courier New', monospace" id="code">
+        <img src="resources/clock.jfif" style="width: 3vw; vertical-align: middle;">open_source_code</h1>
+
+        <table align="center" width="100%">
+            <tr align="center">
+            <td style="text-align:center" colspan="2">
+                <a href='https://github.com/nbonaker/NomonWeb' target="_blank">
+                    <img alt="" border=0px height=200 src="resources/js_logo.png" width=200></img>
+                </a>
+            </td>
+        <tr align="center">
+            <td style="text-align:center; font-family: 'Courier New', monospace" colspan="2" >
+                <h3>Active JavaScript Repository</h3>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:center">
+                <a href='https://github.com/tbroderick/Nomon'
+                   target="_blank">
+                    <img alt="" border=0px height=150 src="resources/python_logo.jfif" width=150></img>
+                </a>
+            </td>
+            <td style="text-align:center">
+                <a href=''
+                   target="_blank">
+                    <img alt="" border=0px height=150 src="resources/electron_logo.png" width=150></img>
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:center; width: 25%; font-family: 'Courier New', monospace">
+                <h4>Unsupported Python Repository</h4>
+            </td>
+            <td style="text-align:center; width: 25%; font-family: 'Courier New', monospace">
+                <h4>Installable Electron App Coming Soon!</h4>
+            </td>
+        </tr>
+
+        </table>
+    <div class="spacer"></div>
+
+    <h1 id="contact"><img src="resources/clock.jfif" style="width: 3vw; vertical-align: middle;">Contact </h1>
+    <table align="center" width="100%">
+        <tr align="center">
+        <td style="text-align:center">
+            <img alt="" border=0px height=150 src="resources/nick.jpg" width=150></img>
+        </td>
+        <td style="text-align:center">
+            <img alt="" border=0px height=150 src="resources/emli-mari.PNG" width=150></img>
+        </td>
+            <td style="text-align:center">
+            <img alt="" border=0px height=150 src="resources/keith.PNG" width=150></img>
+        </td>
+            <td style="text-align:center">
+            <img alt="" border=0px height=150 src="resources/tamara.PNG" width=150></img>
+        </td>
+        </tr>
+        <tr>
+            <td style="text-align:center">
+                <h3>Nicholas Bonaker</h3>
+                <p>Graduate Student, MIT <br> nbonaker@mit.edu</p>
+            </td>
+             <td style="text-align:center">
+                <h3>Emli-Mari Nel</h3>
+                 <p>Averly <br> emlimari.nel@gmail.com</p>
+            </td>
+             <td style="text-align:center">
+                <h3>Keith Vertanen</h3>
+                 <p>Associate Professor, Michigan Tech <br> vertanen@mtu.edu</p>
+            </td>
+             <td style="text-align:center">
+                <h3>Tamara Broderick</h3>
+                 <p>Associate Professor, MIT <br> tamarab@mit.edu</p>
+            </td>
+        </tr>
+    </table>
 
 </div>
-
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $(window).scroll(function () {
-            var scroll = $(window).height()*5/6+$(window).scrollTop();
+            var scroll = $(window).height() * 1 / 4 + $(window).scrollTop();
 
             var about_pos = $("#about").offset().top;
             var demo_pos = $("#demo").offset().top;
@@ -129,25 +327,20 @@
             document.getElementById("code_ref").classList.remove('active');
             document.getElementById("contact_ref").classList.remove('active');
 
-            if (scroll < demo_pos){
+            if (scroll < demo_pos) {
                 document.getElementById("about_ref").classList.add('active');
-            }
-            else if (scroll < research_pos){
+            } else if (scroll < research_pos) {
                 document.getElementById("demo_ref").classList.add('active');
-            }
-            else if (scroll < code_pos){
+            } else if (scroll < code_pos) {
                 document.getElementById("research_ref").classList.add('active');
-            }
-            else if (scroll < contact_pos){
+            } else if (scroll < contact_pos) {
                 document.getElementById("code_ref").classList.add('active');
-            }
-            else {
+            } else {
                 document.getElementById("contact_ref").classList.add('active');
             }
         });
     });
 </script>
-
 </body>
 <footer>
     <div class="row">
@@ -163,4 +356,5 @@
         </div>
     </div>
 </footer>
+
 </html>
