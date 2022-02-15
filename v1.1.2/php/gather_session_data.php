@@ -92,10 +92,13 @@
 
         $phrase_text = $phrase_data[0]["phrase"];
         $phrase_typed = end($phrase_data)["typed_text"];
-        while ($phrase_typed == ""){
+
+        while ($phrase_typed == "" and count($phrase_typed) > 0){
            $phrase_typed = prev($phrase_data)["typed_text"];
         }
-
+        if ($phrase_typed == ""){
+            continue;
+        }
         $num_selections = count($phrase_data);
         $selection_num = 1;
         $period_offset = 0;
