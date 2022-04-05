@@ -2,18 +2,20 @@ import * as clock_util from './clock_util.js';
 import * as config from './config.js';
 
 function argMax(array) {
-  return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
-}
-function argMin(array) {
-  return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
+    return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
 }
 
-export class Entropy{
+function argMin(array) {
+    return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
+}
+
+export class Entropy {
     constructor(clock_inf) {
         this.clock_inf = clock_inf;
         this.num_bits = 0;
         this.bits_per_select = Math.log(this.clock_inf.clocks_on.length) / Math.log(2);
     }
+
     update_bits() {
         var K = this.clock_inf.clocks_on.length;
         this.bits_per_select = Math.log(K) / Math.log(2);
@@ -22,13 +24,13 @@ export class Entropy{
     }
 }
 
-export class KernelDensityEstimation{
+export class KernelDensityEstimation {
 
-    constructor(time_rotate, high_error = false, past_data=null){
+    constructor(time_rotate, high_error = false, past_data = null) {
         this.high_error = high_error;
         this.dens_li = [];
         this.Z = 0;
-        this.ksigma =0;
+        this.ksigma = 0;
         this.ksigma0 = 0;
         this.y_li = [];
         this.y_ksigma = [];
@@ -38,28 +40,29 @@ export class KernelDensityEstimation{
         this.time_rotate = time_rotate;
 
         this.index_li = [];
-        for (var i=0; i< config.num_divs_click; i++){
+        for (var i = 0; i < config.num_divs_click; i++) {
             this.index_li.push(i);
         }
 
         this.x_li = [];
-        for (i in this.index_li){
+        for (i in this.index_li) {
             var index = this.index_li[i];
             this.x_li.push(index * this.time_rotate / config.num_divs_click - this.time_rotate / 2.0);
         }
         this.past_data = past_data;
         this.initialize_dens();
     }
-    initialize_dens(){
+
+    initialize_dens() {
         this.Z = 0;
 
         if (this.past_data !== null && this.past_data.click_dist !== null && this.past_data.Z !== null &&
-            this.past_data.ksigma !== null && this.past_data.ksigma0 !== null){
+            this.past_data.ksigma !== null && this.past_data.ksigma0 !== null) {
             this.dens_li = this.past_data.click_dist;
             this.Z = this.past_data.Z;
             this.ksigma = this.past_data.ksigma;
             this.ksigma0 = this.past_data.ksigma0;
-        }else {
+        } else {
             this.dens_li = [];
 
             for (var i in this.x_li) {
@@ -76,16 +79,17 @@ export class KernelDensityEstimation{
             this.ksigma = this.ksigma0;
         }
     }
-    initialize_zero_dens(){
+
+    initialize_zero_dens() {
         this.Z = 0;
 
         if (this.past_data !== null && this.past_data.click_dist !== null && this.past_data.Z !== null &&
-            this.past_data.ksigma !== null && this.past_data.ksigma0 !== null){
+            this.past_data.ksigma !== null && this.past_data.ksigma0 !== null) {
             this.dens_li = this.past_data.click_dist;
             this.Z = this.past_data.Z;
             this.ksigma = this.past_data.ksigma;
             this.ksigma0 = this.past_data.ksigma0;
-        }else {
+        } else {
             this.dens_li = [];
 
             for (var i in this.x_li) {
@@ -100,21 +104,24 @@ export class KernelDensityEstimation{
             this.ksigma = this.ksigma0;
         }
     }
-    normal(x, mu, sig_sq){
+
+    normal(x, mu, sig_sq) {
         return Math.exp(-((x - mu) ** 2) / (2 * sig_sq)) / Math.sqrt(2 * Math.PI * sig_sq);
     }
-    optimal_bandwith(things){
+
+    optimal_bandwith(things) {
         var n = things.length;
         return 1.06 * (n ** -0.2) * Math.std(things);
     }
-    ave_sigma_sq(eff_num_points, yLenEff){
+
+    ave_sigma_sq(eff_num_points, yLenEff) {
         var ysum = 0;
-        for (var y_ind = 0; y_ind < yLenEff; y_ind++){
+        for (var y_ind = 0; y_ind < yLenEff; y_ind++) {
             ysum += this.y_li[y_ind];
         }
         var y2sum = 0;
-        for (var y_ind = 0; y_ind < yLenEff; y_ind++){
-            ysum += this.y_li[y_ind]**2;
+        for (var y_ind = 0; y_ind < yLenEff; y_ind++) {
+            ysum += this.y_li[y_ind] ** 2;
         }
         var ave_sigma_sq = (this.n_ksigma - yLenEff) * this.ksigma0 * this.ksigma0;
         if (yLenEff > 0) {
@@ -124,7 +131,8 @@ export class KernelDensityEstimation{
 
         return ave_sigma_sq;
     }
-    calc_ksigma(eff_num_points, yLenEff){
+
+    calc_ksigma(eff_num_points, yLenEff) {
         var ave_sigma_sq = this.ave_sigma_sq(eff_num_points, yLenEff);
 
         this.ksigma = this.ns_factor * Math.sqrt(Math.max(0.001, ave_sigma_sq));
@@ -133,15 +141,16 @@ export class KernelDensityEstimation{
         // console.log(this.ksigma0);
         return this.ksigma;
     }
-    increment_dens(yin, ksigma){
+
+    increment_dens(yin, ksigma) {
         this.Z = 0;
         var ksigma_sq = ksigma * ksigma;
-        for (var i in this.index_li){
+        for (var i in this.index_li) {
             var index = this.index_li[i];
             var diff = this.x_li[index] - yin;
             var dens = Math.exp(-1 / (2 * ksigma_sq) * diff * diff);
             dens /= Math.sqrt(2 * Math.PI * ksigma_sq);
-            if (this.high_error){
+            if (this.high_error) {
                 this.dens_li[index] = Math.max(1, this.damp * this.dens_li[index] + dens);
             } else {
                 this.dens_li[index] = this.damp * this.dens_li[index] + dens;
@@ -152,20 +161,21 @@ export class KernelDensityEstimation{
     }
 }
 
-export class ClockInference{
-    constructor(parent, bc, past_data=null){
+export class ClockInference {
+    constructor(parent, bc, past_data = null) {
+        this.past_data = past_data;
         this.parent = parent;
         this.bc = bc;
         this.clock_util = new clock_util.ClockUtil(this.parent, this.bc, this);
         this.clocks_li = [];
         var i;
-        for (i in this.parent.clock_centers){
+        for (i in this.parent.clock_centers) {
             this.clocks_li.push(i);
         }
 
         this.clocks_on = this.parent.words_on;
         this.cscores = [];
-        for (i in this.parent.clock_centers){
+        for (i in this.parent.clock_centers) {
             this.cscores.push(0);
         }
         this.clock_locs = [];
@@ -181,31 +191,33 @@ export class ClockInference{
         this.entropy = new Entropy(this);
 
         var high_error = parseInt(this.bc.parent.user_id) === 217;
-        this.kde = new KernelDensityEstimation(this.time_rotate, high_error, past_data);
+        this.kde = new KernelDensityEstimation(this.time_rotate, high_error, this.past_data);
 
         this.n_hist = Math.min(200, Math.floor(Math.log(0.02) / Math.log(this.kde.damp)));
 
-        this.past_data = past_data;
     }
-    get_score_inc(yin){
+
+    get_score_inc(yin) {
         var index = Math.floor(config.num_divs_click * (yin / this.time_rotate + 0.5)) % config.num_divs_click;
         if (this.kde.Z != 0) {
             return Math.log(this.kde.dens_li[index] / this.kde.Z);
         }
         return 1;
     }
-    reverse_index_gsi(log_dens_val){
+
+    reverse_index_gsi(log_dens_val) {
         var dens_val = Math.exp(log_dens_val);
 
         var dens = [];
-        for (var index in this.kde.dens_li){
+        for (var index in this.kde.dens_li) {
             var x = this.kde.dens_li[index];
             dens.push(Math.abs(x - dens_val));
         }
         var most_likely_index = argMin(dens);
         return most_likely_index;
     }
-    inc_score_inc(yin){
+
+    inc_score_inc(yin) {
         console.log("yin:", yin);
         if (this.kde.y_li.length > this.n_hist) {
             this.kde.y_li.pop();
@@ -217,10 +229,12 @@ export class ClockInference{
         this.kde.increment_dens(yin, this.kde.ksigma);
         this.kde.calc_ksigma(this.n_hist, Math.min(this.kde.n_ksigma, this.kde.y_li.length));
         this.parent.histogram.update(this.kde.dens_li);
+        this.parent.moniter_click_dist();
     }
+
     update_scores(time_diff_in) {
         var clock_locs = [];
-        for (var i in this.cscores){
+        for (var i in this.cscores) {
             clock_locs.push(0);
         }
         for (var index in this.clocks_on) {
@@ -234,82 +248,87 @@ export class ClockInference{
         this.clock_locs.push(clock_locs);
         this.update_sorted_inds();
     }
-    update_dens(new_time_rotate){
+
+    update_dens(new_time_rotate) {
         this.time_rotate = new_time_rotate;
 
         this.kde.x_li = [];
-        for(var i in this.kde.index_li){
+        for (var i in this.kde.index_li) {
             var index = this.kde.index_li[i];
             this.kde.x_li.push(index * this.time_rotate / config.num_divs_click - this.time_rotate / 2.0);
         }
-        for (var n in this.kde.y_li){
+        for (var n in this.kde.y_li) {
             this.kde.increment_dens(this.kde.y_li[n], this.kde.y_ksigma[n]);
         }
         this.kde.calc_ksigma(this.n_hist, Math.min(this.kde.n_ksigma, this.kde.y_li.length));
+        this.parent.moniter_click_dist();
     }
-    update_history(time_diff_in){
+
+    update_history(time_diff_in) {
         var clock_history_temp = [];
 
         var clocks_on_cursor = 0;
-        for (var i in this.clocks_li){
-            if (i == this.clocks_on[clocks_on_cursor]){
+        for (var i in this.clocks_li) {
+            if (i == this.clocks_on[clocks_on_cursor]) {
                 var click_time = this.clock_util.cur_hours[i] * this.time_rotate / this.clock_util.num_divs_time +
                     time_diff_in - this.time_rotate * config.frac_period;
 
 
                 clock_history_temp.push(click_time);
                 clocks_on_cursor += 1;
-            }
-            else {
+            } else {
                 clock_history_temp.push(0);
             }
         }
         this.clock_history[0].push(clock_history_temp);
     }
+
     compare_score(index) {
         return -this.cscores[index];
     }
-    update_sorted_inds(){
+
+    update_sorted_inds() {
         this.sorted_inds = [];
         var index;
-        for (index in this.clocks_on){
+        for (index in this.clocks_on) {
             var clock_index = this.clocks_on[index];
             this.sorted_inds.push([this.compare_score(clock_index), clock_index]);
         }
 
-        this.sorted_inds.sort(function(a, b) {return a[0] -  b[0];});
+        this.sorted_inds.sort(function (a, b) {
+            return a[0] - b[0];
+        });
 
-        for (index in this.sorted_inds){
+        for (index in this.sorted_inds) {
             this.sorted_inds[index] = this.sorted_inds[index][1];
         }
     }
-    is_winner(){
+
+    is_winner() {
         var loc_win_diff = this.win_diffs[this.sorted_inds[0]];
 
 
-        if (this.clocks_on.length <= 1){
+        if (this.clocks_on.length <= 1) {
             return true;
-        }
-        else if (this.cscores[this.sorted_inds[0]] - this.cscores[this.sorted_inds[1]] > loc_win_diff) {
+        } else if (this.cscores[this.sorted_inds[0]] - this.cscores[this.sorted_inds[1]] > loc_win_diff) {
             return true;
         }
         return false;
     }
-    learn_scores(is_undo){
+
+    learn_scores(is_undo) {
         var n_hist = this.clock_history.length;
-        if (is_undo){
-            if (n_hist > 1){
+        if (is_undo) {
+            if (n_hist > 1) {
                 this.clock_history.shift();
                 this.clock_history.shift();
                 this.win_history.shift();
                 this.win_history.shift();
+            } else {
+                this.clock_history = [[]];
+                this.win_history = [];
             }
-            else {
-                this.win_history.shift().clock_history = [];
-                this.win_history.shift().win_history = [];
-            }
-        }
-        else if (n_hist > config.learn_delay){
+        } else if (n_hist > config.learn_delay) {
             var num_selections = this.clock_history.length;
             var selection_index = -config.learn_delay;
             var n_press = this.clock_history[-selection_index].length;
@@ -321,35 +340,7 @@ export class ClockInference{
                 this.inc_score_inc(this.clock_history[-selection_index][press][win_index]);
             }
 
-            var click_data_json = JSON.stringify(this.kde.dens_li);
-            var y_li = JSON.stringify(this.kde.y_li);
-            var user_id = this.parent.user_id;
-            console.log(this.parent.user_id);
-            var Z = this.kde.Z;
-            var ksigma = this.kde.ksigma;
-            var ksigma0 = this.kde.ksigma0;
-            var rotate_index = this.parent.rotate_index;
-            var is_learn = this.parent.learn_checkbox.checked;
-            var is_pause = this.parent.pause_checkbox.checked;
-            var is_sound = this.parent.audio_checkbox.checked;
-
-            // noinspection JSAnnotator
-            function send_data() { // jshint ignore:line
-                console.log({"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma,
-                        "ksigma0": ksigma0, "y_li": y_li, "rotate_index": rotate_index, "learn": is_learn,
-                        "pause": is_pause, "sound": is_sound});
-                $.ajax({
-                    method: "POST",
-                    url: "../php/update_nomon_data.php",
-                    data: {"user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma,
-                        "ksigma0": ksigma0, "y_li": y_li, "rotate_index": rotate_index, "learn": is_learn,
-                        "pause": is_pause, "sound": is_sound}
-                }).done(function (data) {
-                    console.log("SENT DATA");
-                });
-            }
-
-            send_data();
+            this.save_click_dist();
 
             for (var index = n_hist - 1; index < config.learn_delay - 1; index--) {
                 this.clock_history.splice(index, 1);
@@ -360,8 +351,40 @@ export class ClockInference{
         this.clock_history.splice(0, 0, []);
         this.win_history.splice(0, 0, -1);
     }
-    handicap_cscores(is_win, is_start){
-        if (is_win || is_start){
+
+    save_click_dist() {
+        var click_data_json = JSON.stringify(this.kde.dens_li);
+        var y_li = JSON.stringify(this.kde.y_li);
+        var user_id = this.parent.user_id;
+        console.log(this.parent.user_id);
+        var Z = this.kde.Z;
+        var ksigma = this.kde.ksigma;
+        var ksigma0 = this.kde.ksigma0;
+        var rotate_index = this.parent.rotate_index;
+
+        // noinspection JSAnnotator
+        function send_data() { // jshint ignore:line
+            console.log({
+                "user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma,
+                "ksigma0": ksigma0, "y_li": y_li, "rotate_index": rotate_index
+            });
+            $.ajax({
+                method: "POST",
+                url: "../php/update_nomon_data.php",
+                data: {
+                    "user_id": user_id, "click_dist": click_data_json, "Z": Z, "ksigma": ksigma,
+                    "ksigma0": ksigma0, "y_li": y_li, "rotate_index": rotate_index
+                }
+            }).done(function (data) {
+                console.log(data);
+            });
+        }
+
+        send_data();
+    }
+
+    handicap_cscores(is_win, is_start) {
+        if (is_win || is_start) {
             if (this.cscores[this.sorted_inds[0]] - this.cscores[this.sorted_inds[1]] > config.max_init_diff) {
                 this.cscores[this.sorted_inds[0]] = this.cscores[this.sorted_inds[1]] + config.max_init_diff;
             }

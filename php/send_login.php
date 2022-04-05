@@ -1,6 +1,6 @@
 <?php
 
-include '/var/www/keyboardstudy.csail.mit.edu/mysql_login.php';
+include '../../mysql_login.php';
 
 $exit_code = 0;
 $connection = mysqli_connect($host, $username, $password, $dbname);
@@ -11,13 +11,9 @@ $result = mysqli_query($connection, $query);
 
 $user_id = $_GET['user_id'];
 
-if (!is_numeric($user_id)){
-    $exit_code = 2;
-    $query = "SELECT MAX(id) FROM user_info";
-}else{
-    $exit_code = 1;
-    $query = "SELECT * FROM user_info WHERE id = '$user_id'";
-}
+$exit_code = 1;
+$query = "SELECT * FROM user_info WHERE username = '$user_id'";
+
 $result_array = array();
 $result = mysqli_query($connection, $query);
 

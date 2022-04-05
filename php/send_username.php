@@ -2,6 +2,7 @@
 
 include '../../mysql_login.php';
 
+
 function make_query($connection, $query) {
     $result = mysqli_query($connection, $query);
     $result_array = array();
@@ -16,22 +17,15 @@ function make_query($connection, $query) {
 
 $connection = mysqli_connect($host, $username, $password, $dbname);
 
-$click_dist = $_POST['click_dist'];
-$user_id = $_POST['user_id'];
-$Z = $_POST['Z'];
-$ksigma = $_POST['ksigma'];
-$ksigma0 = $_POST['ksigma0'];
-$y_li = $_POST['y_li'];
-$rotate_index = $_POST['rotate_index'];
+$user_name = $_GET['username'];
 
-
-$query = "UPDATE user_info SET click_dist = '$click_dist', Z = '$Z', ksigma = '$ksigma', ksigma0 = '$ksigma0',
- rotate_index = '$rotate_index', y_li = '$y_li'
-  WHERE username = '$user_id'";
-
+$query = "CREATE TABLE IF NOT EXISTS user_info (username Varchar(20), pin Varchar(4), click_dist JSON, Z INT, ksigma FLOAT, ksigma0 FLOAT, rotate_index INT, y_li JSON)";
 $result_array = make_query($connection, $query);
 
-echo $query;
+$query = "SELECT * FROM user_info WHERE username = '$user_name'";
+$result_array = make_query($connection, $query);
+
+echo json_encode($result_array);
 
 $connection->close();
 ?>

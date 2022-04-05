@@ -73,7 +73,7 @@ export var comm_main_chars = [];
 for (var num = 10; num <= num_comm_items+10; num++ ){
     comm_main_chars.push(num.toString());
 }
-comm_main_chars.push('options', '.', '$');
+comm_main_chars.push('.', '$');
 export var comm_key_chars = comm_main_chars.concat(['@']);
 
 export var comm_target_layout = [];
@@ -92,8 +92,8 @@ for (var key_ind in comm_layout_keys){
     }
 }
 // convert nums to comm phrases
-export var comm_phrase_lookup = ["i", "it", "who", "what", "where", "again", "now", "this", "something different", "me",
-    "mine", "don't", "is", "do", "okay", "all gone", "finished", "bad", "you", "drink", "eat", "want", "give", "go",
+export var comm_phrase_lookup = ["i", "it", "who", "what", "where", "again", "now", "this", "something_different", "me",
+    "mine", "don't", "is", "do", "okay", "all_gone", "finished", "bad", "you", "drink", "eat", "want", "give", "go",
     "big", "little", "good", "have", "get", "like", "see", "make", "put", "away", "less", "more", "say", "stop", "take",
     "turn", "help", "here", "there", "hard", "soft", "work", "break", "feel", "happy", "sad", "in", "on", "easy",
     "bumpy", "play", "read", "sick", "mad", "scared", "excited", "with"] ;

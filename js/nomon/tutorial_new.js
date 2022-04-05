@@ -2,7 +2,7 @@ import * as kconfig from './kconfig.js';
 import * as widgets from "./widgets.js";
 import {KernelDensityEstimation} from "./clock_inference_engine.js";
 import * as config from "./config.js";
-import * as normon from "./normon/normontheclock.js";
+import * as normon from "../normon/normontheclock.js";
 
 
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
