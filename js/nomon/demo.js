@@ -103,6 +103,13 @@ class Keyboard {
         var keygrid_y_offset = this.keygrid_canvas.canvas.getBoundingClientRect().top;
         // var keygrid_y_offset = 0; // change made for participant 70 with eyegaze
 
+        window.addEventListener('keydown', function (e) {
+            e.preventDefault();
+            if (e.keyCode === 32) {
+                this.on_press();
+            }
+        }.bind(this), false);
+
         window.addEventListener("mousedown", function (e) {
             if (e.which === 1 && e.clientY > keygrid_y_offset) {
                 this.on_press();
@@ -201,7 +208,17 @@ class Keyboard {
         this.tutorial_button = document.getElementById("tutorial_button");
         this.tutorial_button.onclick = function (e) {
 
-            this.init_session_help();
+            if (this.in_tutorial) {
+                this.tutorial_manager.end_tutorial();
+            } else if (this.session_greeting){
+                return;
+            } else if (this.in_session_help) {
+                this.help_manager.end_tutorial();
+                this.help_manager = null;
+                this.tutorial_button.value = "Help";
+            } else {
+                this.init_session_help();
+            }
 
 
         }.bind(this);
@@ -425,6 +442,7 @@ class Keyboard {
         if (!this.in_session_help) {
             this.help_manager = new hm.helpManager(this, this.bc);
             this.in_session_help = true;
+            this.tutorial_button.value = "Exit Help";
         }
     }
 
@@ -438,6 +456,7 @@ class Keyboard {
         this.tutorial_manager = new tm.tutorialManager(this, this.bc);
         this.in_tutorial = true;
         this.start_tutorial = false;
+        this.tutorial_button.value = "Exit Tutorial";
     }
 
     end_tutorial(failed = false) {
@@ -499,17 +518,17 @@ class Keyboard {
             this.destroy_info_screen();
         }
 
-        this.speed_inc.className = "btn unhighlighted";
-        this.speed_dec.className = "btn unhighlighted";
-        this.abort_options_button.className = "btn unhighlighted";
+        // this.speed_inc.className = "btn unhighlighted";
+        // this.speed_dec.className = "btn unhighlighted";
+        // this.abort_options_button.className = "btn unhighlighted";
 
-        if (this.in_session) {
-            this.tutorial_button.className = "btn unclickable";
-            this.end_session_button.className = "btn unhighlighted";
-            this.end_session_button.className = "btn unhighlighted";
-        } else {
-            this.tutorial_button.className = "btn unhighlighted";
-        }
+        // if (this.in_session) {
+        //     this.tutorial_button.className = "btn unclickable";
+        //     this.end_session_button.className = "btn unhighlighted";
+        //     this.end_session_button.className = "btn unhighlighted";
+        // } else {
+        //     this.tutorial_button.className = "btn unhighlighted";
+        // }
 
     }
 

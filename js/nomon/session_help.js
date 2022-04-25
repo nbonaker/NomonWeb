@@ -280,7 +280,7 @@ export class helpManager {
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("Press your switch when you're done reading...",
+            this.info_canvas.ctx.fillText("Click your switch when you're done reading...",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
 
             this.Normon.pause = this.normon_pause_length;
@@ -385,7 +385,7 @@ export class helpManager {
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
             this.info_canvas.ctx.fillText(" you're finished to help you through the next part.",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("Press your switch when you're ready to start...",
+            this.info_canvas.ctx.fillText("Click your switch when you're ready to start...",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
 
             this.Normon.pause = this.normon_pause_length;
@@ -433,7 +433,7 @@ export class helpManager {
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
             this.info_canvas.ctx.fillText("signal you're done and ready for the next phrase. ",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
-            this.info_canvas.ctx.fillText("Press your switch when you're done reading...",
+            this.info_canvas.ctx.fillText("Click your switch when you're done reading...",
                 rect_x + this.font_height, rect_y + this.font_height * 6);
 
             this.Normon.pause = this.normon_pause_length;
@@ -478,7 +478,7 @@ export class helpManager {
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
             this.info_canvas.ctx.fillText("put the next phrase down in the text box for you.",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("Press your switch when you're ready to try it...",
+            this.info_canvas.ctx.fillText("Click your switch when you're ready to try it...",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
 
             this.Normon.pause = this.normon_pause_length;
@@ -520,7 +520,7 @@ export class helpManager {
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
             this.info_canvas.ctx.fillText("session. ",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("Press your switch to exit...",
+            this.info_canvas.ctx.fillText("Click your switch to exit...",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
 
             this.Normon.pause = this.normon_pause_length;
@@ -540,13 +540,16 @@ export class helpManager {
         this.parent.destroy_info_screen();
         this.parent.in_tutorial = false;
         this.emoji_phrase_length -= 1;
-        this.Normon.run_on_return = false;
+        // this.Normon.run_on_return = false;
         this.normon_canvas.ctx.clearRect(0, 0, this.width, this.height);
         this.Normon = null;
         clearInterval(this.normon_interval);
 
         console.log("END");
         this.parent.end_tutorial(this.failed);
+        this.parent.in_session_help = false;
+        this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
+        this.shadow_canvas.ctx.clearRect(0, 0, this.shadow_canvas.screen_width, this.shadow_canvas.screen_height);
     }
 
     on_press(time_in) {

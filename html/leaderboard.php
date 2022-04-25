@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Study Data</title>
+<title>Live Nomon Leaderboard!</title>
 <link href="../../icon.png"
       rel="icon"
       type="image/png">

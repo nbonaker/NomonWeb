@@ -153,22 +153,25 @@ export class tutorialManager {
             this.circle_rel_size = 1.5;
             this.target_clock = 34;
         } else if (this.target_num === 2) {
-            this.circle_rel_size = 6;
+            this.circle_rel_size = 1.5;
             this.target_clock = 34;
         } else if (this.target_num === 3) {
+            this.circle_rel_size = 6;
+            this.target_clock = 34;
+        } else if (this.target_num === 4) {
             this.circle_rel_size = 14;
             this.target_clock = 23;
-        } else if (this.target_num === 4) {
+        } else if (this.target_num === 5) {
             this.circle_rel_size = 29;
             this.target_clock = 31;
-        } else if (this.target_num === 5) {
+        } else if (this.target_num === 6) {
             this.circle_rel_size = 100;
             this.target_clock = 4
-        } else if (this.target_num === 6) {
+        } else if (this.target_num === 7) {
             this.circle_rel_size = 100;
             this.target_clock = 63;
         } else{
-            this.end_tutorial();
+            // this.end_tutorial();
         }
         // else if (this.target_num === 10) {
         //     this.circle_rel_size = 100;
@@ -264,11 +267,13 @@ export class tutorialManager {
         this.allow_input = false;
         if (this.target_num === 1) {
             this.draw_welcome();
-        } else if (this.target_num === 2) {
-            this.draw_info_1();
+        }else if (this.target_num === 2) {
+            this.draw_info_0();
         } else if (this.target_num === 3) {
-            this.draw_info_2();
+            this.draw_info_1();
         } else if (this.target_num === 4) {
+            this.draw_info_2();
+        } else if (this.target_num === 5) {
             this.allow_input = true;
             this.draw_clock_instruction(this.circle_x, this.circle_y, this.clock.radius);
             this.Normon.run_on_return = false;
@@ -276,11 +281,11 @@ export class tutorialManager {
             var normon_y = this.circle_y + this.info_canvas.topbar_height * 2;
             this.Normon.update_radius(this.height / 15);
             this.Normon.update_target_coords(normon_x, normon_y);
-        } else if (this.target_num === 5) {
-            this.draw_info_3();
         } else if (this.target_num === 6) {
-            this.draw_info_5();
+            this.draw_info_3();
         } else if (this.target_num === 7) {
+            this.draw_info_5();
+        } else if (this.target_num === 8) {
             this.draw_end();
         } else {
             this.end_tutorial();
@@ -320,6 +325,65 @@ export class tutorialManager {
         }
         if (this.text_num >= 2) {
 
+            var rect_x = this.width * 0.22;
+            var rect_y = this.height * 0.55;
+
+            normon_x = rect_x - this.Normon.radius * 2;
+            normon_y = rect_y + this.font_height * 2.5;
+
+            this.info_canvas.ctx.fillStyle = "#ffffff";
+            this.info_canvas.ctx.strokeStyle = "#404040";
+            this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5,
+                20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
+            this.info_canvas.ctx.fillText("Nomon is a single-switch communication interface that facilitates ",
+                rect_x + this.font_height, rect_y + this.font_height * 1.3);
+            this.info_canvas.ctx.fillText("fast and flexible computer interaction for individuals with ",
+                rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            this.info_canvas.ctx.fillText("severe motor impairments.",
+                rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.Normon.pause = this.normon_pause_length;
+            this.Normon.run_on_return = true;
+        }
+        if (this.text_num >= 3) {
+
+            var rect_x = this.width * 0.22;
+            var rect_y = this.height * 0.55 + this.font_height * 6;
+
+            normon_x = rect_x - this.Normon.radius * 2;
+            normon_y = rect_y + this.font_height * 2.5;
+
+            this.info_canvas.ctx.fillStyle = "#ffffff";
+            this.info_canvas.ctx.strokeStyle = "#404040";
+            this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5,
+                20, true, true);
+            this.info_canvas.ctx.fillStyle = "#404040";
+            this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
+            this.info_canvas.ctx.fillText("You can emulate \"clicking\" a single-switch in this demo",
+                rect_x + this.font_height, rect_y + this.font_height * 1.3);
+            this.info_canvas.ctx.fillText("by pressing your Left Mouse or the Spacebar. ",
+                rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            this.info_canvas.ctx.fillText("(click your \"switch\" to continue...)",
+                rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.Normon.pause = this.normon_pause_length;
+            this.Normon.run_on_return = false;
+            this.allow_input = true;
+        }
+
+        this.Normon.update_radius(this.height / 15);
+        this.Normon.update_target_coords(normon_x, normon_y);
+        this.text_num += 1;
+    }
+    draw_info_0() {
+        this.allow_input = false;
+        var normon_x;
+        var normon_y;
+
+
+        if (this.text_num >= 0) {
 
             var rect_x = this.width * 0.22;
             var rect_y = this.height * 0.7;
@@ -338,12 +402,12 @@ export class tutorialManager {
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
             this.info_canvas.ctx.fillText("to select the items that they are next to. You can select a clock",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("by pressing when its minute hand passes the red Noon line.",
+            this.info_canvas.ctx.fillText("by clicking when its minute hand passes the red Noon line.",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
-        if (this.text_num >= 3) {
+        if (this.text_num >= 1) {
             normon_x = this.circle_x - this.clock.radius * 3 - this.Normon.radius;
             normon_y = this.circle_y + this.info_canvas.topbar_height * 2;
 
@@ -1146,7 +1210,7 @@ export class tutorialManager {
         this.info_canvas.ctx.lineWidth = this.font_height * 0.25;
 
         this.info_canvas.ctx.font = "".concat((this.font_height.toString()*0.8), "px Helvetica");
-        if (this.target_num === 1) {
+        if (this.target_num === 2) {
             if (this.cur_press < 1) {
                 roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 22, this.font_height * 3,
                     20, true, true, true);
@@ -1162,13 +1226,13 @@ export class tutorialManager {
             }
         } else {
             var cur_word;
-            if (this.target_num === 2) {
+            if (this.target_num === 3) {
                 cur_word = "less";
-            } else if (this.target_num === 3) {
-                cur_word = "go";
             } else if (this.target_num === 4) {
-                cur_word = "make";
+                cur_word = "go";
             } else if (this.target_num === 5) {
+                cur_word = "make";
+            } else if (this.target_num === 6) {
                 cur_word = "where";
                 // if (this.cur_press > 0) {
                 //     this.draw_info_4();
@@ -1176,12 +1240,8 @@ export class tutorialManager {
                 //     this.info_canvas.ctx.strokeStyle = "#404040";
                 //     this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
                 // }
-            } else if (this.target_num === 6) {
-                cur_word = "Undo";
             } else if (this.target_num === 7) {
-                cur_word = "options";
-            } else if (this.target_num === 10) {
-                cur_word = "options";
+                cur_word = "Undo";
             }
 
             if (this.cur_press < 1) {
@@ -1200,8 +1260,13 @@ export class tutorialManager {
 
     on_press(time_in) {
         if (this.allow_input) {
-            if (this.target_num === 9 && this.text_num > 3){
+            if (this.target_num === 8 && this.text_num > 3){
                 this.end_tutorial();
+                return;
+            } else if (this.target_num == 1){
+                if (this.text_num >= 3){
+                    this.update_target();
+                }
                 return;
             }
             this.cur_presses_remaining -= 1;

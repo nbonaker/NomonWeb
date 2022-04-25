@@ -41,19 +41,19 @@ export class studyManager {
             this.parent.in_session = true;
 
             document.getElementById("info_label").innerHTML = `<i>Copy the phrase below. Type two periods \"..\" to finish.</i>`;
-
-            this.parent.end_session_button = document.getElementById("end_session_button");
-            this.parent.end_session_button.onclick = function(e){
-                if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
-                    return
-                }
-                this.destroy_options_rcom();
-                this.end_session_alert();
-
-            }.bind(this.parent);
-
-            this.parent.end_session_button.className = "btn unhighlighted";
-            this.parent.tutorial_button.className = "btn unhighlighted";
+            //
+            // this.parent.end_session_button = document.getElementById("end_session_button");
+            // this.parent.end_session_button.onclick = function(e){
+            //     if (e) {     // ignore if PointerEvent or other Mouse related event (not triggered by "switch")
+            //         return
+            //     }
+            //     this.destroy_options_rcom();
+            //     this.end_session_alert();
+            //
+            // }.bind(this.parent);
+            //
+            // this.parent.end_session_button.className = "btn unhighlighted";
+            // this.parent.tutorial_button.className = "btn unhighlighted";
             // document.onkeypress = null;
 
             this.session_start_time = 0;

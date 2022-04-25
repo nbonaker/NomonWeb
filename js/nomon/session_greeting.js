@@ -194,38 +194,14 @@ export class sessionGreeting {
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
 
-            if (this.parent.study_manager.phase === "intro") {
-                this.info_canvas.ctx.font = "".concat((this.font_height*3).toString(), "px Helvetica");
-                this.info_canvas.ctx.fillText("Welcome to Nomon!",
-                    rect_x + this.font_height, rect_y + this.font_height * 3.9);
-
-            } else if (this.parent.study_manager.phase === "practice"){
                 this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-                this.info_canvas.ctx.fillText("Welcome Back! You've chosen to practice Nomon. If you chose ",
+                this.info_canvas.ctx.fillText("Welcome Back! Ready to see if you can beat your last High Score?",
                     rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("this by mistake, you can select the \"Options\" clock and then ",
+                this.info_canvas.ctx.fillText("As a reminder, you can use either your Left Mouse button or ",
                     rect_x + this.font_height, rect_y + this.font_height * 2.7);
-                this.info_canvas.ctx.fillText("\"End Session\" to change to RCS.",
+                this.info_canvas.ctx.fillText("your Spacebar to emulate \"clicking\" a single switch.",
                     rect_x + this.font_height, rect_y + this.font_height * 4.1);
 
-            } else if (this.parent.study_manager.phase === "symbol"){
-                this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-                this.info_canvas.ctx.fillText("Welcome Back!",
-                    rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("You're about to start an evaluation session with the Nomon interface.",
-                    rect_x + this.font_height, rect_y + this.font_height * 2.7);
-                this.info_canvas.ctx.fillText("Press your switch when you're ready to start! ",
-                    rect_x + this.font_height, rect_y + this.font_height * 4.1);
-
-            } else if (this.parent.study_manager.phase === "text"){
-                this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-                this.info_canvas.ctx.fillText("Welcome Back!",
-                    rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("You're about to start an evaluation session with the Nomon interface.",
-                    rect_x + this.font_height, rect_y + this.font_height * 2.7);
-                this.info_canvas.ctx.fillText("Press your switch when you're ready to start! ",
-                    rect_x + this.font_height, rect_y + this.font_height * 4.1);
-            }
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
@@ -246,13 +222,13 @@ export class sessionGreeting {
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("If you need a refresher on how to use Nomon, or you notice",
+            this.info_canvas.ctx.fillText("If you need a refresher on how to use Nomon, you can call me",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("that your histogram looks too red and it's hard use Nomon,",
+            this.info_canvas.ctx.fillText("by clicking the \"Help\" button in the top left!",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("select the \"Options\" clock and then \"Help\".",
+            this.info_canvas.ctx.fillText("",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
-            this.info_canvas.ctx.fillText("Press your switch to exit...",
+            this.info_canvas.ctx.fillText("Click your switch to exit...",
                 rect_x + this.font_height, rect_y + this.font_height * 6);
 
             this.Normon.pause = this.normon_pause_length;
