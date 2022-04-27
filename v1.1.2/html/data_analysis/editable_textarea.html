@@ -1,0 +1,43 @@
+<form id="<?php echo $form_id; ?>">
+    <span id="<?php echo $form_id; ?>_span" style="white-space: pre-line">
+        <?php
+        $save_file='/var/www/keyboardstudy.csail.mit.edu/html/v1.1.2/html/data_analysis/85_notes/'.$form_id.'.txt';
+        echo file_get_contents($save_file);
+    ?>
+    </span>
+    <i class='fa fa-edit'></i>
+    <textarea name="text" style="display: None">
+    <?php
+        $save_file='/var/www/keyboardstudy.csail.mit.edu/html/v1.1.2/html/data_analysis/85_notes/'.$form_id.'.txt';
+        echo file_get_contents($save_file);
+    ?>
+    </textarea>
+    <br>
+    <input name="savebtn" value="Save" type="submit" style="display: None">
+</form>
+<script>
+$(document).ready(function () {
+    $("#<?php echo $form_id; ?>").submit(function (e) {
+        e.preventDefault();
+        var post_data = {"text": this.elements["text"].value, "id": this.id};
+        var span_elem = document.getElementById("<?php echo $form_id; ?>_span");
+        span_elem.style.display = 'inline-block';
+        span_elem.innerText=this.elements["text"].value;
+
+        this.elements["text"].style.display = 'None';
+        this.elements["savebtn"].style.display = 'None';
+
+        $.post('/v1.1.2/html/data_analysis/update_notes.php', post_data, function (data) {
+            $('#notification').show();
+
+        });
+    });
+    $("#<?php echo $form_id; ?>")
+        .on("click", function () {
+            this.elements["savebtn"].style.display = 'inline-block';
+            this.elements["text"].style.display = 'inline-block';
+            document.getElementById("<?php echo $form_id; ?>_span").style.display = 'None';
+        })
+    ;
+});
+</script>
