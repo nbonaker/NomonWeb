@@ -1,4 +1,4 @@
-import * as widgets from './commboard_widgets.js';
+import * as widgets from './widgets_mobile.js';
 import * as infoscreen from './info_screens.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';

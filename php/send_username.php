@@ -17,7 +17,7 @@ function make_query($connection, $query) {
 
 $connection = mysqli_connect($host, $username, $password, $dbname);
 
-$user_name = $_GET['username'];
+$user_name = $_POST['username'];
 
 $query = "CREATE TABLE IF NOT EXISTS user_info (username Varchar(20), pin Varchar(4), click_dist JSON, Z INT, ksigma FLOAT, ksigma0 FLOAT, rotate_index INT, y_li JSON)";
 $result_array = make_query($connection, $query);
@@ -25,7 +25,8 @@ $result_array = make_query($connection, $query);
 $query = "SELECT * FROM user_info WHERE username = '$user_name'";
 $result_array = make_query($connection, $query);
 
-echo json_encode($result_array);
+echo !empty($result_array);
+
 
 $connection->close();
 ?>

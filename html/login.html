@@ -6,6 +6,7 @@
       type="image/png">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0"/>
     <meta http-equiv="cache-control" content="max-age=0"/>
     <meta http-equiv="expires" content="0"/>
@@ -15,54 +16,37 @@
 </head>
 <link rel="stylesheet" href="../style/buttons.css">
 <link rel="stylesheet" href="../style/footer.css">
-<style>
-    html, body {
-        font-family: "Helvetica", Gadget, sans-serif;
-        height: 100%;
-    }
+<link rel="stylesheet" href="../style/login.css">
 
-    .main {
-        height: 100%;
-        width: 100%;
-        display: table;
-    }
-
-    .wrapper {
-        display: table-cell;
-        height: 100%;
-        vertical-align: middle;
-        text-align: center;
-    }
-</style>
 <body>
-<div class="main">
-    <div class="wrapper">
-        <h1>Welcome to the Nomon Demo!</h1>
 
-        <div id="username_container", style="display: inline-block">
-            <h3>Enter your username or create one below.</h3>
-            <form id="username_form">
-                <label for="fname">Your Username: </label>
-                <input type="text" name="username" id="username_input" maxlength="20">
-            </form>
-        </div>
-        <div id="pin_container" , style="display: none">
-            <h3><span id="pin_message"></span></h3>
-            <form id="pin_form">
-                <label for="fname">Your PIN: </label>
-                <input type="text" id="pin_input" name="pin" maxlength="4"><br><br>
+    <div class="login">
+            <h1>Welcome to the Nomon Demo!</h1>
 
-            </form>
-        </div>
-        <h3><span id="login_message"></span></h3>
+            <div id="username_container", style="display: inline-block">
+                <h3>Enter your username or create one below.</h3>
+                <form id="username_form">
+                    <input  type="text" name="login" value="" placeholder="Username" id="username_input" maxlength="20">
+                    <p class="submit"><input type="submit" name="commit" value="Enter"></p>
+                </form>
+            </div>
+            <div id="pin_container" , style="display: none">
+                <h3><span id="pin_message"></span></h3>
+                <form id="pin_form">
+                    <label for="fname">Your PIN: </label>
+                    <input type="text" id="pin_input" name="pin" maxlength="4"><br><br>
+                <p class="submit"><input type="submit" name="commit" value="Login"></p>
+                </form>
+            </div>
+            <h3><span id="login_message"></span></h3>
     </div>
-</div>
+
 
 <script>
 
     $('#username_form').submit(function (e) {
         e.preventDefault();
-        var post_data = $('#username_form').serialize();
+        var post_data = {"username": document.getElementById("username_input").value};
         console.log(post_data);
         $.post('../php/send_username.php', post_data, function (data) {
             data = parseInt(data);
