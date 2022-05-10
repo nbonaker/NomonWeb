@@ -677,7 +677,7 @@ class Keyboard {
         this.emojis_selected = 0;
 
         for (var i = 0; i < 5; i++) {
-            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length);
+            var comm_index = Math.floor(Math.random() * kconfig.num_comm_items);
             var comm_word = kconfig.comm_phrase_lookup[comm_index].concat(" ");
             this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(comm_word);
             this.phrase_arr.push(comm_index);

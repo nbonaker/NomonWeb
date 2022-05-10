@@ -31,7 +31,7 @@ export class KeyboardCanvas {
         this.calculate_size();
     }
 
-    calculate_size(bottom_height_factor = 0.2) {
+    calculate_size(bottom_height_factor = 0.1) {
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
@@ -104,7 +104,7 @@ export class OutputCanvas {
 
         this.resolution_factor = 2;
         this.screen_fill_factor = 0.98;
-        this.bottom_height_factor = 0.2;
+        this.bottom_height_factor = 0.1;
 
         this.canvas.width = this.window_width * this.resolution_factor;
         this.canvas.height = (this.window_height - this.topbar_height - this.footer_height ) * (this.bottom_height_factor) * this.resolution_factor;
@@ -229,7 +229,7 @@ export class ClockGrid {
 
         if (this.parent.emoji_keyboard) {
             this.clock_radius = Math.min((this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 3.5,
-                (this.keygrid.x_positions[0][1][1] - this.keygrid.x_positions[0][1][0]) / 2.7);
+                (this.keygrid.x_positions[0][1][1] - this.keygrid.x_positions[0][1][0]) / 6.0);
         } else {
             this.clock_radius = (this.keygrid.y_positions[0][1] - this.keygrid.y_positions[0][0]) / 7;
         }
@@ -423,8 +423,8 @@ export class ClockGrid {
     }
 
     generate_main_clock_layout(x_start, y_start, x_end, y_end, text) {
-        var main_clock_x = (x_start + x_end)/2;
-        var main_clock_y = y_start +this.clock_radius*1.3;
+        var main_clock_x = x_start + this.clock_radius * 1.3;
+        var main_clock_y = (y_start + y_end) / 2;
 
         let cur_main_clock = new Clock(this.face_canvas, this.hand_canvas,
             main_clock_x, main_clock_y, this.clock_radius, text);
@@ -563,8 +563,8 @@ export class Clock {
             var font_height = this.radius * 1.7;
             this.face_canvas.ctx.font = font_height.toString().concat("px Helvetica");
             if (parseInt(this.text) >= 10) {
-                let tile = new CommTile(this.face_canvas, this.x_pos - this.radius * 1.3,
-                    this.y_pos + this.radius * 1.5, this.radius * 2.6, parseInt(this.text));
+                let tile = new CommTile(this.face_canvas, this.x_pos + this.radius * 1.25,
+                    this.y_pos - this.radius * 1.5, this.radius * 3, parseInt(this.text));
             } else {
                 this.face_canvas.ctx.fillText(this.text, this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
             }

@@ -174,7 +174,7 @@ class Keyboard{
         this.commboard_button = document.getElementById("commboard_button");
         if (!this.user_id) {
             this.commboard_button.onclick = function () {
-                var keyboard_url = "./commboard.html?emoji=".concat(this.emoji_keyboard.toString());
+                var keyboard_url = "./login.html?";
                 window.open(keyboard_url, '_self');
             }.bind(this);
         }

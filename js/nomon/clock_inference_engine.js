@@ -229,7 +229,7 @@ export class ClockInference {
         this.kde.increment_dens(yin, this.kde.ksigma);
         this.kde.calc_ksigma(this.n_hist, Math.min(this.kde.n_ksigma, this.kde.y_li.length));
         this.parent.histogram.update(this.kde.dens_li);
-        this.parent.moniter_click_dist();
+        // this.parent.moniter_click_dist();
     }
 
     update_scores(time_diff_in) {
@@ -261,7 +261,7 @@ export class ClockInference {
             this.kde.increment_dens(this.kde.y_li[n], this.kde.y_ksigma[n]);
         }
         this.kde.calc_ksigma(this.n_hist, Math.min(this.kde.n_ksigma, this.kde.y_li.length));
-        this.parent.moniter_click_dist();
+        // this.parent.moniter_click_dist();
     }
 
     update_history(time_diff_in) {

@@ -158,9 +158,7 @@ export class sessionGreeting {
         this.width = this.info_canvas.screen_width;
         this.height = this.info_canvas.screen_height;
 
-        this.font_height = Math.min(this.width/55, this.height/30);
-        //mobile
-        this.font_height = Math.min(this.height/30);
+        this.font_height = Math.min(this.height/45);
 
         this.info_canvas.ctx.clearRect(0, 0, this.width, this.height);
         this.shadow_canvas.ctx.clearRect(0, 0, this.width, this.height);
@@ -179,11 +177,11 @@ export class sessionGreeting {
         var rect_y;
         var normon_x;
         var normon_y;
-        ;
+
 
         if (this.text_num >= 0) {
 
-            rect_x = this.width * 0.22;
+            rect_x = this.width * 0.25;
             rect_y = this.height * 0.1;
 
             normon_x = rect_x - this.Normon.radius * 2;
@@ -192,27 +190,31 @@ export class sessionGreeting {
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5.4,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 15, this.font_height * 8,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
 
                 this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-                this.info_canvas.ctx.fillText("Welcome Back! Ready to see if you can beat your last High Score?",
+                this.info_canvas.ctx.fillText("Welcome Back! Ready to see ",
                     rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("As a reminder, you can use either your Left Mouse button or ",
+                this.info_canvas.ctx.fillText("if you can beat your last",
                     rect_x + this.font_height, rect_y + this.font_height * 2.7);
-                this.info_canvas.ctx.fillText("your Spacebar to emulate \"clicking\" a single switch.",
+                this.info_canvas.ctx.fillText("High Score? As a reminder,",
                     rect_x + this.font_height, rect_y + this.font_height * 4.1);
+                this.info_canvas.ctx.fillText("you can tap on the screen to",
+                    rect_x + this.font_height, rect_y + this.font_height * 5.5);
+                this.info_canvas.ctx.fillText("\"click\" your \"single switch\".",
+                    rect_x + this.font_height, rect_y + this.font_height * 6.9);
 
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
 
-        if (this.text_num >= 2) {
+        if (this.text_num >= 1) {
 
-            rect_x = this.width * 0.22;
-            rect_y = this.height * 0.1 + this.font_height * 7;
+            rect_x = this.width * 0.25;
+            rect_y = this.height * 0.1 + this.font_height * 9;
 
             normon_x = rect_x - this.Normon.radius * 2;
             normon_y = rect_y + this.font_height * 2.5 + this.Normon.radius;
@@ -220,25 +222,30 @@ export class sessionGreeting {
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 7,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 15, this.font_height * 8,
                 20, true, true);
+
             this.info_canvas.ctx.fillStyle = "#404040";
+
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("If you need a refresher on how to use Nomon, you can call me",
-                rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("by clicking the \"Help\" button in the top left!",
-                rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("",
-                rect_x + this.font_height, rect_y + this.font_height * 4.1);
-            this.info_canvas.ctx.fillText("Click your switch to exit...",
-                rect_x + this.font_height, rect_y + this.font_height * 6);
+                this.info_canvas.ctx.fillText("If you need a refresher on how",
+                    rect_x + this.font_height, rect_y + this.font_height * 1.3);
+                this.info_canvas.ctx.fillText("to use Nomon, you can call me",
+                    rect_x + this.font_height, rect_y + this.font_height * 2.7);
+
+                this.info_canvas.ctx.fillText("by clicking the \"Help\" button",
+                    rect_x + this.font_height, rect_y + this.font_height * 4.1);
+                this.info_canvas.ctx.fillText("in the top left!",
+                    rect_x + this.font_height, rect_y + this.font_height * 5.5);
+                this.info_canvas.ctx.fillText("Click your switch to exit...",
+                    rect_x + this.font_height, rect_y + this.font_height * 6.9);
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = false;
             this.allow_input = true;
         }
 
-        this.Normon.update_radius(this.height / 15);
+        // this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }

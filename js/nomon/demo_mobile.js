@@ -1,12 +1,12 @@
 import * as widgets from './widgets_mobile.js';
 import * as infoscreen from './info_screens.js';
-import * as kconfig from './kconfig.js';
+import * as kconfig from './kconfig_mobile.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
-import * as tm from './tutorial.js';
-import * as hm from './session_help.js';
+import * as tm from './tutorial_mobile.js';
+import * as hm from './session_help_mobile.js';
 import * as sm from './study_manager.js';
-import * as sg from './session_greeting.js';
+import * as sg from './session_greeting_mobile.js';
 import * as lm from './lm.js';
 import * as normon from "../normon/normontheclock.js";
 
@@ -555,7 +555,7 @@ class Keyboard {
 
         var normon_x = this.normon_canvas.screen_width * 1.3;
         var normon_y = this.normon_canvas.screen_height * 3 / 4;
-        var normon_r = this.normon_canvas.screen_height / 15;
+        var normon_r = Math.min(this.normon_canvas.screen_height / 15, this.normon_canvas.screen_width / 5);
 
         this.Normon = new normon.Normon(this.normon_canvas, normon_x, normon_y, normon_r, this);
         this.normon_interval = setInterval(this.Normon.animate.bind(this.Normon), 20);
@@ -677,7 +677,7 @@ class Keyboard {
         this.emojis_selected = 0;
 
         for (var i = 0; i < 5; i++) {
-            var comm_index = Math.floor(Math.random() * kconfig.comm_phrase_lookup.length);
+            var comm_index = Math.floor(Math.random() * kconfig.num_comm_items);
             var comm_word = kconfig.comm_phrase_lookup[comm_index].concat(" ");
             this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(comm_word);
             this.phrase_arr.push(comm_index);
@@ -1492,6 +1492,8 @@ function send_login() {
         }
 
         const first_load = prev_data === null;
+        // const first_load = true;
+
 
         let keyboard = new Keyboard(user_id, first_load, phase, prev_data);
         setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s * 1000);

@@ -69,8 +69,8 @@ export var comm_num_columns = 9;
 export var comm_num_rows = 7;
 export var num_comm_items = 49;
 
-export var num_key_columns = 11;
-export var num_key_rows = 5;
+export var num_key_columns = 5;
+export var num_key_rows = 11;
 
 export var comm_main_chars = [];
 for (var num = 10; num <= num_comm_items+10; num++ ){

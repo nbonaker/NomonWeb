@@ -65,6 +65,7 @@
         });
     });
 
+
     $('#pin_form').submit(function (e) {
         e.preventDefault();
         var post_data = {"username": document.getElementById("username_input").value,
@@ -74,17 +75,26 @@
             data = parseInt(data);
             console.log(data);
 
+            let isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
+
             var username = document.getElementById("username_input").value;
             if (data === 1) {
                 document.getElementById("pin_container").style.display = "none";
                 document.getElementById("login_message").innerText
                     = "Login successful! Loading the Demo...";
-                window.open('demo.html?user_id='.concat(username), '_self',false);
+                if (isMobile) {
+                    window.open('demo_mobile.html?user_id='.concat(username), '_self', false);
+                } else {
+                    window.open('demo.html?user_id='.concat(username), '_self', false);
+                }
             } else if (data === 2) {
                 document.getElementById("login_message").innerText
                     = "We've successfully created your account! Loading the Demo...";
-                window.open('demo.html?user_id='.concat(username), '_self',false);
-            } else {
+                if (isMobile) {
+                    window.open('demo_mobile.html?user_id='.concat(username), '_self', false);
+                } else {
+                    window.open('demo.html?user_id='.concat(username), '_self', false);
+                }            } else {
                 document.getElementById("pin_message").innerText
                     = "Incorrect PIN for username " + username + ". Please try again:"
             }

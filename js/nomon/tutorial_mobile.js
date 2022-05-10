@@ -122,7 +122,9 @@ export class tutorialManager {
         this.target_num = 0;
         this.clock;
         this.Normon;
+        // this.normon_pause_length = 1.5;
         this.normon_pause_length = 3;
+
         this.text_num = 0;
         this.allow_input = false;
         this.failed = false;
@@ -136,7 +138,7 @@ export class tutorialManager {
 
         var normon_x = -this.normon_canvas.screen_width / 5;
         var normon_y = this.normon_canvas.screen_height / 4;
-        var normon_r = this.normon_canvas.screen_height / 15;
+        var normon_r = Math.min(this.normon_canvas.screen_height / 15, this.normon_canvas.screen_width / 15);
 
         this.Normon = new normon.Normon(this.normon_canvas, normon_x, normon_y, normon_r, this);
 
@@ -148,27 +150,27 @@ export class tutorialManager {
         this.target_num += 1;
         console.log(this.target_num);
 
-        this.target_clock = 26;
+        this.target_clock = 27;
         if (this.target_num === 1) {
             this.circle_rel_size = 1.5;
-            this.target_clock = 26;
+            this.target_clock = 27;
         } else if (this.target_num === 2) {
             this.circle_rel_size = 1.5;
-            this.target_clock = 26;
+            this.target_clock = 27;
         } else if (this.target_num === 3) {
             this.circle_rel_size = 8;
-            this.target_clock = 26;
+            this.target_clock = 27;
         } else if (this.target_num === 4) {
             this.circle_rel_size = 14;
-            this.target_clock = 25;
+            this.target_clock = 21;
         } else if (this.target_num === 5) {
             this.circle_rel_size = 29;
-            this.target_clock = 14;
+            this.target_clock = 31;
         } else if (this.target_num === 6) {
-            this.circle_rel_size = 150;
+            this.circle_rel_size = 100;
             this.target_clock = 4
         } else if (this.target_num === 7) {
-            this.circle_rel_size = 150;
+            this.circle_rel_size = 100;
             this.target_clock = 52;
         } else{
             // this.end_tutorial();
@@ -213,11 +215,11 @@ export class tutorialManager {
         this.width = this.info_canvas.screen_width;
         this.height = this.info_canvas.screen_height;
 
-        this.font_height = Math.min(this.width/55, this.height/30);
+        this.font_height = Math.min(this.height/45);
 
         var clock;
         if (center) {
-            clock = this.parent.clockgrid.clocks[26];
+            clock = this.parent.clockgrid.clocks[27];
         } else {
             clock = this.parent.clockgrid.clocks[this.target_clock];
         }
@@ -279,7 +281,6 @@ export class tutorialManager {
             this.Normon.run_on_return = false;
             var normon_x = this.circle_x - this.clock.radius * 3 - this.Normon.radius;
             var normon_y = this.circle_y + this.info_canvas.topbar_height * 2;
-            this.Normon.update_radius(this.height / 15);
             this.Normon.update_target_coords(normon_x, normon_y);
         } else if (this.target_num === 6) {
             this.draw_info_3();
@@ -299,7 +300,7 @@ export class tutorialManager {
 
 
         if (this.text_num >= 0) {
-            normon_x = this.width / 6;
+            normon_x = this.width / 8;
             normon_y = this.info_canvas.topbar_height * 2 + this.height / 4;
 
             // this.font_height = this.width / 17;
@@ -307,11 +308,13 @@ export class tutorialManager {
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "bold ".concat((this.font_height*3).toString(), "px Helvetica");
 
-            this.info_canvas.ctx.fillText("Welcome to Nomon!", this.width / 4.6, this.height * 0.22);
+            this.info_canvas.ctx.fillText("Welcome to", this.width / 4.7, this.height * 0.22);
+            this.info_canvas.ctx.fillText("Nomon!", this.width / 4.7, this.height * 0.22+this.font_height*3);
+
             this.Normon.run_on_return = true;
         }
         if (this.text_num >= 1) {
-            normon_x = this.width / 6;
+            normon_x = this.width / 8;
             normon_y = this.info_canvas.topbar_height * 2 + this.height / 4;
 
 
@@ -319,61 +322,72 @@ export class tutorialManager {
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "bold ".concat(this.font_height.toString(), "px Helvetica");
 
-            this.info_canvas.ctx.fillText("I'm Normon and I will help you get started...", this.width / 4.6, this.height * 0.27);
+            this.info_canvas.ctx.fillText("I'm Normon and I will help you", this.width / 4.7, this.height * 0.32);
+            this.info_canvas.ctx.fillText("get started...", this.width / 4.7, this.height * 0.35);
+
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
         if (this.text_num >= 2) {
 
-            var rect_x = this.width * 0.22;
+            var rect_x = this.width * 0.2;
             var rect_y = this.height * 0.55;
 
-            normon_x = rect_x - this.Normon.radius * 2;
-            normon_y = rect_y + this.font_height * 2.5;
+            normon_x = rect_x - this.Normon.radius * 1.5;
+            normon_y = rect_y + this.font_height * 6;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 8,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("Nomon is a single-switch communication interface that facilitates ",
+            this.info_canvas.ctx.fillText("Nomon is a single-switch ",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("fast and flexible computer interaction for individuals with ",
+            this.info_canvas.ctx.fillText("communication interface that ",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("severe motor impairments.",
+            this.info_canvas.ctx.fillText("offers fast and flexible computer",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("interaction for individuals",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
+            this.info_canvas.ctx.fillText("with severe motor impairments.",
+                rect_x + this.font_height, rect_y + this.font_height * 6.9);
+
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
         if (this.text_num >= 3) {
 
-            var rect_x = this.width * 0.22;
-            var rect_y = this.height * 0.55 + this.font_height * 6;
+            var rect_x = this.width * 0.2;
+            var rect_y = this.height * 0.55 + this.font_height * 10;
 
-            normon_x = rect_x - this.Normon.radius * 2;
-            normon_y = rect_y + this.font_height * 2.5;
+            normon_x = rect_x - this.Normon.radius*1.5;
+            normon_y = rect_y + this.font_height * 6;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 8,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("You can emulate \"clicking\" a single-switch in this demo",
+            this.info_canvas.ctx.fillText("You can emulate \"clicking\" a ",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("by pressing your Left Mouse or the Spacebar. ",
+            this.info_canvas.ctx.fillText("a single-switch in this demo",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("(click your \"switch\" to continue...)",
+            this.info_canvas.ctx.fillText("by tapping anywhere on the",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("screen.",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
+            this.info_canvas.ctx.fillText("(click your \"switch\" to continue...)",
+                rect_x + this.font_height, rect_y + this.font_height * 6.9);
+
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = false;
             this.allow_input = true;
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -385,25 +399,32 @@ export class tutorialManager {
 
         if (this.text_num >= 0) {
 
-            var rect_x = this.width * 0.22;
+            var rect_x = this.width * 0.2;
             var rect_y = this.height * 0.7;
 
-            normon_x = rect_x - this.Normon.radius * 2;
+            normon_x = rect_x - this.Normon.radius * 1.5;
             normon_y = rect_y + this.font_height * 2.5;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 9,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("Nomon centers around clocks like the one above. Clocks allow you ",
+            this.info_canvas.ctx.fillText("Nomon centers around clocks ",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("to select the items that they are next to. You can select a clock",
+            this.info_canvas.ctx.fillText("like the one above. Clocks",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("by clicking when its minute hand passes the red Noon line.",
+            this.info_canvas.ctx.fillText("allow you to select between",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("items. You can select a clock",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
+            this.info_canvas.ctx.fillText("by clicking when its minute",
+                rect_x + this.font_height, rect_y + this.font_height * 6.9);
+            this.info_canvas.ctx.fillText("hand passes the Noon line.",
+                rect_x + this.font_height, rect_y + this.font_height * 8.3);
+
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
@@ -415,7 +436,6 @@ export class tutorialManager {
             this.Normon.run_on_return = false;
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -428,25 +448,31 @@ export class tutorialManager {
 
         if (this.text_num >= 0) {
 
-            var rect_x = this.width * 0.22;
+            var rect_x = this.width * 0.2;
             var rect_y = this.height * 0.7;
 
-            normon_x = rect_x - this.Normon.radius * 2;
+            normon_x = rect_x - this.Normon.radius * 1.5;
             normon_y = rect_y + this.font_height * 2.5;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 9,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("You've just selected your first clock! Notice how it turned green.",
+            this.info_canvas.ctx.fillText("You've just selected your",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("Now let's add a couple more clocks... You need to look only at the",
+            this.info_canvas.ctx.fillText("first clock! Notice how it",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("clock you want to select. Focus on the center clock and select it.",
+            this.info_canvas.ctx.fillText("turned green. Now let's add",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("a couple more clocks...",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
+            this.info_canvas.ctx.fillText("you need to look only at the",
+                rect_x + this.font_height, rect_y + this.font_height * 6.9);
+            this.info_canvas.ctx.fillText("clock you want to select.",
+                rect_x + this.font_height, rect_y + this.font_height * 8.3);
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
@@ -459,7 +485,6 @@ export class tutorialManager {
             this.Normon.run_on_return = false;
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -473,27 +498,34 @@ export class tutorialManager {
         if (this.text_num >= 0) {
 
 
-            var rect_x = this.width * 0.22;
+            var rect_x = this.width * 0.2;
             var rect_y = this.height * 0.7;
 
-            normon_x = rect_x - this.Normon.radius * 2;
+            normon_x = rect_x - this.Normon.radius * 1.5;
             normon_y = rect_y + this.font_height * 3.1;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 6.2,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 11,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("Great! Let's add a few more clocks. Remember that you need to",
+            this.info_canvas.ctx.fillText("Great! Let's add a few more ",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("look only at the clock you want to select. ",
+            this.info_canvas.ctx.fillText("clocks. Remember that you",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("Notice the items (colored squares) to the right of each clock.",
+            this.info_canvas.ctx.fillText("need to only look at the clock",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
-            this.info_canvas.ctx.fillText("Selecting a clock selects the item to its right.",
+            this.info_canvas.ctx.fillText("you want to select. Notice the",
                 rect_x + this.font_height, rect_y + this.font_height * 5.5);
+            this.info_canvas.ctx.fillText("items (colored squares) to right",
+                rect_x + this.font_height, rect_y + this.font_height * 6.9);
+            this.info_canvas.ctx.fillText("of each clock. Selecting a clock",
+                rect_x + this.font_height, rect_y + this.font_height * 8.3);
+            this.info_canvas.ctx.fillText("selects the item to its right.",
+                rect_x + this.font_height, rect_y + this.font_height * 9.7);
+
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
@@ -506,7 +538,6 @@ export class tutorialManager {
             this.Normon.run_on_return = false;
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -520,9 +551,9 @@ export class tutorialManager {
         if (this.text_num >= 0) {
 
             var rect_x = this.width * 0.1;
-            var rect_y = this.height * 0.87;
+            var rect_y = this.height * 0.7;
 
-            normon_x = rect_x + this.font_height * 17 + this.Normon.radius * 2;
+            normon_x = rect_x + this.font_height * 17 + this.Normon.radius * 1.5;
             normon_y = rect_y + this.font_height * 1.5;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
@@ -552,7 +583,7 @@ export class tutorialManager {
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
             this.info_canvas.ctx.fillText("Notice how the items you selected ",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("appear here in the text box.",
+            this.info_canvas.ctx.fillText("appear down here in the text box.",
                 rect_x + this.font_height, rect_y + this.font_height * 2.3);
 
             this.Normon.pause = this.normon_pause_length;
@@ -567,7 +598,6 @@ export class tutorialManager {
 
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -604,46 +634,54 @@ export class tutorialManager {
 
         if (this.text_num >= 0) {
 
-            var rect_x = this.width * 0.22;
+            var rect_x = this.width * 0.2;
             var rect_y = this.height * 0.1;
 
-            normon_x = rect_x - this.Normon.radius * 2;
+            normon_x = rect_x - this.Normon.radius * 1.5;
             normon_y = rect_y + this.font_height * 2.5 + this.Normon.radius;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 4,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 7,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("Great job! Now that you know how to select clocks, let's talk about",
+            this.info_canvas.ctx.fillText("Great job! Now that you know",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("a clock with a special function... ",
+            this.info_canvas.ctx.fillText("how to select clocks, let's",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            this.info_canvas.ctx.fillText("talk about a clock with a",
+                rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("special function...",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
         if (this.text_num >= 1) {
 
-            var rect_x = this.width * 0.22;
-            var rect_y = this.height * 0.1 + this.font_height * 5;
+            var rect_x = this.width * 0.2;
+            var rect_y = this.height * 0.1 + this.font_height * 8;
 
-            normon_x = rect_x - this.Normon.radius * 2;
+            normon_x = rect_x - this.Normon.radius * 1.5;
             normon_y = rect_y + this.font_height * 2.5 + this.Normon.radius;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 4,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 7,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("The \"Undo\" clock. This clock will undo whatever clock you ",
+            this.info_canvas.ctx.fillText("The \"Undo\" clock. ",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("selected last. Try to select it!",
+            this.info_canvas.ctx.fillText("This clock will undo whatever",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            this.info_canvas.ctx.fillText("clock you selected last.",
+                rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("Try to select it!",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
@@ -657,7 +695,6 @@ export class tutorialManager {
 
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -746,7 +783,6 @@ export class tutorialManager {
 
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -828,7 +864,6 @@ export class tutorialManager {
             this.Normon.run_on_return = false;
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -906,28 +941,31 @@ export class tutorialManager {
 
         if (this.text_num >= 0 && this.text_num < 1) {
 
-            rect_x = this.width * 0.22;
+            rect_x = this.width * 0.2;
             rect_y = this.height * 0.1 + this.font_height * 3;
 
-            normon_x = rect_x - this.Normon.radius * 2;
+            normon_x = rect_x - this.Normon.radius * 1.5;
             normon_y = rect_y + this.font_height * 1 + this.Normon.radius;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 2,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 3.5,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("Let me show you one more thing before we start the session...",
+            this.info_canvas.ctx.fillText("Let me show you one more",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
+            this.info_canvas.ctx.fillText("thing before we start...",
+                rect_x + this.font_height, rect_y + this.font_height * 2.7);
+
 
             this.Normon.pause = 2;
             this.Normon.run_on_return = true;
         }
         if (this.text_num >= 1) {
 
-            rect_x = this.width * 0.22;
+            rect_x = this.width * 0.2;
             rect_y = this.height * 0.1;
 
             normon_x = this.width * 9 / 10;
@@ -936,24 +974,29 @@ export class tutorialManager {
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5.4,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 8,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("This histogram down here shows you how accurately you're ",
+            this.info_canvas.ctx.fillText("This histogram down here shows",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("pressing relative to when your target clock passes Noon.",
+            this.info_canvas.ctx.fillText("how accurately you're pressing",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("It will update as you type more.",
+            this.info_canvas.ctx.fillText("relative to when your target",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("clock passes Noon. It will",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
+            this.info_canvas.ctx.fillText("update as you type more.",
+                rect_x + this.font_height, rect_y + this.font_height * 6.9);
+
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
         }
         if (this.text_num >= 2) {
 
-            rect_x = this.width * 0.22;
-            rect_y = this.height * 0.1 + this.font_height * 6;
+            rect_x = this.width * 0.2;
+            rect_y = this.height * 0.1 + this.font_height * 9;
 
             normon_x = this.width * 9 / 10;
             normon_y = this.info_canvas.topbar_height * 2 + this.height * 7 / 9 - this.Normon.radius;
@@ -961,16 +1004,27 @@ export class tutorialManager {
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 5.4,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 12.5,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("If most of the histogram is green, you will be able to",
+            this.info_canvas.ctx.fillText("If most of the histogram is",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("select clocks with few presses. If you see a lot of red in ",
+            this.info_canvas.ctx.fillText("green, you will be able to",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
-            this.info_canvas.ctx.fillText("the histogram, it might be worth lowering the speed.",
+            this.info_canvas.ctx.fillText("select clocks easily and with",
                 rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            this.info_canvas.ctx.fillText("few presses. If you see a lot ",
+                rect_x + this.font_height, rect_y + this.font_height * 5.5);
+            this.info_canvas.ctx.fillText("red in the histogram, it might" ,
+                rect_x + this.font_height, rect_y + this.font_height * 6.9);
+            this.info_canvas.ctx.fillText("be worth lowering the clock",
+                rect_x + this.font_height, rect_y + this.font_height * 8.3);
+            this.info_canvas.ctx.fillText("rotation speed above.",
+                rect_x + this.font_height, rect_y + this.font_height * 9.7);
+            this.info_canvas.ctx.fillText("Click to continue...",
+                rect_x + this.font_height, rect_y + this.font_height * 11.1);
+
 
             this.Normon.pause = this.normon_pause_length;
             this.Normon.run_on_return = true;
@@ -986,59 +1040,60 @@ export class tutorialManager {
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 7,
-                20, true, true);
+            // roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 7,
+            //     20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
 
             var click_performance = this.parent.evaluate_click_dist();
             console.log(click_performance);
             var cur_speed = this.parent.rotate_index;
-            var updated_speed;
+            var updated_speed = cur_speed;
+            this.failed = false;
+            //
+            // if (click_performance === "excelent") {
+            //     this.info_canvas.ctx.fillText("Wow - Your histogram looks great! You should be able to select",
+            //         rect_x + this.font_height, rect_y + this.font_height * 1.3);
+            //     this.info_canvas.ctx.fillText("clocks in very few presses if you keep pressing this precisely!",
+            //         rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            //     this.info_canvas.ctx.fillText("I think you're good to go!",
+            //         rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            //     updated_speed = cur_speed;
+            //
+            // } else if (click_performance === "good") {
+            //     this.info_canvas.ctx.fillText("You clicked pretty precisely! It should only take a few presses",
+            //         rect_x + this.font_height, rect_y + this.font_height * 1.3);
+            //     this.info_canvas.ctx.fillText("for you to select clocks. I think you're good to go!",
+            //         rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            //
+            //     updated_speed = Math.max(0, Math.min(cur_speed - 1, 4));
+            //
+            // } else if (click_performance === "ok") {
+            //     this.info_canvas.ctx.fillText("You clicked fairly precisely! It should take a few presses",
+            //         rect_x + this.font_height, rect_y + this.font_height * 1.3);
+            //     this.info_canvas.ctx.fillText("for you to select clocks, but just keep trying to click exactly",
+            //         rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            //     this.info_canvas.ctx.fillText("as the clock passes Noon. I think you're good to go!",
+            //         rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            //
+            //     updated_speed = Math.max(0, Math.min(cur_speed - 2, 3));
+            //
+            // } else if (click_performance === "poor" || click_performance === "redo") {
+            //     this.info_canvas.ctx.fillText("Hmmm... The results of your training were inconclusive. I highly ",
+            //         rect_x + this.font_height, rect_y + this.font_height * 1.3);
+            //     this.info_canvas.ctx.fillText("recommend we practice selecting clocks some more before we",
+            //         rect_x + this.font_height, rect_y + this.font_height * 2.7);
+            //     this.info_canvas.ctx.fillText("proceed. Are you good to train some more?",
+            //         rect_x + this.font_height, rect_y + this.font_height * 4.1);
+            //     this.failed = true;
+            //     this.text_num += 1;
+            //
+            //     updated_speed = 0;
+            //
+            // }
 
-            if (click_performance === "excelent") {
-                this.info_canvas.ctx.fillText("Wow - Your histogram looks great! You should be able to select",
-                    rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("clocks in very few presses if you keep pressing this precisely!",
-                    rect_x + this.font_height, rect_y + this.font_height * 2.7);
-                this.info_canvas.ctx.fillText("I think you're good to go!",
-                    rect_x + this.font_height, rect_y + this.font_height * 4.1);
-                updated_speed = cur_speed;
-
-            } else if (click_performance === "good") {
-                this.info_canvas.ctx.fillText("You clicked pretty precisely! It should only take a few presses",
-                    rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("for you to select clocks. I think you're good to go!",
-                    rect_x + this.font_height, rect_y + this.font_height * 2.7);
-
-                updated_speed = Math.max(0, Math.min(cur_speed - 1, 4));
-
-            } else if (click_performance === "ok") {
-                this.info_canvas.ctx.fillText("You clicked fairly precisely! It should take a few presses",
-                    rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("for you to select clocks, but just keep trying to click exactly",
-                    rect_x + this.font_height, rect_y + this.font_height * 2.7);
-                this.info_canvas.ctx.fillText("as the clock passes Noon. I think you're good to go!",
-                    rect_x + this.font_height, rect_y + this.font_height * 4.1);
-
-                updated_speed = Math.max(0, Math.min(cur_speed - 2, 3));
-
-            } else if (click_performance === "poor" || click_performance === "redo") {
-                this.info_canvas.ctx.fillText("Hmmm... The results of your training were inconclusive. I highly ",
-                    rect_x + this.font_height, rect_y + this.font_height * 1.3);
-                this.info_canvas.ctx.fillText("recommend we practice selecting clocks some more before we",
-                    rect_x + this.font_height, rect_y + this.font_height * 2.7);
-                this.info_canvas.ctx.fillText("proceed. Are you good to train some more?",
-                    rect_x + this.font_height, rect_y + this.font_height * 4.1);
-                this.failed = true;
-                this.text_num += 1;
-
-                updated_speed = 0;
-
-            }
-
-            this.info_canvas.ctx.fillText("Press your switch to continue...",
-                    rect_x + this.font_height, rect_y + this.font_height * 6);
+            // this.info_canvas.ctx.fillText("Press your switch to continue...",
+            //         rect_x + this.font_height, rect_y + this.font_height * 6);
 
             this.parent.change_speed(updated_speed);
 
@@ -1080,7 +1135,6 @@ export class tutorialManager {
             this.allow_input = true;
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -1094,22 +1148,22 @@ export class tutorialManager {
 
         if (this.text_num >= 0) {
 
-            var rect_x = this.width * 0.22;
+            var rect_x = this.width * 0.2;
             var rect_y = this.height * 0.1;
 
-            normon_x = rect_x - this.Normon.radius * 2;
+            normon_x = rect_x - this.Normon.radius * 15;
             normon_y = rect_y + this.font_height * 2.5 + this.Normon.radius;
 
             this.info_canvas.ctx.fillStyle = "#ffffff";
             this.info_canvas.ctx.strokeStyle = "#404040";
             this.info_canvas.ctx.lineWidth = this.font_height * 0.3;
-            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 31, this.font_height * 4,
+            roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 17, this.font_height * 4,
                 20, true, true);
             this.info_canvas.ctx.fillStyle = "#404040";
             this.info_canvas.ctx.font = "".concat(this.font_height.toString(), "px Helvetica");
-            this.info_canvas.ctx.fillText("We're ready to start the session! To start, press ",
+            this.info_canvas.ctx.fillText("We're ready to start! Press",
                 rect_x + this.font_height, rect_y + this.font_height * 1.3);
-            this.info_canvas.ctx.fillText("your switch...",
+            this.info_canvas.ctx.fillText("your switch when ready...",
                 rect_x + this.font_height, rect_y + this.font_height * 2.7);
 
             this.Normon.pause = this.normon_pause_length;
@@ -1117,7 +1171,6 @@ export class tutorialManager {
 
         }
 
-        this.Normon.update_radius(this.height / 15);
         this.Normon.update_target_coords(normon_x, normon_y);
         this.text_num += 1;
     }
@@ -1178,7 +1231,7 @@ export class tutorialManager {
             arrow_x_center = arrow_x_end + radius * 4;
             arrow_y_center = arrow_y_end + radius * 4;
 
-            rect_x = arrow_x_start - this.font_height * 33;
+            rect_x = arrow_x_start - this.font_height * 10;
             rect_y = arrow_y_start - this.font_height * 1.5;
             text_x = rect_x + this.font_height;
 
@@ -1212,26 +1265,32 @@ export class tutorialManager {
         this.info_canvas.ctx.font = "".concat((this.font_height.toString()*0.8), "px Helvetica");
         if (this.target_num === 2) {
             if (this.cur_press < 1) {
-                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 22, this.font_height * 3,
+                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 10, this.font_height * 4.7,
                     20, true, true, true);
 
                 this.info_canvas.ctx.fillStyle = "#404040";
-                this.info_canvas.ctx.fillText("To start, press your switch when this clock passes noon", text_x, arrow_y_start + this.font_height * 0.2);
+                this.info_canvas.ctx.fillText("To start, press your", text_x, arrow_y_start + this.font_height * 0.2);
+                this.info_canvas.ctx.fillText("switch when this clock", text_x, arrow_y_start + this.font_height * 1.5);
+                this.info_canvas.ctx.fillText("passes noon", text_x, arrow_y_start + this.font_height * 2.8);
+
+
             } else {
-                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 22, this.font_height * 4.2,
+                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 10, this.font_height * 7,
                     20, true, true, true);
                 this.info_canvas.ctx.fillStyle = "#404040";
-                this.info_canvas.ctx.fillText("Great! You have to press multiple times to select a clock.", text_x, arrow_y_start);
-                this.info_canvas.ctx.fillText("Keep pressing when the clock passes noon.", text_x, arrow_y_start + this.font_height * 1.5);
+                this.info_canvas.ctx.fillText("Great! You have to press", text_x, arrow_y_start + this.font_height * 0.2);
+                this.info_canvas.ctx.fillText("multiple times to select", text_x, arrow_y_start + this.font_height * 1.5);
+                this.info_canvas.ctx.fillText("a clock. Keep pressing", text_x, arrow_y_start + this.font_height * 2.8);
+                this.info_canvas.ctx.fillText("as the clock passes noon.", text_x, arrow_y_start + this.font_height * 4.1);
             }
         } else {
             var cur_word;
             if (this.target_num === 3) {
-                cur_word = "good";
+                cur_word = "have";
             } else if (this.target_num === 4) {
-                cur_word = "little";
+                cur_word = "want";
             } else if (this.target_num === 5) {
-                cur_word = "okay";
+                cur_word = "make";
             } else if (this.target_num === 6) {
                 cur_word = "where";
                 // if (this.cur_press > 0) {
@@ -1245,16 +1304,21 @@ export class tutorialManager {
             }
 
             if (this.cur_press < 1) {
-                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 25, this.font_height * 3,
+                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 10, this.font_height * 4.7,
                     20, true, true, true);
                 this.info_canvas.ctx.fillStyle = "#404040";
-                this.info_canvas.ctx.fillText("Press when this clock passes noon to select the item \"".concat(cur_word, "\""), text_x, arrow_y_start + this.font_height * 0.2);
+                this.info_canvas.ctx.fillText("Press when this clock", text_x, arrow_y_start + this.font_height * 0.2);
+                this.info_canvas.ctx.fillText("passes noon to select", text_x, arrow_y_start + this.font_height * 1.5);
+                this.info_canvas.ctx.fillText("the item \"".concat(cur_word, "\""), text_x, arrow_y_start + this.font_height * 2.8);
             } else {
-                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 27, this.font_height * 3,
+                roundRect(this.info_canvas.ctx, this.shadow_canvas.ctx, rect_x, rect_y, this.font_height * 10, this.font_height * 7,
                     20, true, true, true);
                 this.info_canvas.ctx.fillStyle = "#404040";
-                this.info_canvas.ctx.fillText("Keep pressing when the clock passes noon to select the item \"".concat(cur_word, "\""), text_x, arrow_y_start + this.font_height * 0.2);
-            }
+                this.info_canvas.ctx.fillText("Keep pressing when", text_x, arrow_y_start + this.font_height * 0.2);
+                this.info_canvas.ctx.fillText("this clock passes ", text_x, arrow_y_start + this.font_height * 1.5);
+                this.info_canvas.ctx.fillText("noon to select", text_x, arrow_y_start + this.font_height * 2.8);
+                this.info_canvas.ctx.fillText("the item \"".concat(cur_word, "\""), text_x, arrow_y_start + this.font_height * 4.1);
+}
         }
     }
 

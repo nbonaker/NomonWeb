@@ -137,11 +137,29 @@ export class KeyGrid {
             var row_x_positions = [];
 
             var layout_row = this.target_layout[row];
-            x_width = (this.keygrid_canvas.screen_width - y_spacing * (layout_row.length + 1)) / layout_row.length;
+            var num_row = layout_row.length;
+            if (layout_row.includes(kconfig.mybad_char)){
+                num_row += 1;
+            }
+            if (layout_row.includes(kconfig.clear_char)){
+                num_row += 1;
+            }
+            x_width = (this.keygrid_canvas.screen_width - y_spacing * (num_row + 1)) / num_row;
 
             for (var col in layout_row) {
-                var x_start = col * y_spacing + col * x_width + y_spacing;
-                var x_end = x_start + x_width;
+                var x_start;
+                var x_end;
+
+                if (layout_row[col] == kconfig.mybad_char){
+                    x_start = col * y_spacing + col * x_width + y_spacing*2 + x_width;
+                    x_end = x_start + x_width*2+y_spacing;
+                } else if (layout_row[col] == kconfig.clear_char){
+                    x_start = col * y_spacing + col * x_width + y_spacing;
+                    x_end = x_start + x_width*2+y_spacing;
+                } else {
+                    x_start = col * y_spacing + col * x_width + y_spacing;
+                    x_end = x_start + x_width;
+                }
                 row_x_positions.push([x_start, x_end]);
             }
             this.x_positions.push(row_x_positions);
@@ -564,7 +582,7 @@ export class Clock {
             this.face_canvas.ctx.font = font_height.toString().concat("px Helvetica");
             if (parseInt(this.text) >= 10) {
                 let tile = new CommTile(this.face_canvas, this.x_pos + this.radius * 1.25,
-                    this.y_pos - this.radius * 1.75, this.radius * 3.5, parseInt(this.text));
+                    this.y_pos - this.radius * 1.5, this.radius * 3, parseInt(this.text));
             } else {
                 this.face_canvas.ctx.fillText(this.text, this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
             }

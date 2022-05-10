@@ -23,7 +23,7 @@
 <style>
     textarea {
         font-family: "Lucida Console", Monaco, monospace;
-        font-size: 20pt;
+        font-size: 1em;
     }
 
     .slidecontainer {
@@ -102,7 +102,7 @@
         display: inline-block;
         width: 10em;
         font-family: Helvetica, sans-serif;
-        font-size: 1em;
+        font-size: 0.75em;
         margin: 1px 1px;
         cursor: pointer;
         border-radius: 4px;
@@ -127,7 +127,8 @@
         height: 2em;
         width: 100%;
         text-align: center;
-        line-height: 2em;
+        line-height: 1em;
+        font-size: 0.7em;
         bottom: 1em;
     }
 
@@ -169,7 +170,7 @@
 
 </style>
 
-<body scroll="no" style="overflow: hidden">
+<body scroll="no" style="overflow: hidden; font-size: 0.75em">
 <div class="se-pre-con">
     <h1 style="text-align: center; font-size: 5vh">Give me a second while I load Nomon!</h1>
 
@@ -181,7 +182,7 @@
         <div class="slidecontainer">
             <input class='btn highlighted' id="dec_speed_button" type="button" value="Clock Speed -"/>
             <input class='btn highlighted' id="inc_speed_button" type="button" value="Clock Speed +"/>
-            <label style="padding-left: 2em;">Clock Speed: <b><span id="speed_text">0</span>/20</b></label>
+            <label style="padding-left: 1em;">Clock Speed: <b><span id="speed_text">0</span>/20</b></label>
         </div>
     </div>
 </div>
@@ -194,8 +195,13 @@
         <label id="session_timer"><b> </b></label>
         <label style="display: inline; padding-left: 20px; ">&#9432</label>
         <label id="info_label"/><i>Welcome to Nomon! The session will start shortly...</i></label>
-        <label style="display: inline;">&#9432</label></div>
+    </div>
 </div>
+<br>
+<div class="container space-between" >
+    <label style="display: inline;">&#9432</label>
+</div>
+
 <textarea id="output_textbox"></textarea>
 </div>
 
@@ -243,14 +249,14 @@
 <footer>
     <div class="row">
         <div class="column">
-            <p style="text-align: left; padding-left: 1em"> &copy; 2021 The Nomon Web Interface. </p>
+            <p style="text-align: left;"> &copy; 2022 The Nomon Web Interface. </p>
         </div>
         <div class="column">
             <p style="text-align: center"><img src="/icon.png" style="width: 1em;"> <span
-                    id="footer_version">v0.0.0</span></p>
+                    id="footer_version">NomonWeb</span></p>
         </div>
         <div class="column">
-            <p style="text-align: right; padding-right: 1em">This code is under MIT license. </p>
+            <p style="text-align: right; padding-right: 2em">This code is under MIT license. </p>
         </div>
     </div>
 </footer>

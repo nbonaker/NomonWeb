@@ -81,8 +81,8 @@ $sec = "60";
         <th style="width: 3%;">Rank</th>
         <th>Username</th>
         <th>Date | Time</th>
-        <th>Entry Rate</th>
-        <th>Click Load</th>
+        <th>Entry Rate (selections/min)</th>
+        <th>Click Load (clicks/selection)</th>
         <th>Error Rate</th>
     </tr>
     </thead>
@@ -97,9 +97,9 @@ $sec = "60";
                            error_rate,
                                row_number() over (partition by username order by entry_rate desc) as user_rank
                         from (select * from scoreboard where error_rate < 0.15) a) ranks
-                    where user_rank <= 3) top_scores
+                    where user_rank <= 2) top_scores
                     GROUP BY username
-                    HAVING COUNT(*) > 2 AND error_rate <= 0.05
+                    HAVING COUNT(*) > 1 AND error_rate <= 0.05
                     order by entry_rate desc;";
             $result_array = make_query($connection, $query);
 
