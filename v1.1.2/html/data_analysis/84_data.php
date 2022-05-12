@@ -1,4 +1,4 @@
-<?php $user_id = "85"; ?>
+<?php $user_id = "84"; ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -209,16 +209,16 @@
 <h2 id="background_info">Background Info</h2>
 <table class="table table-striped" style="width:100%">
 <tr>
-    <th style="width: 10%">
+    <th style="width: 35%">
         Situation Notes
     </th>
-    <th style="width: 15%">
+    <th>
         Primary Switch (for study)
     </th>
-    <th style="width: 15%">
+    <th>
         Other Switches
     </th>
-    <th style="width: 15%">
+    <th>
         Switch Software
     </th>
     <th>
@@ -276,70 +276,60 @@
     </tr>
     <tr>
         <td>Do you consider yourself a fluent speaker of English?</td>
-        <td>Yes</td>
+        <td></td>
     </tr>
     <tr>
         <td>Do you consider yourself to be fast at reading English text?</td>
-        <td>Yes</td>
+        <td></td>
     </tr>
     <tr>
         <td>Do you consider yourself a fast typist using my method of choice?</td>
-        <td>No</td>
+        <td></td>
     </tr>
     <tr>
         <td>Do feel that you have entered text accurately using Nomon?</td>
-        <td>Yes</td>
+        <td></td>
     </tr>
     <tr>
         <td>Do feel that you have entered text accurately using Row Column Scanning?</td>
-        <td>No</td>
+        <td></td>
     </tr>
     <tr>
         <td>Do feel that it was easy to correct any erroneous selections in Nomon?</td>
-        <td>No</td>
+        <td></td>
     </tr>
     <tr>
         <td>Do feel that it was easy to correct any erroneous selections in Row Column Scanning?</td>
-        <td>No</td>
+        <td></td>
     </tr>
     <tr>
 
         <td>Which interface did you enjoy most Row Column Scanning / Nomon, and why?</td>
-        <td>Nomon - due to the increased predictive power it has over Row Column Scanning</td>
+        <td></td>
     </tr>
     <tr>
         <td>Did you feel any fatigue during any part of the study?</td>
-        <td>Some as it took a higher level of concentration compared to the grid 2. Also long periods of pressing a
-            single switch will result in wrist pain which is why I prefer joystick
-        </td>
+        <td></td>
     </tr>
     <tr>
         <td>Were there specific things that bothered you during the use of Nomon?</td>
-        <td>Often needed multiple clicks to select targets even when I felt my accuracy was good however I think that
-            this is inevitable in order for the algorithm to accommodate a full alphabet. Frustrating to undo mistakes
-            and edit text
-        </td>
+        <td></td>
     </tr>
     <tr>
         <td>Do you have any recommendations to improve Nomon?</td>
-        <td>Could rearrange letters so that most commonly used letters are together. Also increase the number of
-            word predictions. Could have the function to enter text into a different window
-        </td>
+        <td></td>
     </tr>
     <tr>
         <td>Would you be willing to try out any improvements to the current version of Nomon based on our study
             results?
         </td>
-        <td>Yes</td>
+        <td></td>
     </tr>
     <tr>
         <td>Do you have any experience with gaze tracking interfaces? We have future plans to incorporate limited
             eye-gaze information to make Nomon more efficient.
         </td>
-        <td> In my experience eye gaze was more accessible to me around 10 years ago and since then I have been
-            increasingly frustrated with it. If eye gaze were improved and Nomon incorporated with it I would be
-            interested in trying the combination.
-        </td>
+        <td></td>
     </tr>
 
 </table>
@@ -349,44 +339,6 @@
 <h2 id="entry_stat_analysis">Entry Statistic Analyses</h2>
 <div id="inner">
     <table>
-        <tr>
-            <th>
-                Picture Selection Task Evaluation Results
-            </th>
-            <th colspan="3">
-                Picture Selection Task Learning Curve Plot
-            </th>
-
-        </tr>
-        <tr>
-            <td>
-                <img src="figures/<?php echo $user_id ?>/picture_boxplot.svg" width="100%">
-            </td>
-            <td colspan="3">
-                <img src="figures/<?php echo $user_id ?>/picture_selection_longform-1.svg" width="100%">
-            </td>
-        </tr>
-        <tr>
-            <td colspan="4">
-                <h4>Notes:</h4>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <!--            construct editable form-->
-                <?php $form_id = "picture_boxplot_notes_form"; ?>
-                <?php
-                    include('editable_textarea.html');
-                ?>
-            </td>
-            <td colspan="3">
-                <!--            construct editable form-->
-                <?php $form_id = "picture_long_notes_form"; ?>
-                <?php
-                    include('editable_textarea.html');
-                ?>
-            </td>
-        </tr>
         <tr>
             <th>
                 Text Entry Task Evaluation Results
@@ -494,7 +446,7 @@
                 <img src="figures/<?php echo $user_id ?>/time_rotate.png" width="100%">
             </td>
             <td>
-                <img src="figures/<?php echo $user_id ?>/word_prediction.png" width="100%">
+                <img src="figures/<?php echo $user_id ?>/word_prediction_long.png" width="100%">
             </td>
         </tr>
         <tr>
@@ -530,6 +482,55 @@
 </div>
 <br>
 <br>
+<div id="inner">
+    <table id="speed_plots">
+        <tr>
+            <th>
+                Nomon Entry Rate vs Speed
+            </th>
+            <th>
+                Nomon Click Load vs Speed
+            </th>
+            <th>
+                Nomon Correction Rate vs Speed
+            </th>
+            <th>
+                Nomon Final Error Rate vs Speed
+            </th>
+
+        </tr>
+        <tr>
+            <td>
+                <img src="figures/<?php echo $user_id ?>/entry_rate_vs_speed.png" width="100%">
+            </td>
+            <td>
+                <img src="figures/<?php echo $user_id ?>/click_load_vs_speed.png" width="100%">
+            </td>
+            <td>
+                <img src="figures/<?php echo $user_id ?>/correction_vs_speed.png" width="100%">
+            </td>
+            <td>
+                <img src="figures/<?php echo $user_id ?>/error_vs_speed.png" width="100%">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5">
+                <h4>Notes:</h4>
+            </td>
+        </tr>
+        <tr>
+            <td  colspan="5">
+                <!--            construct editable form-->
+                <?php $form_id = "nomon_speed_notes_form"; ?>
+                <?php
+                    include('editable_textarea.html');
+                ?>
+            </td>
+        </tr>
+    </table>
+</div>
+<br>
+<br>
 
 <h2 id="click_dist_analysis">Click Distribution Analyses</h2>
 <div id="inner">
@@ -558,10 +559,10 @@
     <tr>
         <td colspan="2">
             <img id="click_analy_error"
-                 src="figures/<?php echo $user_id ?>/click_analysis_vs_final_error.svg#svgView(viewBox(250, 0, 1750, 1050))"
+                 src="figures/<?php echo $user_id ?>/click_analysis_vs_final_error.svg#svgView(viewBox(250, 0, 2680, 1944))"
                  width="100%"/>
             <img id="click_analy_cload"
-                 src="figures/<?php echo $user_id ?>/click_analysis_vs_click_load.svg#svgView(viewBox(250, 0, 1750, 1050))"
+                 src="figures/<?php echo $user_id ?>/click_analysis_vs_click_load.svg#svgView(viewBox(250, 0, 2680, 1944))"
                  width="100%" style="display: none;"/>
         </td>
     </tr>
