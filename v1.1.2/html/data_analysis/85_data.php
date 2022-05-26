@@ -186,7 +186,7 @@
                             Total Website Activity
                         </td>
                         <td style="text-align: right">
-                            01:39 * (1.25 to offset setup times) = 2:03
+                            03:36 * (1.25 to offset setup times) = 04:30
                         </td>
                     </tr>
                     <tr>
@@ -194,7 +194,7 @@
                             Total Time
                         </th>
                         <th style="text-align: right">
-                            05:03
+                            07:30
                         </th>
                     </tr>
                 </table>
@@ -363,7 +363,7 @@
                 <img src="figures/<?php echo $user_id ?>/picture_boxplot.svg" width="100%">
             </td>
             <td colspan="3">
-                <img src="figures/<?php echo $user_id ?>/picture_selection_longform-1.svg" width="100%">
+                <img src="figures/<?php echo $user_id ?>/picture_longform.svg" width="100%">
             </td>
         </tr>
         <tr>

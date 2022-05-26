@@ -152,7 +152,7 @@
                     </tr>
                     <tr>
                         <td>
-                            Nov 29, 2021 – Meet and Greet
+                            Oct 26, 2021 – Meet and Greet
                         </td>
                         <td style="text-align: right">
                             01:00
@@ -160,7 +160,7 @@
                     </tr>
                     <tr>
                         <td>
-                            Dec 02, 2021 – Check-In
+                           Nov 09, 2021 – Check-In
                         </td>
                         <td style="text-align: right">
                             00:30
@@ -168,18 +168,10 @@
                     </tr>
                     <tr>
                         <td>
-                            Jan 27, 2022 – Check-In
+                            Feb 07, 2022 – Check-In
                         </td>
                         <td style="text-align: right">
                             00:30
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Apr 25, 2022 – Wrap-Up
-                        </td>
-                        <td style="text-align: right">
-                            01:00
                         </td>
                     </tr>
                     <tr>
@@ -187,7 +179,7 @@
                             Total Website Activity
                         </td>
                         <td style="text-align: right">
-                            01:39 * (1.25 to offset setup times) = 2:03
+                            03:31 * (1.25 to offset setup times) = 04:23
                         </td>
                     </tr>
                     <tr>
@@ -195,7 +187,7 @@
                             Total Time
                         </th>
                         <th style="text-align: right">
-                            05:03
+                            06:23
                         </th>
                     </tr>
                 </table>

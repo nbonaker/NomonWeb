@@ -1,0 +1,13 @@
+DELETE FROM nomon_session_28_user_84 WHERE timestamp <= 1651360705.605;
+DELETE FROM rowcol_session_3_user_84 WHERE timestamp <= 1642614459.123;
+DELETE FROM rowcol_session_6_user_84 WHERE timestamp <= 1643227918.152;
+DELETE FROM rowcol_session_7_user_84 WHERE phrase_num = 4;
+DELETE FROM rowcol_session_11_user_84 WHERE phrase_num = 2;
+DELETE FROM rowcol_session_14_user_84 WHERE phrase_num = 10;
+DELETE FROM nomon_session_2_user_7 WHERE timestamp >= 1631120665.285 AND timestamp <= 1631121395.687;
+UPDATE nomon_session_2_user_7 set phrase_num = 2 WHERE timestamp >= 1631121522.793 AND timestamp <= 1631121769.756;
+UPDATE nomon_session_2_user_7 set phrase_num = 3 WHERE timestamp >= 1631127778.25  AND timestamp <= 1631128016.051;
+UPDATE nomon_session_2_user_7 set phrase_num = 4 WHERE timestamp >= 1631128023.641 AND timestamp <= 1631128106.757;
+UPDATE nomon_session_2_user_7 set phrase_num = 5 WHERE timestamp >= 1631128106.757 AND timestamp <= 1631128208.54;
+UPDATE nomon_session_2_user_7 set phrase_num = 6 WHERE timestamp >= 1631128216.821;
+UPDATE nomon_session_1_user_77 set phrase_num = 1 WHERE phrase_num = 2;

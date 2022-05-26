@@ -151,7 +151,7 @@
                     </tr>
                     <tr>
                         <td>
-                            Nov 29, 2021 – Meet and Greet
+                            Nov 3, 2021 – Meet and Greet
                         </td>
                         <td style="text-align: right">
                             01:00
@@ -159,26 +159,10 @@
                     </tr>
                     <tr>
                         <td>
-                            Dec 02, 2021 – Check-In
+                            Nov 10, 2021 – Check-In
                         </td>
                         <td style="text-align: right">
                             00:30
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Jan 27, 2022 – Check-In
-                        </td>
-                        <td style="text-align: right">
-                            00:30
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Apr 25, 2022 – Wrap-Up
-                        </td>
-                        <td style="text-align: right">
-                            01:00
                         </td>
                     </tr>
                     <tr>
@@ -186,7 +170,7 @@
                             Total Website Activity
                         </td>
                         <td style="text-align: right">
-                            01:39 * (1.25 to offset setup times) = 2:03
+                            04:19 * (1.25 to offset setup times) = 05:23
                         </td>
                     </tr>
                     <tr>
@@ -194,7 +178,7 @@
                             Total Time
                         </th>
                         <th style="text-align: right">
-                            05:03
+                            06:53
                         </th>
                     </tr>
                 </table>
@@ -598,10 +582,10 @@
     <tr>
         <td colspan="2">
             <img id="click_analy_error"
-                 src="figures/<?php echo $user_id ?>/click_analysis_vs_final_error.svg#svgView(viewBox(200, 0, 1500, 1400))"
+                 src="figures/<?php echo $user_id ?>/click_analysis_vs_final_error.svg"
                  width="100%"/>
             <img id="click_analy_cload"
-                 src="figures/<?php echo $user_id ?>/click_analysis_vs_click_load.svg#svgView(viewBox(200, 0, 1500, 1400))"
+                 src="figures/<?php echo $user_id ?>/click_analysis_vs_click_load.svg"
                  width="100%" style="display: none;"/>
         </td>
     </tr>

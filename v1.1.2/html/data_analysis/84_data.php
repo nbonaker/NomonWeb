@@ -151,7 +151,7 @@
                     </tr>
                     <tr>
                         <td>
-                            Nov 29, 2021 – Meet and Greet
+                            Jan 19, 2022 – Meet and Greet
                         </td>
                         <td style="text-align: right">
                             01:00
@@ -159,23 +159,7 @@
                     </tr>
                     <tr>
                         <td>
-                            Dec 02, 2021 – Check-In
-                        </td>
-                        <td style="text-align: right">
-                            00:30
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Jan 27, 2022 – Check-In
-                        </td>
-                        <td style="text-align: right">
-                            00:30
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Apr 25, 2022 – Wrap-Up
+                            Apr 19, 2022 – Check-In
                         </td>
                         <td style="text-align: right">
                             01:00
@@ -186,7 +170,7 @@
                             Total Website Activity
                         </td>
                         <td style="text-align: right">
-                            01:39 * (1.25 to offset setup times) = 2:03
+                            5 : 26 * (1.25 to offset setup times) = 6 : 48
                         </td>
                     </tr>
                     <tr>
@@ -194,7 +178,7 @@
                             Total Time
                         </th>
                         <th style="text-align: right">
-                            05:03
+                            08:25
                         </th>
                     </tr>
                 </table>
@@ -339,6 +323,44 @@
 <h2 id="entry_stat_analysis">Entry Statistic Analyses</h2>
 <div id="inner">
     <table>
+        <tr>
+            <th>
+                Picture Selection Task Evaluation Results
+            </th>
+            <th colspan="3">
+                Picture Selection Task Learning Curve Plot
+            </th>
+
+        </tr>
+        <tr>
+            <td>
+                <img src="figures/<?php echo $user_id ?>/picture_boxplot.svg" width="100%">
+            </td>
+            <td colspan="3">
+                <img src="figures/<?php echo $user_id ?>/picture_longform.svg" width="100%">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <h4>Notes:</h4>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <!--            construct editable form-->
+                <?php $form_id = "picture_boxplot_notes_form"; ?>
+                <?php
+                    include('editable_textarea.html');
+                ?>
+            </td>
+            <td colspan="3">
+                <!--            construct editable form-->
+                <?php $form_id = "picture_long_notes_form"; ?>
+                <?php
+                    include('editable_textarea.html');
+                ?>
+            </td>
+        </tr>
         <tr>
             <th>
                 Text Entry Task Evaluation Results
@@ -559,10 +581,10 @@
     <tr>
         <td colspan="2">
             <img id="click_analy_error"
-                 src="figures/<?php echo $user_id ?>/click_analysis_vs_final_error.svg#svgView(viewBox(250, 0, 2680, 1944))"
+                 src="figures/<?php echo $user_id ?>/click_analysis_vs_final_error.svg"
                  width="100%"/>
             <img id="click_analy_cload"
-                 src="figures/<?php echo $user_id ?>/click_analysis_vs_click_load.svg#svgView(viewBox(250, 0, 2680, 1944))"
+                 src="figures/<?php echo $user_id ?>/click_analysis_vs_click_load.svg"
                  width="100%" style="display: none;"/>
         </td>
     </tr>
