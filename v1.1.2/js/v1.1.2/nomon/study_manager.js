@@ -149,6 +149,9 @@ export class studyManager {
 
             create_session_table(this);
         }
+
+        setInterval(this.parent.mouse_loc.post_mouse_buffer.bind(this.parent.mouse_loc), 10*1000);
+
     }
 
     init_session_specifics() {
