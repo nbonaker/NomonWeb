@@ -3,7 +3,6 @@ import * as infoscreen from './info_screens.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
-import * as tm from './tutorial.js';
 import * as lm from './lm.js';
 
 import {makeCorsRequest} from "../cors_request.js";
@@ -115,23 +114,23 @@ class Keyboard{
             this.change_speed(this.speed_slider.value);
         }.bind(this);
 
-        this.tutorial_button = document.getElementById("tutorial_button");
-        this.tutorial_button.onclick = function(){
-            if (!this.in_session && !this.in_info_screen) {
-                if (this.in_tutorial){
-                    this.end_tutorial();
-                    this.session_button.className = "btn clickable";
-                    this.change_user_button.className = "btn clickable";
-                    this.info_button.className = "btn clickable";
-                } else {
-                    this.init_tutorial();
-                    this.session_button.className = "btn unclickable";
-                    this.change_user_button.className = "btn unclickable";
-                    this.info_button.className = "btn unclickable";
-                }
-
-            }
-        }.bind(this);
+        // this.tutorial_button = document.getElementById("tutorial_button");
+        // this.tutorial_button.onclick = function(){
+        //     if (!this.in_session && !this.in_info_screen) {
+        //         if (this.in_tutorial){
+        //             this.end_tutorial();
+        //             this.session_button.className = "btn clickable";
+        //             this.change_user_button.className = "btn clickable";
+        //             this.info_button.className = "btn clickable";
+        //         } else {
+        //             this.init_tutorial();
+        //             this.session_button.className = "btn unclickable";
+        //             this.change_user_button.className = "btn unclickable";
+        //             this.info_button.className = "btn unclickable";
+        //         }
+        //
+        //     }
+        // }.bind(this);
 
         this.change_user_button = document.getElementById("send_button");
         if (this.user_id) {
@@ -171,13 +170,13 @@ class Keyboard{
             document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
         }
 
-        this.commboard_button = document.getElementById("commboard_button");
-        if (!this.user_id) {
-            this.commboard_button.onclick = function () {
-                var keyboard_url = "./login.html?";
-                window.open(keyboard_url, '_self');
-            }.bind(this);
-        }
+        // this.commboard_button = document.getElementById("commboard_button");
+        // if (!this.user_id) {
+        //     this.commboard_button.onclick = function () {
+        //         var keyboard_url = "./login.html?";
+        //         window.open(keyboard_url, '_self');
+        //     }.bind(this);
+        // }
 
         this.info_button = document.getElementById("help_button");
         this.info_button.onclick = function () {
@@ -245,7 +244,7 @@ class Keyboard{
 
         this.session_button.className = "btn unclickable";
         this.change_user_button.className = "btn unclickable";
-        this.tutorial_button.className = "btn unclickable";
+        // this.tutorial_button.className = "btn unclickable";
     }
     init_session_info_screen(){
         this.info_canvas = new widgets.KeyboardCanvas("info", 4);
@@ -274,14 +273,14 @@ class Keyboard{
             if (this.start_tutorial){
                 this.init_tutorial();
             } else {
-                this.tutorial_button.className = "btn clickable";
+                // this.tutorial_button.className = "btn clickable";
             }
         }
     }
     init_tutorial(){
         this.info_button.className = "btn unclickable";
-        this.tutorial_button.className = "btn clickable";
-        this.tutorial_button.value = "Abort Retrain";
+        // this.tutorial_button.className = "btn clickable";
+        // this.tutorial_button.value = "Abort Retrain";
 
         this.left_context = "";
         this.typed = "";
@@ -304,7 +303,7 @@ class Keyboard{
         this.lm.update_cache(this.left_context, this.lm_prefix);
 
         this.info_button.className = "btn clickable";
-        this.tutorial_button.value = "Retrain";
+        // this.tutorial_button.value = "Retrain";
     }
     draw_phrase(){
         this.typed_versions = [''];

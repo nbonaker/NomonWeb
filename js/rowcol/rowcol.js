@@ -220,7 +220,6 @@ class Keyboard{
         }
         this.speed_slider_output.innerHTML = speed_index;
         this.speed_slider.value = speed_index;
-        this.send_user_data();
     }
     change_extra_delay(index){
         var speed_index;
@@ -242,7 +241,6 @@ class Keyboard{
         }
         this.extra_delay_slider_output.innerHTML = speed_index;
         this.extra_delay_slider.value = speed_index;
-        this.send_user_data();
 
     }
     on_press(){
