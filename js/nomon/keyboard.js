@@ -38,6 +38,8 @@ class Keyboard{
 
         this.run_on_focus = false;
 
+        this.mouse_data = {};
+
         window.addEventListener('keydown', function (e) {
             e.preventDefault();
             if (e.keyCode === 32) {
@@ -48,6 +50,11 @@ class Keyboard{
         document.onmousedown = function() {
             this.increment_info_screen();}.bind(this);
         window.addEventListener("resize", this.displayWindowSize.bind(this));
+        window.addEventListener('mousemove', function (e) {
+            this.mouse_data[Date.now()] = [e.clientX, e.clientY];
+            // console.log(this.mouse_data);
+            console.log(`X: ${e.clientX}, Y: ${e.clientY}`);
+        }.bind(this), false);
 
         this.left_context = "";
         this.lm_prefix = "";

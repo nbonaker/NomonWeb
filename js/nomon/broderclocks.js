@@ -2,6 +2,11 @@ import * as cie from './clock_inference_engine.js';
 import * as config from './config.js';
 
 export class BroderClocks {
+    /**
+     * Create a new BroderClock
+     *
+     * @param parent Keyboard instance that clock resides under
+     */
     constructor(parent) {
         this.parent = parent;
         this.parent.bc_init = true;
@@ -36,6 +41,7 @@ export class BroderClocks {
         }
 
         var top_score_clock = this.clock_inf.sorted_inds[0];
+        var top_score_clock_object = this.parent.clockgrid.clocks[top_score_clock];
         var ind_in_histo = this.clock_inf.reverse_index_gsi(this.clock_inf.cscores[top_score_clock]);
 
         this.abs_click_times.push(time_in);
@@ -46,12 +52,30 @@ export class BroderClocks {
         if (this.clock_inf.is_winner() && !this.parent.in_tutorial) {
             console.log(this.parent.clockgrid.clocks[top_score_clock].text);
 
+            // Add selection of clock to parent Keyboard's mouse position tracker
+            var typed_array = [
+                top_score_clock_object.text,
+                top_score_clock_object.x_pos,
+                top_score_clock_object.y_pos,
+                "typed"
+            ];
+            console.log(typed_array);
+            this.parent.mouse_data[Date.now()] = typed_array;
+
             this.clock_inf.win_history[0] = this.clock_inf.sorted_inds[0];
 
             this.clock_inf.entropy.update_bits();
             this.parent.make_choice(this.clock_inf.sorted_inds[0]);
 
         } else {
+            var clicked_array = [
+                top_score_clock_object.text,
+                top_score_clock_object.x_pos,
+                top_score_clock_object.y_pos,
+                "clicked"
+            ];
+            console.log(clicked_array);
+            this.parent.mouse_data[Date.now()] = clicked_array;
             this.init_round(false, false, []);
         }
     }
