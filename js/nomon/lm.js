@@ -1,15 +1,47 @@
 import {makeCorsRequest} from "../cors_request.js";
 import * as kconfig from './kconfig.js';
+import {prob_thres} from "./kconfig.js";
 
 
+/**
+ * @private
+ * @param a_1
+ * @param a_2
+ * @returns {number}
+ */
 function log_add_exp(a_1, a_2){
     var b = Math.max(a_1, a_2);
     var sum =  b + Math.log(Math.exp(a_1 - b)+Math.exp(a_2-b));
     return sum;
 }
 
-
+/**
+ * Class to interact with the remote Language Model server. Builds and maintains a forward-looking cache of all word predictions and character probabilities that are possible after one future selection.
+ * Formats the word predictions and character probabilities so that they are usable in Nomon's inference module.
+ * @param {Keyboard} parent - The instance of the main Keyboard class.
+ * @property {string} word_predict_base_url - The api address for querying word predictions for a given left context and prefix.
+ * @property {string} word_predict_char_future_url - Used for forward caching. The api address for querying word predictions for a given left context and prefix, for each possible next character that could be added to the prefix.
+ * @property {string} word_predict_word_future_url - Used for forward caching. The api address for querying word predictions for a given left context and prefix, for each possible next word prediction that could be added to the prefix.
+ * @property {string} char_predict_base_url - The api address for querying character probabilities for a given left context and prefix.
+ * @property {string} char_predict_char_future_url - Used for forward caching. The api address for querying character probabilities for a given left context and prefix, for each possible next character that could be added to the prefix.
+ * @property {string} char_predict_word_future_url - Used for forward caching. The api address for querying character probabilities for a given left context and prefix, for each possible next word prediction that could be added to the prefix.
+ * @property {string} lm_prefix - The prefix for the word currently being typed. For example: If the user has typed "I am using Nomo", the lm_prefix would be "Nomo".
+ * @property {string} left_context - The left-context for the word currently being typed. For example: If the user has typed "I am using Nomo", the lm_prefix would be "I am using ".
+ * @property {Object<Object<Object>>} word_cache - A nested Object maintaining a cache of all possible future word and character probabilities that are one selection away. First level keys are the letters a-z, punctuation, current word predictions, and corrective options:
+ * @property {Object<Object>} word_cache.a
+ * @property {Object<Object>} word_cache.b
+ * @property {Object<Object>} word_cache.c - ...
+ * @property {Object<Object>} word_cache.z
+ * @property {Object<Object>} word_cache.word_1
+ * @property {Object<Object>} word_cache.word_2 - ...
+ * @property {Object<Object>} word_cache.word_n
+ * @property {Object<Object>} word_cache.Undo - Each option contains an Object with its possible future word and character probabilities:
+ * {"keys": Array[number], "word": {"word": Array[String], "probs": Array[number]}}
+ * @property {Array<Array<string>>} word_predictions - 2D Array containing the word predictions for the currently typed left-contect and prefix. Of the form: [[word_a1, word_a2, word_a3], [word_b1, word_b2, word_b3], ...]
+ * @property {Array<Array<number>>} word_prediction_probs - 2D Array containing the probabilities of the current word predictions.
+ */
 export class LanguageModel{
+
     constructor(parent) {
         this.parent = parent;
         this.word_predict_base_url = "https://nomontomcat.csail.mit.edu/LM/word/predict?";
@@ -28,11 +60,17 @@ export class LanguageModel{
         this.word_cache[kconfig.mybad_char] = [];
         this.word_update_complete = false;
         this.char_update_complete = false;
-        this.num_caches_compelte = 0;
 
         this.update_cache("", "");
 
     }
+
+    /**
+     * Helper function to add the parameters in an object to a URL string.
+     * @param {String} base - The base URL.
+     * @param {Object} parameters - An object with parameter keys and values to add to the base URL string.
+     * @returns {String} - Returns a new URL string with the added parameters.
+     */
     construct_url(base, parameters){
         var url = base;
         for (var param_index in Object.keys(parameters)){
@@ -42,6 +80,13 @@ export class LanguageModel{
         url = url.concat("num=25");
         return url;
     }
+
+    /**
+     * Update the future word cache given the newest selection in the keyboard. Creates Promises to complete when the API returns results.
+     * @param {String} left - The current left context from the keyboard.
+     * @param {String} prefix - The current prefix from the keyboard.
+     * @param {String|null} selection - The currently selected option that triggered the cache update (null for cache init)
+     */
     update_cache(left, prefix, selection=null){
         if (!this.parent.emoji_keyboard) {
             this.lm_prefix = prefix;
@@ -133,6 +178,12 @@ export class LanguageModel{
             makeCorsRequest(api_url, this.on_cor_load_function.bind(this), cache_type);
         }
     }
+
+    /**
+     * Runs when an API query Promise is completed. Adds the results to their corresponding place in the future word cache.
+     * @param {JSON} output - The data returned from the API call.
+     * @param {String} cache_type - The type of API query submitted: "word_base", "char_base", "word_future_char", "word_future_word", "char_future_char", or "char_future_word"
+     */
     on_cor_load_function(output, cache_type){
         var words_li;
         var future_words;
@@ -227,6 +278,12 @@ export class LanguageModel{
             this.char_update_complete = false;
         }
     }
+
+    /**
+     * Helper function. Formats the probabilities of the main characters into an Array useable by the Nomon inference module.
+     * @param {Array<String>} chars_li -  An Array of the possible main characters (kconfig.main_chars).
+     * @returns {Array<Number>} - The probabilities of the main characters from the language model.
+     */
     format_chars(chars_li){
         var char_prob_dict = {};
         var normalizer = -Infinity;
@@ -264,6 +321,13 @@ export class LanguageModel{
         }
         return key_probs;
     }
+
+    /**
+     * Helper function. Formats the word predictions and probabilities into Arrays useable by the Nomon inference module.
+     * @param {Array<String>} words_li - An array of word predictions from the language model.
+     * @param {String} temp_prefix - The prefix to store the words and probabilities under in the word cache.
+     * @returns {{probs: Array<number>, words: Array<String>}} - Returns a formatted Object with the word predictions and probabilities.
+     */
     foramt_words(words_li, temp_prefix){
         var word_predictions = [];
         var word_prediction_probs = [];
@@ -281,7 +345,8 @@ export class LanguageModel{
             for (word_index in words_li) {
                 var word = words_li[word_index].token;
                 var log_prob = words_li[word_index].logProb;
-                if (word.charAt(temp_prefix.length) == char && char_words.length < kconfig.n_pred && num_admitted_words < 17) {
+                if (word.charAt(temp_prefix.length) == char && char_words.length < kconfig.n_pred &&
+                    num_admitted_words < kconfig.num_words && log_prob > Math.log(kconfig.prob_thres)) {
                     if (word.length == 1){
                         word = word.concat("_");
                     }

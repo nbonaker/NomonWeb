@@ -1,5 +1,7 @@
-
-
+/**
+ * @param {string} canvas_id The id for the canvas element defined in the main HTML page.
+ * @param {number} layer_index The zIndex order for display of the canvas element. Higher-valued canvases are displayed on top of lower-valued ones.
+ */
 export class KeyboardCanvas{
     constructor(canvas_id, layer_index) {
         this.canvas = document.getElementById(canvas_id);
@@ -7,6 +9,11 @@ export class KeyboardCanvas{
 
         this.calculate_size();
     }
+
+    /**
+     * Calculates the size of the keyboard based on the available screen space. Styles the canvas position and resolution. Needs to be recalled for each canvas upon any window resizing events.
+     * @param {number} bottom_height_factor - The proportion of screen space to allocate for the output canvas on the bottom (the textbox and histogram).
+     */
     calculate_size(bottom_height_factor=0.2){
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
@@ -31,11 +38,19 @@ export class KeyboardCanvas{
         this.screen_width = this.window_width * this.resolution_factor;
         this.screen_height = (this.window_height - this.topbar_height) * (1 - this.bottom_height_factor) * this.resolution_factor;
     }
+
+    /**
+     * Clears the content of the canvas, leaving it transparent.
+     */
     clear(){
         this.ctx.clearRect(0, 0, this.screen_width, this.screen_height);
     }
 }
-
+/**
+ * Wrapper class for the canvas elements that display the output elements (textbox and histogram).
+ * @param {string} canvas_id - The id for the canvas element defined in the main HTML page.
+ * @param {number} y_offset - The number of pixels to shift the canvas down from the top of the window. Equal to the location of the bottom of the bounding-box for the keyboard canvases.
+ */
 export class OutputCanvas{
     constructor(canvas_id, y_offset) {
         this.canvas = document.getElementById(canvas_id);
@@ -44,6 +59,11 @@ export class OutputCanvas{
         this.ctx = this.canvas.getContext("2d");
         this.calculate_size(y_offset);
     }
+
+    /**
+     * Calculates the size of the output box based on the available screen space. Styles the canvas position and resolution. Needs to be recalled for each canvas upon any window resizing events.
+     * @param {number} y_offset - The number of pixels to shift the canvas down from the top of the window. Equal to the location of the bottom of the bounding-box for the keyboard canvases.
+     */
     calculate_size(y_offset){
         this.canvas.style.top = y_offset.toString().concat("px");
         this.window_width = window.innerWidth;
@@ -65,7 +85,11 @@ export class OutputCanvas{
         this.screen_height = (this.window_height - this.topbar_height) * (this.bottom_height_factor) * this.resolution_factor;
     }
 }
-
+/**
+ * Specifies the locations of the bounding rectangles of the grid containing the keyboard options. Draws the bounding rectangles on the keygrid_canvas.
+ * @param {KeyboardCanvas} keygrid_canvas - The KeyboardCanvas instance used to draw the keygrid
+ * @param {Array<Array<String>>} target_layout - A 2D array specifying the relative locations of the keyboard keys.
+ */
 export class KeyGrid {
     constructor(keygrid_canvas, target_layout) {
         this.keygrid_canvas = keygrid_canvas;
@@ -76,6 +100,9 @@ export class KeyGrid {
         this.draw_layout();
     }
 
+    /**
+     * Calculates the pixel positions for the bounding rectangles in the keygrid. Needs to be recalled on any window resizing event.
+     */
     generate_layout() {
         var y_height = this.keygrid_canvas.screen_height / this.target_layout.length * 0.95;
         var y_spacing = this.keygrid_canvas.screen_height / (this.target_layout.length + 1) * 0.05;
@@ -105,6 +132,9 @@ export class KeyGrid {
         }
     }
 
+    /**
+     * Draws the bounding rectangles for the currently calculated keygrid layout.
+     */
     draw_layout() {
         this.keygrid_canvas.ctx.beginPath();
         if (this.in_pause) {
@@ -140,6 +170,11 @@ export class KeyGrid {
 
     }
 
+    /**
+     * Highlights the rectangle of the keygrid specified by the given row and column
+     * @param {number} row - the row index in the keygrid of the rectangle to highlight
+     * @param {number} col - the column index in the keygrid of the rectangle to highlight
+     */
     highlight_square(row, col){
         var y_start = this.y_positions[row][0];
         var y_end = this.y_positions[row][1];
@@ -156,6 +191,17 @@ export class KeyGrid {
     }
 }
 
+/**
+ * Specifies the locations of the all clocks (both on and off). Draws the clock faces for all active clocks.
+ * @param {Keyboard} parent - The main Keyboard instance.
+ * @param {KeyboardCanvas} face_canvas - The KeyboardCanvas instance used to draw the clock faces.
+ * @param {KeyboardCanvas} hand_canvas - The KeyboardCanvas instance used to draw the clock hands.
+ * @param {KeyGrid} keygrid - The instance of the KeyGrid class.
+ * @param {Array<Array<String>>} target_layout - A 2D array specifying the relative locations of the keyboard keys.
+ * @param {Array<String>} key_chars - An array of all keys (including characters and corrective options).
+ * @param {Array<String>} main_chars - An array of characters that can have word predictions from the Language model.
+ * @param {number} n_pred - The max number of word predictions to display per main_character.
+ */
 export class ClockGrid{
     constructor(parent, face_canvas, hand_canvas, keygrid, target_layout, key_chars, main_chars, n_pred){
         this.parent = parent;
@@ -171,6 +217,10 @@ export class ClockGrid{
         this.generate_layout();
         console.log(this.clocks);
     }
+
+    /**
+     * calculates the position and size of all clocks. Needs to be recalled on any window resizing event.
+     */
     generate_layout() {
 
         var x_start;
@@ -227,31 +277,6 @@ export class ClockGrid{
                 this.clocks.push(cur_break_clock);
             }
         }
-
-        // if (indexOf_2d(this.target_layout, "SPACEUNIT") !== false){
-        //     var space_chars = ['_', '\''];
-        //     space_chars = this.key_chars.filter(value => -1 !== space_chars.indexOf(value));
-        //
-        //     var space_unit_indicies = indexOf_2d(this.target_layout, "SPACEUNIT");
-        //     x_start = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][0];
-        //     x_end = this.keygrid.x_positions[space_unit_indicies[0]][space_unit_indicies[1]][1];
-        //     y_start = this.keygrid.y_positions[space_unit_indicies[0]][0];
-        //     y_end = this.keygrid.y_positions[space_unit_indicies[0]][1];
-        //
-        //     for (var space_char_index  in space_chars){
-        //         var space_char = space_chars[space_char_index];
-        //
-        //         var space_clock_x = x_start + this.clock_radius * 1.5;
-        //         var space_clock_y= y_start + (y_end - y_start) / 4 * ((space_char_index % 2)*2 + 1);
-        //
-        //         let cur_space_clock = new Clock(this.face_canvas, this.hand_canvas,
-        //                                 space_clock_x, space_clock_y, this.clock_radius, space_char);
-        //         this.clocks.push(null);
-        //         this.clocks.push(null);
-        //         this.clocks.push(null);
-        //         this.clocks.push(cur_space_clock);
-        //     }
-        // }
 
         if (indexOf_2d(this.target_layout, "BACKUNIT") !== false){
             var back_chars = ['#', '$'];
@@ -318,6 +343,15 @@ export class ClockGrid{
         var help;
 
     }
+
+    /**
+     * helper function to calculate the relative position of a main character clock
+     * @param {number} x_start - the starting x position in pixels of the corresponding KeyGrid bounding box.
+     * @param {number} y_start - the starting y position in pixels of the corresponding KeyGrid bounding box.
+     * @param {number} x_end - the ending x position in pixels of the corresponding KeyGrid bounding box.
+     * @param {number} y_end - the ending y position in pixels of the corresponding KeyGrid bounding box.
+     * @param {string} text - the textual component of the clock, i.e. "a"
+     */
     generate_main_clock_layout(x_start, y_start, x_end, y_end, text){
         var main_clock_x = x_start + this.clock_radius * 1.5;
         var main_clock_y = (y_start + y_end) / 2;
@@ -326,6 +360,13 @@ export class ClockGrid{
                                         main_clock_x, main_clock_y, this.clock_radius, text);
         this.clocks.push(cur_main_clock);
     }
+    /**
+     * helper function to calculate the relative positions of the word clocks for a main character. Genreates n_pred clock faces.
+     * @param {number} x_start - the starting x position in pixels of the corresponding KeyGrid bounding box.
+     * @param {number} y_start - the starting y position in pixels of the corresponding KeyGrid bounding box.
+     * @param {number} x_end - the ending x position in pixels of the corresponding KeyGrid bounding box.
+     * @param {number} y_end - the ending y position in pixels of the corresponding KeyGrid bounding box.
+     */
     generate_word_clock_layout(x_start, y_start, x_end, y_end){
         var word_clock_x = x_start + (x_end-x_start) * 0.4;
 
@@ -338,6 +379,11 @@ export class ClockGrid{
             this.clocks.push(cur_word_clock);
         }
     }
+
+    /**
+     * Updates the text strings for all word completion clocks.
+     * @param {Array<String>} words - An array of the current word predictions for each clock.
+     */
     update_word_clocks(words){
         var clock;
         var clock_index;
@@ -377,8 +423,16 @@ export class ClockGrid{
     }
 }
 
-
+/**
+ * Class to display the textual component of an option next to its corresponding clock.
+ * @param {KeyboardCanvas} face_canvas - The KeyboardCanvas instance used to draw the clock faces.
+ * @param {number} x_pos - The starting x position in pixels of the label, calculated in the ClockGrid class.
+ * @param {number} y_pos - The starting y position in pixels of the label, calculated in the ClockGrid class.
+ * @param {number} height - The height in pixels of the label, calculated in the ClockGrid class.
+ * @param {string} text - the textual component of the label, i.e. "a", "Undo"
+ */
 export class Label {
+
     constructor(face_canvas, x_pos, y_pos, height, text = "") {
         this.face_canvas = face_canvas;
         this.x_pos = x_pos;
@@ -387,6 +441,9 @@ export class Label {
         this.text = text;
     }
 
+    /**
+     * Re-draws the text for the label.
+     */
     draw_text() {
         this.face_canvas.ctx.clearRect(this.x_pos, this.y_pos+this.height, this.height*10, -this.height*2);
         this.face_canvas.ctx.fillStyle = "#000000";
@@ -396,6 +453,15 @@ export class Label {
     }
 }
 
+/**
+ * Class to manage the drawing and animation of a clock's face and hands.
+ * @param {KeyboardCanvas} face_canvas - The KeyboardCanvas instance used to draw the clock faces.
+ * @param {KeyboardCanvas} hand_canvas - The KeyboardCanvas instance used to draw the clock hands.
+ * @param {number} x_pos - The starting x position in pixels of the clock, calculated in the ClockGrid class.
+ * @param {number} y_pos - The starting x position in pixels of the clock, calculated in the ClockGrid class.
+ * @param {number} radius - The radius of the clock in pixels, calculated in the ClockGrid class.
+ * @param {string} text - The textual component of the clock's option.
+ */
 export class Clock{
     constructor(face_canvas, hand_canvas, x_pos, y_pos, radius, text="") {
         this.face_canvas = face_canvas;
@@ -409,6 +475,10 @@ export class Clock{
         this.highlighted=true;
         this.winner = false;
     }
+
+    /**
+     * Draws the clock face on the face_canvas without updating the minute hand.
+     */
     draw_face(){
         if (!this.filler) {
             this.face_canvas.ctx.beginPath();
@@ -432,6 +502,11 @@ export class Clock{
             this.face_canvas.ctx.fillText(this.text, this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
         }
     }
+
+    /**
+     * Draws the clock minute hand on the clock_hand canvas.
+     * @param {boolean} clear - Whether to clear the canvas of the previously drawn minute hand.
+     */
     draw_hand(clear=true) {
         if (!this.filler) {
             if (this.angle > Math.PI * 2) {
@@ -471,7 +546,12 @@ export class Clock{
     }
 }
 
+/**
+ * Class to handle the display and update of the histogram of the user's current click-time-distribution estimate.
+ * @param {OutputCanvas} output_canvas - The OutputCanvas instance used to draw the histogram and text box.
+ */
 export class Histogram{
+
     constructor(output_canvas) {
         this.output_canvas = output_canvas;
         this.text = "";
@@ -481,11 +561,20 @@ export class Histogram{
         this.generate_normal_values();
         this.update(this.dens_li);
     }
+
+    /**
+     * Calculates the size of the histogram from the available screen space. Needs to be recalled on any window resizing event.
+     */
     calculate_size(){
         this.box_x_offset = this.output_canvas.screen_width * 3 / 5;
         this.box_width = this.output_canvas.screen_width * 2 / 5;
         this.box_height = this.output_canvas.screen_height;
     }
+
+    /**
+     * Redraws the histogram based on a new density list estimate from the KDE class.
+     * @param {Array<number>} dens_li - An array of integers representing the relative height of each histogram bar.
+     */
     update(dens_li){
         this.dens_li = [];
         for (var i in dens_li){
@@ -495,6 +584,10 @@ export class Histogram{
         this.draw_box();
         this.draw_histogram();
     }
+
+    /**
+     * Draws the white box in the background of the histogram.
+     */
     draw_box(){
         this.output_canvas.ctx.beginPath();
         this.output_canvas.ctx.fillStyle = "#eeeeee";
@@ -509,18 +602,30 @@ export class Histogram{
         this.output_canvas.ctx.fill();
         this.output_canvas.ctx.stroke();
     }
+
+    /**
+     * Generates the initial normal distribution used for the KDE when the user has no prior click data.
+     */
     generate_normal_values(){
         this.dens_li = [];
         for (var i = 0; i <= this.num_bins; i++) {
             this.dens_li.push(normal(i, 40, 20));
         }
     }
+
+    /**
+     * Normalizes the dens_li values prior to the drawing process.
+     */
     renormalize() {
         var normalizer = Math.max.apply(Math, this.dens_li);
         for (var i in this.dens_li) {
             this.dens_li[i] = this.dens_li[i] / normalizer;
         }
     }
+
+    /**
+     * Draws the bars of the histogram from the dens_li attribute.
+     */
     draw_histogram(){
         var bin_width = (this.box_width - this.box_height*0.05) / (this.num_bins + 1);
         for (var i = 0; i <= this.num_bins; i++){
@@ -536,7 +641,12 @@ export class Histogram{
     }
 }
 
+/**
+ * Class to handle the display of the output text box that shows what the user has typed.
+ * @param {OutputCanvas} output_canvas - The OutputCanvas instance used to draw the histogram and text box.
+ */
 export class Textbox{
+
     constructor(output_canvas) {
         this.output_canvas = output_canvas;
         this.text = "";
@@ -549,9 +659,11 @@ export class Textbox{
 
         this.calculate_size();
         this.draw_text("");
-
-
     }
+
+    /**
+     * Animates the flashing cursor in the text box.
+     */
     toggle_cursor(){
         this.cursor_on = this.cursor_on == false;
         if (this.cursor_on) {
@@ -560,19 +672,34 @@ export class Textbox{
             this.box.value = this.text;
         }
     }
+
+    /**
+     * calculates the size of the text box from the available canvas space.
+     */
     calculate_size(){
         this.box.style['top'] = this.output_canvas.canvas.style.top;
         this.box.style['width'] = ((this.output_canvas.screen_width/2)*3/5-20).toString().concat("px");
         this.box.style['height'] = ((this.output_canvas.screen_height/2)*0.9).toString().concat("px");
 
     }
+
+    /**
+     * Draws the text that the user has written in the textbox.
+     * @param {string} text - The text that the user has currently written.
+     */
     draw_text(text){
         this.text = text;
         this.box.value = text;
     }
 }
 
-
+/**
+ * Helper function that finds the row and column index position of an object in a nested 2D array.
+ * @private
+ * @param {Array<Array>} array - The 2D array in which to search.
+ * @param item - The item to find in the array.
+ * @returns {(number)[]|boolean} - Returns the row and column index of the item if it exists in the array, otherwise returns False.
+ */
 export function indexOf_2d(array, item){
     for (var row_index in array){
         var row = array[row_index]
@@ -584,6 +711,14 @@ export function indexOf_2d(array, item){
     return false;
 }
 
+/**
+ * Helper function to generate the probability of a normal function with specified mean and variance at a given input value.
+ * @private
+ * @param {number} x - The point at which to calculate the probability.
+ * @param {number} mu - The mean of the distribution
+ * @param {number} sigma_sq - The variance of the distribution
+ * @returns {number} - Returns the value of the normal distribution at point x.
+ */
 export function normal(x, mu, sigma_sq){
     return 1 / Math.sqrt(2 * Math.PI * sigma_sq) * Math.E ** ( (-1 / 2)* ((x - mu)) ** 2 / sigma_sq);
 }

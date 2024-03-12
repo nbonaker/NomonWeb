@@ -1,0 +1,71 @@
+toc:
+  - name: Keyboard.js
+    description: |
+      Controls the interface of the Nomon keyboard. keeps track of the typed text.
+    children:
+      - Keyboard
+  - name: Widgets.js
+    description: |
+      Contains classes to handle the drawing of the various UI animations (clocks, histogram, textbox, ...).
+    children:
+      - KeyboardCanvas
+      - OutputCanvas
+      - KeyGrid
+      - ClockGrid
+      - Clock
+      - Label
+      - Histogram
+      - Textbox
+  - name: Broder Clocks.js
+    description: |
+      Manages the ClockInferenceEngine and ClockUtil classes and communicates with the keyboard application. Handles switch-press events and makes selection decisions based on the clock probabilities.
+    children:
+      - BroderClocks
+  - name: Clock Util.js
+    description: |
+      Manages the movement and position of clock hands.
+    children:
+      - ClockUtil
+      - HourLocs
+      - SpacedArray
+  - name: Clock Inference Engine.js
+    description: |
+      Handles the inference and probability estimates pertaining to the clocks.
+    children:
+      - ClockInference
+      - KernelDensityEstimation
+      - Entropy
+  - name: LM.js
+    description: |
+      Interfaces with the remote language model server to maintain a forward-looking cache and format word and character probabilities for use in Nomon.
+    children:
+      - LanguageModel
+  - name: Config.js
+    description: |
+      Hyper-parameters controlling the core selection mechanism behind Nomon.
+    children:
+      - period_li
+      - default_rotate_ind
+      - num_divs_click
+      - ideal_wait_s
+      - win_diff_base
+      - win_diff_high
+      - is_learning
+      - learn_delay
+  - name: KConfig.js
+    description: |
+      Hyper-parameters controlling the appearance and behavior of the UI Keyboard and Language Model.
+    children:
+      - key_chars
+      - main_chars
+      - alpha_target_layout
+      - emoji_key_chars
+      - emoji_main_chars
+      - emoji_target_layout
+      - pause_length
+      - n_pred
+      - num_words
+      - prob_thres
+      - undo_prob
+      - back_prob
+      - rem_prob

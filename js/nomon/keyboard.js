@@ -13,12 +13,15 @@ function log_add_exp(a_1, a_2){
     return sum;
 }
 
-function emoji_count(str){
-    return Array.from(str.split(/[\ufe00-\ufe0f]/).join("")).length;
-}
-
+/**
+ * The main class that orchestrates the interactive aspects of the keyboard.
+ * @param {number} user_id - The id of the current user. If no backend, then null.
+ * @param {boolean} first_load - Whether it is the users first time. If no backend, then null.
+ * @param {boolean} emoji - Whether to initialize the emoji version of the keyboard
+ * @param {Array|null} prev_data - Prior calibration and preferences data for the user. If no backend, then null.
+ */
 class Keyboard{
-    constructor(user_id, first_load, emoji, partial_session, prev_data){
+    constructor(user_id, first_load, emoji, prev_data){
         console.log(prev_data);
         this.user_id = user_id;
         this.prev_data = prev_data;
@@ -82,8 +85,13 @@ class Keyboard{
         this.in_finished_screen = false;
         this.init_ui();
     }
+
+    /**
+     * Continues the construction process after the Promises from the language model have completed.
+     */
     continue_init(){
-        this.init_words();
+        this.draw_words();
+        this.typed_versions = [''];
 
         console.log(this.words_on);
 
@@ -103,6 +111,10 @@ class Keyboard{
         this.histogram.update(this.bc.clock_inf.kde.dens_li);
 
     }
+
+    /**
+     * Initializes the UI aspects (KeyGrid, ClockGrid, Clocks, Lables, Histogram, TextBox).
+     */
     init_ui(){
         this.speed_slider = document.getElementById("speed_slider");
         this.speed_slider_output = document.getElementById("speed_slider_value");
@@ -185,11 +197,9 @@ class Keyboard{
                     this.destroy_info_screen();
                 } else {
                     this.in_info_screen = true;
-                    if (this.in_session) {
-                        this.init_session_info_screen();
-                    } else {
-                        this.init_info_screen();
-                    }
+
+                    this.init_info_screen();
+
                 }
             }
         }.bind(this);
@@ -246,15 +256,6 @@ class Keyboard{
         this.change_user_button.className = "btn unclickable";
         // this.tutorial_button.className = "btn unclickable";
     }
-    init_session_info_screen(){
-        this.info_canvas = new widgets.KeyboardCanvas("info", 4);
-        this.info_canvas.calculate_size(0);
-        this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas);
-
-        if (this.in_session){
-            this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
-        }
-    }
     increment_info_screen(){
         if (this.in_info_screen){
             if (this.info_screen.screen_num <= this.info_screen.num_screens){
@@ -265,85 +266,17 @@ class Keyboard{
         }
     }
     destroy_info_screen(){
-        if (this.in_info_screen || this.in_tutorial) {
+        if (this.in_info_screen) {
             this.info_canvas.ctx.clearRect(0, 0, this.info_canvas.screen_width, this.info_canvas.screen_height);
 
             this.in_info_screen = false;
-
-            if (this.start_tutorial){
-                this.init_tutorial();
-            } else {
-                // this.tutorial_button.className = "btn clickable";
-            }
         }
     }
-    init_tutorial(){
-        this.info_button.className = "btn unclickable";
-        // this.tutorial_button.className = "btn clickable";
-        // this.tutorial_button.value = "Abort Retrain";
 
-        this.left_context = "";
-        this.typed = "";
-        this.lm_prefix = "";
-        this.textbox.draw_text("");
-
-        this.tutorial_manager = new tm.tutorialManager(this, this.bc);
-        this.in_tutorial = true;
-        this.start_tutorial = false;
-    }
-    end_tutorial(){
-        this.destroy_info_screen();
-        this.in_tutorial = false;
-        this.tutorial_manager = null;
-
-        this.left_context = "";
-        this.typed = "";
-        this.lm_prefix = "";
-        this.textbox.draw_text("");
-        this.lm.update_cache(this.left_context, this.lm_prefix);
-
-        this.info_button.className = "btn clickable";
-        // this.tutorial_button.value = "Retrain";
-    }
-    draw_phrase(){
-        this.typed_versions = [''];
-        this.typed = "";
-        if (this.emoji_keyboard){
-            this.study_manager.cur_phrase = "";
-            for (var i = 0; i<5; i++) {
-                var emoji_index = Math.floor(Math.random() * kconfig.emoji_main_chars.length);
-                var emoji = kconfig.emoji_main_chars[emoji_index];
-                this.study_manager.cur_phrase = this.study_manager.cur_phrase.concat(emoji);
-            }
-
-            var phrase_arr = Array.from(this.study_manager.cur_phrase);
-            this.cur_emoji_target = phrase_arr[0];
-
-            this.keygrid.draw_layout();
-            this.highlight_emoji();
-        } else {
-            this.lm_prefix = "";
-            this.left_context = "";
-            this.fetched_words = false;
-            this.is_undo = false;
-            this.is_equalize = false;
-            this.skip_hist = true;
-            this.lm.update_cache(this.left_context, this.lm_prefix, null);
-
-            this.study_manager.cur_phrase = this.study_manager.phrase_queue.shift();
-        }
-        this.textbox.draw_text(this.study_manager.cur_phrase.concat('\n'));
-        this.study_manager.phrase_num = this.study_manager.phrase_num + 1;
-    }
-    highlight_emoji(){
-        console.log("CUR TARGET: ", this.cur_emoji_target);
-
-        var indicies = widgets.indexOf_2d(kconfig.emoji_target_layout, this.cur_emoji_target);
-        if (indicies !== false) {
-            this.keygrid.highlight_square(indicies[0], indicies[1])
-        }
-
-    }
+    /**
+     * Changes the speed of clock rotation. Triggered by moving the speed slider.
+     * @param {number} index - The index (1-20) of the clock period list for the speed change.
+     */
     change_speed(index){
         var speed_index;
         if (this.in_session){
@@ -374,6 +307,10 @@ class Keyboard{
         this.speed_slider_output.innerHTML = speed_index;
         this.speed_slider.value = speed_index;
     }
+
+    /**
+     * Triggers the inference process after a switch press event.
+     */
     on_press(){
         if (document.hasFocus()) {
             this.play_audio();
@@ -394,30 +331,47 @@ class Keyboard{
             }
         }
     }
+
+    /**
+     * Highlights the KeyGrid following a selection.
+     */
     start_pause(){
         this.keygrid.in_pause = true;
         this.keygrid.draw_layout();
         setTimeout(this.end_pause.bind(this), kconfig.pause_length);
         this.clockgrid.undo_label.draw_text();
     }
+
+    /**
+     * Ends the highlight of the KeyGrid following a selection after the timeout.
+     */
     end_pause(){
         this.keygrid.in_pause = false;
         this.keygrid.draw_layout();
         this.clockgrid.undo_label.draw_text();
-        if(this.emoji_keyboard && this.in_session){
-            this.highlight_emoji();
-        }
     }
+
+    /**
+     * Highlights the selected clock following a selection.
+     * @param {number} clock_index - The index of the selected clock.
+     */
     highlight_winner(clock_index){
         this.winner_clock = this.clockgrid.clocks[clock_index];
         this.winner_clock.winner = true;
         this.winner_clock.draw_face();
         setTimeout(this.unhighlight_winner.bind(this), kconfig.pause_length);
     }
+    /**
+     * Ends the highlight of the previously selected clock after the timeout.
+     */
     unhighlight_winner(){
         this.winner_clock.winner = false;
         this.winner_clock.draw_face();
     }
+
+    /**
+     * Triggers the process of redrawing the word clocks and labels after the Language Model updates.
+     */
     on_word_load(){
         this.fetched_words = true;
         this.clockgrid.update_word_clocks(this.lm.word_predictions);
@@ -539,59 +493,6 @@ class Keyboard{
             }
         }
     }
-    init_words(){
-        this.words_li = this.lm.word_predictions;
-        this.word_freq_li = this.lm.word_prediction_probs;
-        this.key_freq_li = this.lm.key_probs;
-
-        this.word_id = [];
-        this.word_pair = [];
-        var word = 0;
-        var index = 0;
-        var windex = 0;
-        this.words_on = [];
-        this.words_off = [];
-        this.word_list = [];
-
-        // this.words_li = this.words.sort();
-
-        var len_con = this.context.length;
-        var key;
-        var pred;
-        var word_str;
-        for (key = 0; key < this.N_alpha_keys; key++){
-            for (pred = 0; pred < this.n_pred; pred++){
-                word_str = this.words_li[key][pred];
-                var len_word = word_str.length;
-
-                this.word_pair.push([key, pred]);
-                if (word_str == '') {
-                    this.words_off.push(index);
-                }
-                else{
-                    this.words_on.push(index);
-                }
-                windex += 1;
-                word += 1;
-                index += 1;
-            }
-            this.words_on.push(index);
-            this.word_pair.push([key,]);
-            index += 1;
-        }
-        for (key = this.N_alpha_keys; key < this.N_keys; key++){
-            for (pred =0; pred < this.n_pred; pred++) {
-                word_str = this.words_li[key][pred];
-                this.word_pair.push([key, pred]);
-                this.words_off.push(index);
-                index += 1;
-            }
-            this.words_on.push(index);
-            this.word_pair.push([key,]);
-            index += 1;
-        }
-        this.typed_versions = [''];
-    }
     draw_words() {
         this.words_li = this.lm.word_predictions;
         this.word_freq_li = this.lm.word_prediction_probs;
@@ -642,6 +543,11 @@ class Keyboard{
             index += 1;
         }
     }
+
+    /**
+     * Formats the word and character probabilities from the language model for use in the inference module. If the user selected undo, the prior is initialized as uniform.
+     * @param {boolean} undo - Whether the previous round selected the undo option.
+     */
     gen_word_prior(undo){
         this.word_score_prior = [];
         var N_on = this.words_on.length;
@@ -703,6 +609,9 @@ class Keyboard{
             }
         }
     }
+    /**
+     *
+     */
     draw_typed(){
         var new_text = '';
         var redraw_words = false;
@@ -1016,23 +925,16 @@ class Keyboard{
 
         if (this.emoji_keyboard){
             this.on_word_load();
-            if (this.in_session) {
-                var phrase_arr = Array.from(this.study_manager.cur_phrase);
-                var typed_arr = Array.from(this.typed);
-                if (typed_arr.length < phrase_arr.length) {
-                    this.cur_emoji_target = phrase_arr[typed_arr.length];
-                    this.highlight_emoji();
-                } else {
-                    this.cur_emoji_target = null;
-                    this.highlight_emoji();
-                }
-            }
         } else  {
             this.lm.update_cache(this.left_context, this.lm_prefix, selection);
         }
 
         // return [this.words_on, this.words_off, this.word_score_prior, is_undo, is_equalize];
     }
+
+    /**
+     * Splits the currently typed text into left context and prefix for the language model. The prefix is the current word being typed, the left context is all the words before the current word.
+     */
     update_context(){
         var space_index = Math.max(this.typed.lastIndexOf(" "), this.typed.lastIndexOf("_"));
         var break_index = -1;
@@ -1045,47 +947,30 @@ class Keyboard{
         this.lm_prefix = this.typed.slice(context_index+1, this.typed.length);
         this.left_context = this.left_context.replace("_", " ");
     }
-    execute_on_focus(){
-        if (this.study_manager && this.study_manager.in_survey){
 
-            if (this.study_manager.survey_complete){
-                this.study_manager.in_survey = false;
-                this.study_manager.launch_next_software();
-            } else {
-                this.study_manager.check_survey_complete();
-            }
-        }
-        if (this.in_session && this.study_manager.session_pause_start_time !== Infinity){
-            this.study_manager.session_pause_time += Math.round(Date.now() / 1000) - this.study_manager.session_pause_start_time;
-            this.study_manager.session_pause_start_time = Infinity;
-        }
-        this.run_on_focus = false;
-
-    }
+    /**
+     * Repeatedly called on the interval defined in the config file. Triggers animation updates for the clock hands.
+     */
     animate(){
         if (this.full_init) {
             var time_in = Date.now()/1000;
             this.bc.clock_inf.clock_util.increment(this.words_on);
 
-            if (this.in_session){
-                this.study_manager.update_session_timer(time_in);
-            }
-        }
-        if (this.run_on_focus && document.hasFocus()){
-            this.execute_on_focus();
-        }
-        if (!document.hasFocus() && !this.run_on_focus){
-            this.run_on_focus = true;
-            if (this.in_session){
-                this.study_manager.session_pause_start_time = Math.round(Date.now() / 1000);
-            }
         }
     }
+
+    /**
+     * Plays a bell sound when the user clicks their switch
+     */
     play_audio(){
         if (this.audio_checkbox.checked){
             this.audio.play();
         }
     }
+
+    /**
+     * Triggered by a window resize event. Recalculates all the sizes of the widgets for the new screen size.
+     */
     displayWindowSize(){
 
         this.keygrid_canvas.calculate_size();
@@ -1106,10 +991,6 @@ class Keyboard{
 
         this.clockgrid.undo_label.draw_text();
 
-        if(this.emoji_keyboard && this.in_session){
-            this.highlight_emoji();
-        }
-
         this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
         this.histogram.calculate_size();
         this.histogram.draw_box();
@@ -1119,14 +1000,8 @@ class Keyboard{
         if (this.in_info_screen){
             this.info_canvas.calculate_size(0);
             var info_screen_num = this.info_screen.screen_num - 1;
-            if (this.in_session){
-                this.info_screen = new infoscreen.SessionInfoScreen(this.info_canvas, info_screen_num);
-            } else {
-                this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
-            }
-        }
-        if (this.in_tutorial){
-            this.tutorial_manager.change_focus();
+
+            this.info_screen = new infoscreen.InfoScreen(this, this.info_canvas, info_screen_num);
         }
     }
 }
@@ -1134,5 +1009,5 @@ class Keyboard{
 const params = new URLSearchParams(document.location.search);
 const emoji = params.get("emoji") === 'true';
 
-let keyboard = new Keyboard(null, false, emoji, false, null);
+let keyboard = new Keyboard(null, false, emoji, null);
 setInterval(keyboard.animate.bind(keyboard), config.ideal_wait_s*1000);

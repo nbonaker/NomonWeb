@@ -1,7 +1,12 @@
 import * as cie from './clock_inference_engine.js';
 import * as config from './config.js';
 
+/**
+ * Handles the
+ * @param {Keyboard} parent - the parent class, usually an instance of the Keyboard class
+ */
 export class BroderClocks {
+
     constructor(parent) {
         this.parent = parent;
         this.parent.bc_init = true;
@@ -23,12 +28,12 @@ export class BroderClocks {
         this.clock_inf.clock_util.change_period(this.time_rotate);
     }
 
-    get_histogram() {
-        return this.clock_inf.kde.dens_li;
-    }
-
+    /**
+     * triggered by a switch-press event in the main keyboard class. Updates the clock posteriors and the histogram
+     * given the information in the new click.
+     * @param {float} time_in - The epoch-timestamp in ms that the user clicked their switch.
+     */
     select(time_in) {
-        // var time_in = Date.now()/1000;
 
         this.clock_inf.update_scores(time_in - this.latest_time);
         if (config.is_learning) {
@@ -56,6 +61,16 @@ export class BroderClocks {
         }
     }
 
+    /**
+     * Continues the select process after the word cache promise has loaded
+     * @param results {Array} - array of length 5 specifying the setup for the new round:
+     * @param {Array<number>} results.0 - the clocks turned on given the new word predictions
+     * @param {Array<number>} results.1 - the clocks turned off given the new word predictions
+     * @param {Array<number>} results.2 - the prior distribution for the clocks_on given the new lm results
+     * @param {Boolean} results.3 - whether the undo clock was selected in the last selection round
+     * @param {Boolean} results.4 - ? holdover from an obsolete corrective character
+     * @param {Boolean} results.5 - ? need to figure this out
+     */
     continue_select(results) {
         this.clock_inf.clocks_on = results[0];
         this.clock_inf.clocks_off = results[1];
@@ -75,6 +90,9 @@ export class BroderClocks {
         }
     }
 
+    /**
+     * re-initializes variables at the beginning of a new selection round
+     */
     init_bits() {
         this.bits_per_select = Math.log(this.clock_inf.clocks_on.length) / Math.log(2);
 
@@ -85,6 +103,10 @@ export class BroderClocks {
         this.num_selects = 0;
     }
 
+    /**
+     * re-initializes variables at the beginning of a new selection round.
+     * @param {Array<number>} clock_score_prior - the prior probabilities from the language model of the clocks currently on.
+     */
     init_follow_up(clock_score_prior) {
         this.init_round(false, false, clock_score_prior);
 
@@ -96,6 +118,12 @@ export class BroderClocks {
         this.init_bits();
     }
 
+    /**
+     * Sets up the inference aspects for a new round following a switch event
+     * @param {Boolean} is_win - Whether a clock is selected after the switch event.
+     * @param {Boolean} is_start - Whether this is the first round after a switch event.
+     * @param {Array<number>} clock_score_prior - The prior probabilities over the active clocks before the switch event.
+     */
     init_round(is_win, is_start, clock_score_prior) {
         this.clock_inf.clock_util.init_round(this.clock_inf.clocks_li);
         this.clock_inf.clock_util.init_round(this.clock_inf.clocks_on);
