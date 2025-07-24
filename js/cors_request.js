@@ -45,4 +45,30 @@ export function makeCorsRequest(url, on_load_function=null, cache_type=null) {
     xhr.send();
 }
 
+export function makeCorsPostRequest(url, data, on_load_function=null, cache_type=null) {
+    // This is a sample server that supports CORS.
+
+    var xhr = createCORSRequest('POST', url);
+        if (!xhr) {
+        console.log('CORS not supported');
+        return;
+    }
+
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+  // Response handlers.
+    xhr.onload = function() {
+        var text = xhr.responseText;
+        var data = JSON.parse(text);
+        if (on_load_function != null){
+            on_load_function(data, cache_type);
+        }
+    };
+
+    xhr.onerror = function() {
+        console.log('Woops, there was an error making the request.');
+    };
+    xhr.send(JSON.stringify(data));
+}
+
 // makeCorsRequest('https://api.imagineville.org/word/predict?left=');

@@ -532,6 +532,8 @@ export class Textbox{
     constructor(output_canvas) {
         this.output_canvas = output_canvas;
         this.text = "";
+        this.grey_text = "";
+        this.num_selected = 0;
         this.cursor_on = false;
         setInterval(this.toggle_cursor.bind(this), 530);
 
@@ -549,9 +551,9 @@ export class Textbox{
     toggle_cursor(){
         this.cursor_on = this.cursor_on == false;
         if (this.cursor_on) {
-            this.box.value = this.text.concat("|");
+            this.box.innerHTML = this.format_text().concat("|");
         }else{
-            this.box.value = this.text;
+            this.box.innerHTML = this.format_text();
         }
     }
 
@@ -569,9 +571,20 @@ export class Textbox{
      * Draws the text that the user has written in the textbox.
      * @param {string} text - The text that the user has currently written.
      */
-    draw_text(text){
+    draw_text(text, grey_text = "", num_selected = 0) {
         this.text = text;
-        this.box.value = text;
+        this.grey_text = grey_text;
+        this.num_selected = num_selected;
+        this.box.innerHTML = this.format_text();
+    }
+
+    format_text() {
+        if (this.num_selected == 0) {
+            return this.text + '<span style="color: grey;">' + this.grey_text + '</span>';
+        } else {
+            return this.text + '<span style="color: grey; text-decoration: underline;">' + this.grey_text.slice(0, this.num_selected) + '</span>' +
+                '<span style="color: grey;">' + this.grey_text.slice(this.num_selected) + '</span>';
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-import {makeCorsRequest} from "../cors_request.js";
+import {makeCorsRequest, makeCorsPostRequest} from "../cors_request.js";
 import * as kconfig from './kconfig.js';
 
 
@@ -63,6 +63,10 @@ export class LanguageModel{
         this.transition_matrix = [];
         this.transition_matrix_complete = false;
 
+        this.completions = [];
+        this.full_words = [];
+        this.full_word_update_complete = false;
+
         this.get_transition_matrix();
 
     }
@@ -100,6 +104,44 @@ export class LanguageModel{
             this.transition_matrix_complete = true;
             this.parent.continue_init();
         }
+    }
+
+    get_dist_word(prefix, dists, callback) {
+        this.full_word_update_complete = false;
+        console.log("Getting distribution word for prefix:", prefix, "and dists:", dists);
+        const url = "https://api.imagineville.org/rec/distrib";
+        const data = {
+            left: prefix,
+            numBest: 5,
+            numPrefix: 5,
+            distribs: dists,
+            config: "nomon"
+        };
+
+        makeCorsPostRequest(url, data, callback);
+    }
+
+    recieve_word_update(output) {
+        console.log("Recieved word update:", output);
+        this.completions = output.prefix;
+        this.full_words = output.best;
+        this.full_word_update_complete = true;
+        this.parent.on_word_load();
+    }
+
+    update_words(left, dists){
+        console.log("Updating words with left context:", left, "and dists:", dists);
+
+        const url = "https://api.imagineville.org/rec/distrib";
+        const data = {
+            left: left,
+            numBest: 5,
+            numPrefix: 5,
+            distribs: dists,
+            config: "nomon"
+        };
+
+        makeCorsPostRequest(url, data, this.recieve_word_update.bind(this));
     }
 
     /**

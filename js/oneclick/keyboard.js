@@ -8,12 +8,6 @@ import * as lm from './lm.js';
 
 import {makeCorsRequest} from "../cors_request.js";
 
-function log_add_exp(a_1, a_2){
-    var b = Math.max(a_1, a_2);
-    var sum =  b + Math.log(Math.exp(a_1 - b)+Math.exp(a_2-b));
-    return sum;
-}
-
 /**
  * The main class that orchestrates the interactive aspects of the keyboard.
  * @param {number} user_id - The id of the current user. If no backend, then null.
@@ -301,7 +295,9 @@ class Keyboard{
 
                 }
 
+                // this.textbox.draw_text(this.textbox.text.concat("□"));
                 this.bc.select(time_in);
+                this.lm.update_words(this.typed, this.bc.clock_inf.format_observations());
                 if (this.in_session) {
                     this.allow_slider_input = false;
                     this.pre_phrase_rotate_index = this.rotate_index;
@@ -314,10 +310,14 @@ class Keyboard{
         if (document.hasFocus()) {
             this.play_audio();
             if (!this.in_info_screen && !this.in_finished_screen) {
-                var time_in = Date.now() / 1000;
-
-                // calculate word using viterbi, print probabilities
-                this.update_text(this.typed.concat(this.bc.clock_inf.get_best_word()).concat(" "));
+                if (this.bc.clock_inf.observations.length > 0) {
+                    console.log("typed: ", this.typed);
+                    this.update_text(this.typed.concat(this.lm.full_words[0].text).concat(" "));
+                    this.bc.clock_inf.observations = [];
+                } else {
+                    this.typed = this.typed_versions.pop();
+                    this.textbox.draw_text(this.typed);
+                }
             }
         }
     }
@@ -363,26 +363,10 @@ class Keyboard{
      * Triggers the process of redrawing the word clocks and labels after the Language Model updates.
      */
     on_word_load(){
-
-        if (!this.full_init) {
-            this.continue_init();
+        if (this.lm.full_word_update_complete) {
+            this.textbox.draw_text(this.typed, this.lm.completions[0].text, this.bc.clock_inf.observations.length);
         }
-        else{
-            this.draw_words();
-            this.clockface_canvas.clear();
-            this.clockgrid.undo_label.draw_text();
-            this.gen_word_prior(false);
-            var results = [this.words_on, this.words_off, this.word_score_prior, this.is_undo, this.is_equalize, this.skip_hist];
-            this.bc.continue_select(results);
-
-            if (this.in_tutorial){
-                this.tutorial_manager.update_target();
-            }
-        }
-
-        if (this.in_session && this.last_selection != null){
-            this.study_manager.save_selection_data(this.last_selection);
-        }
+        this.bc.continue_select();
     }
     init_locs(){
         var key_chars = kconfig.key_chars;

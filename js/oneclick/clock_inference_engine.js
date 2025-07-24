@@ -216,7 +216,9 @@ export class ClockInference {
 
         this.time_rotate = this.parent.time_rotate;
 
-        this.wbuilder = new WordBuilder(parent);
+        this.observations = [];
+
+        this.transition_matrix = parent.lm.transition_matrix;
 
         this.entropy = new Entropy(this);
 
@@ -244,9 +246,17 @@ export class ClockInference {
 
     get_best_word() {
         console.log("observations: ", this.wbuilder.observations);
-        var word = this.wbuilder.calculate_word();
+        var word = this.wbuilder.calculate_word_api();
         this.wbuilder.reset();
         return word;
+    }
+
+    return_best_word(word) {
+        if (word === null || word === undefined || word.length === 0) {
+            word = "";
+        }
+        this.parent.update_text(this.parent.typed.concat(word).concat(" "));
+        this.wbuilder.reset();
     }
 
     /**
@@ -264,6 +274,28 @@ export class ClockInference {
         }
         var most_likely_index = argMin(dens);
         return most_likely_index;
+    }
+
+    log_add_exp(a_1, a_2){
+        var b = Math.max(a_1, a_2);
+        var sum =  b + Math.log(Math.exp(a_1 - b)+Math.exp(a_2-b));
+        return sum;
+    }
+
+    letter_probs() {
+        const rows = this.transition_matrix.length;
+        const cols = this.transition_matrix[0].length;
+
+        console.log("transition_matrix:", this.transition_matrix);
+        console.log("observations:", this.observations);
+
+        const result = new Array(rows).fill(-Infinity);
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                result[i] = this.log_add_exp(result[i], this.transition_matrix[i][j] + this.observations[this.observations.length - 1][j]);
+            }
+        }
+        return result;
     }
 
     /**
@@ -307,8 +339,39 @@ export class ClockInference {
             clock_locs[clock] = time_in;
         }
         this.clock_locs.push(clock_locs);
-        this.wbuilder.add_click(likelihoods);
+        this.observations.push(likelihoods);
         this.update_sorted_inds();
+    }
+
+    format_observations() {
+        var formatted = [];
+        for (let i = 0; i < this.observations.length; i++) {
+            var dist = this.observations[i].map((prob, idx) => ({
+                text: kconfig.key_chars[idx],
+                logProb: prob
+            }));
+            formatted.push({distrib: dist});
+        }
+        return formatted;
+    }
+
+    return_best_word(data) {
+        console.log("Received data from API:", data);
+        var best_word = data.best[0].text;
+        if (best_word === null || best_word === undefined || best_word.length === 0) {
+            best_word = "";
+        }
+        this.parent.update_text(this.parent.typed.concat(best_word).concat(" "));
+        
+        for (let i = 0; i < this.clock_locs.length; i++) {
+            let j = kconfig.key_chars.indexOf(best_word[i]);
+            if (j !== -1) {
+                this.inc_score_inc(this.clock_locs[i][j]);
+            }
+        }
+
+        this.observations = [];
+        this.clock_locs = [];
     }
 
     /**
@@ -470,95 +533,65 @@ export class WordBuilder {
         }
     }
 
-    add_click(likelihoods) {
-        this.observations.push(likelihoods);
-        console.log("Added click with likelihoods:", likelihoods);
+    calculate_word() {
+        var distribs = [];
+        for (let i = 0; i < this.observations.length; i++) {
+            var dist = this.observations[i].map((prob, idx) => ({
+                text: kconfig.key_chars[idx],
+                logProb: prob
+            }));
+            distribs.push({distrib: dist});
+        }
+
+        this.parent.lm.get_dist_word(this.parent.typed, distribs, this.return_best_word.bind(this));
     }
 
-    calculate_word() {
-        if (this.observations.length === 0) {
-            return "";
+    return_best_word(data) {
+        console.log("Received data from API:", data);
+        var best_word = data.best[0].text;
+        console.log("Best word from API:", best_word);
+        console.log("Best prefix from API:", data.prefix[0].text);
+        if (best_word === null || best_word === undefined || best_word.length === 0) {
+            best_word = "";
         }
+        this.parent.update_text(this.parent.typed.concat(best_word).concat(" "));
+        this.reset();
+    }
 
-        const numObservations = this.observations.length;
-        const numStates = kconfig.key_chars.length;
-        
-        // Initialize Viterbi tables
-        const viterbi = new Array(numObservations);
-        const path = new Array(numObservations);
-        
-        for (let t = 0; t < numObservations; t++) {
-            viterbi[t] = new Array(numStates);
-            path[t] = new Array(numStates);
+    calculate_word1() {
+        var tokens = [];
+        for (var i = 0; i < this.observations.length; i++) {
+            tokens.push([]);
         }
-        
-        // Initialize first observation
-        for (let s = 0; s < numStates; s++) {
-            // Use uniform prior for first character (or could use character frequencies)
-            const uniformPrior = Math.log(1.0 / numStates);
-            viterbi[0][s] = uniformPrior + this.observations[0][s];
-            path[0][s] = -1; // No previous state
+        tokens[0].push(new Token(0, this.parent.typed, 0));
+    }
+
+    insert_sorted(tokens, token) {
+        var index = tokens.findIndex(t => t.log_prob < token.log_prob);
+        if (index === -1) {
+            tokens.push(token);
+        } else {
+            tokens.splice(index, 0, token);
         }
-        
-        // Forward pass - fill the Viterbi table
-        for (let t = 1; t < numObservations; t++) {
-            for (let s = 0; s < numStates; s++) {
-                let maxProb = -Infinity;
-                let maxPrevState = -1;
-                
-                // Find the best previous state
-                for (let prevS = 0; prevS < numStates; prevS++) {
-                    // Get transition probability from transition matrix
-                    const transitionProb = this.transition_matrix[prevS] && this.transition_matrix[prevS][s] 
-                        ? this.transition_matrix[prevS][s] 
-                        : Math.log(0.001); // Small probability for missing transitions
-                    
-                    const prob = viterbi[t-1][prevS] + transitionProb + this.observations[t][s];
-                    
-                    if (prob > maxProb) {
-                        maxProb = prob;
-                        maxPrevState = prevS;
-                    }
-                }
-                
-                viterbi[t][s] = maxProb;
-                path[t][s] = maxPrevState;
-            }
-        }
-        
-        // Backward pass - find the best path
-        const bestPath = new Array(numObservations);
-        
-        // Find the best final state
-        let maxFinalProb = -Infinity;
-        let bestFinalState = -1;
-        
-        for (let s = 0; s < numStates; s++) {
-            if (viterbi[numObservations - 1][s] > maxFinalProb) {
-                maxFinalProb = viterbi[numObservations - 1][s];
-                bestFinalState = s;
-            }
-        }
-        
-        // Backtrack to find the best path
-        bestPath[numObservations - 1] = bestFinalState;
-        for (let t = numObservations - 2; t >= 0; t--) {
-            bestPath[t] = path[t + 1][bestPath[t + 1]];
-        }
-        
-        // Convert state indices to characters
-        let word = "";
-        for (let t = 0; t < numObservations; t++) {
-            const charIndex = bestPath[t];
-            if (charIndex >= 0 && charIndex < kconfig.key_chars.length) {
-                word += kconfig.key_chars[charIndex];
-            }
-        }
-        
-        return word;
     }
 
     reset() {
         this.observations = [];
+    }
+}
+
+export class Token {
+    constructor(index, text, log_prob) {
+        this.index = index;
+        this.text = text;
+        this.log_prob = log_prob;
+    }
+
+    add_char(char, prob) {
+       return new Token(this.index + 1, this.text.concat(char), this.log_prob + prob);
+    }
+
+    insert_char(char, prob) {
+        return new Token(this.index, this.text.concat(char), this.log_prob + prob);
     }
 }

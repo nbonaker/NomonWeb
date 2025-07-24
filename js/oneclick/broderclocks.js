@@ -41,8 +41,6 @@ export class BroderClocks {
         }
 
         this.abs_click_times.push(time_in);
-
-        this.init_round(false, false, []);
     }
 
     /**
@@ -55,23 +53,8 @@ export class BroderClocks {
      * @param {Boolean} results.4 - ? holdover from an obsolete corrective character
      * @param {Boolean} results.5 - ? need to figure this out
      */
-    continue_select(results) {
-        this.clock_inf.clocks_li = results[0];
-        this.clock_inf.clocks_off = results[1];
-        var clock_score_prior = results[2];
-        this.is_undo = results[3];
-        this.is_equalize = results[4];
-        var skip_hist = results[5];
-
-        if (skip_hist) {
-            this.init_round(true, true, clock_score_prior);
-        } else {
-            if (!this.parent.in_tutorial) {
-                this.clock_inf.learn_scores(this.is_undo);
-            }
-
-            this.init_round(true, false, clock_score_prior);
-        }
+    continue_select() {
+        this.init_round(false, true, this.clock_inf.letter_probs());
     }
 
     /**
@@ -108,7 +91,7 @@ export class BroderClocks {
      * @param {Array<number>} clock_score_prior - The prior probabilities over the active clocks before the switch event.
      */
     init_round(is_win, is_start, clock_score_prior) {
-        this.clock_inf.clock_util.init_round(this.clock_inf.clocks_li);
+        console.log("init_round", is_win, is_start, clock_score_prior);
         this.clock_inf.clock_util.init_round(this.clock_inf.clocks_li);
         var clock;
         var clock_ind;

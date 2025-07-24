@@ -25,6 +25,13 @@ textarea {
     font-family: "Lucida Console", Monaco, monospace;
     font-size: 20pt ;
 }
+.output_text {
+    border: 1px solid #000000;
+    min-height: 100px;
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 20pt;
+    white-space: pre-wrap;
+}
 .slidecontainer {
     display: inline;
     width: 100%;
@@ -216,7 +223,7 @@ label {
             <input class='btn clickable' type="button" id = "help_button" value = "?" >
         </div>
     </div>
-    <textarea id="output_textbox"></textarea>
+    <div contenteditable="true" class="output_text" id="output_textbox"></div>
 </div>
 
 <video id="video" width="500" height="560"></video>
