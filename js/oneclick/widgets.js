@@ -29,7 +29,7 @@ export function setFont(font) {
  * @param {number} layer_index The zIndex order for display of the canvas element. Higher-valued canvases are displayed on top of lower-valued ones.
  */
 export class KeyboardCanvas{
-    constructor(canvas_id, layer_index) {
+    constructor(canvas_id, layer_index, word) {
         this.canvas = document.getElementById(canvas_id);
         this.canvas.style.zIndex = layer_index;
 
@@ -40,7 +40,7 @@ export class KeyboardCanvas{
      * Calculates the size of the keyboard based on the available screen space. Styles the canvas position and resolution. Needs to be recalled for each canvas upon any window resizing events.
      * @param {number} bottom_height_factor - The proportion of screen space to allocate for the output canvas on the bottom (the textbox and histogram).
      */
-    calculate_size(bottom_height_factor=0.2){
+    calculate_size(bottom_height_factor=0.4){
         this.window_width = window.innerWidth;
         this.window_height = window.innerHeight;
 
@@ -78,8 +78,9 @@ export class KeyboardCanvas{
  * @param {number} y_offset - The number of pixels to shift the canvas down from the top of the window. Equal to the location of the bottom of the bounding-box for the keyboard canvases.
  */
 export class OutputCanvas{
-    constructor(canvas_id, y_offset) {
+    constructor(canvas_id, y_offset, layer_index=1) {
         this.canvas = document.getElementById(canvas_id);
+        this.canvas.style.zIndex = layer_index;
         this.canvas.style.position = "absolute";
         this.canvas.style.left = "0px";
         this.ctx = this.canvas.getContext("2d");
@@ -100,7 +101,7 @@ export class OutputCanvas{
 
         this.resolution_factor = 2;
         this.screen_fill_factor = 0.98;
-        this.bottom_height_factor = 0.18;
+        this.bottom_height_factor = 0.38;
 
         this.canvas.width = this.window_width * this.resolution_factor;
         this.canvas.height = (this.window_height - this.topbar_height) * (this.bottom_height_factor) * this.resolution_factor;
@@ -379,7 +380,7 @@ export class Clock{
             this.face_canvas.ctx.stroke();
 
             this.face_canvas.ctx.fillStyle = "#000000";
-            var font_height = this.radius * 1.7;
+            var font_height = this.radius * 2.5;
             this.face_canvas.ctx.font = font_height.toString().concat("px " + getFontFamily());
             this.face_canvas.ctx.fillText(this.text.replace(/ /g, "_"), this.x_pos + this.radius * 1.25, this.y_pos + font_height / 3);
         }
@@ -524,6 +525,168 @@ export class Histogram{
 }
 
 /**
+ * Class to handle the display of word selection options with clocks to the left of each option.
+ * @param {KeyboardCanvas} face_canvas - The KeyboardCanvas instance used to draw the clock faces.
+ * @param {KeyboardCanvas} hand_canvas - The KeyboardCanvas instance used to draw the clock hands.
+ * @param {OutputCanvas} output_canvas - The OutputCanvas instance used to draw the word grid.
+ */
+export class WordGrid{
+
+    constructor(face_canvas, hand_canvas, output_canvas, n_words) {
+        this.face_canvas = face_canvas;
+        this.hand_canvas = hand_canvas;
+        this.output_canvas = output_canvas;
+        this.word_options = [];
+        this.clocks = [];
+        this.n_words = n_words;
+        this.calculate_size();
+        this.draw_box();
+    }
+
+    /**
+     * Calculates the size of the word grid from the available screen space. Needs to be recalled on any window resizing event.
+     */
+    calculate_size(){
+        this.box_x_offset = this.output_canvas.screen_width * 3 / 5;
+        this.box_y_offset
+        this.box_width = this.output_canvas.screen_width * 2 / 5;
+        this.box_height = this.output_canvas.screen_height;
+        
+        // Calculate clock size based on available space
+        this.clock_radius = Math.min(this.box_height * 0.06, this.box_width * 0.08);
+    }
+
+    /**
+     * Updates the word options and redraws the grid with clocks.
+     * @param {Array} word_options - Array of word option objects with text, type, and display properties.
+     * @param {number} selected_index - The currently selected option index.
+     */
+    update(word_options){
+        this.word_options = word_options.map(x => x.text) || [];
+        this.generate_clocks();
+        this.draw_box();
+        this.draw_clocks_and_options();
+    }
+
+    /**
+     * Generates clock instances for each word option.
+     */
+    generate_clocks(){
+        this.clocks = [];
+
+        const option_height = (this.box_height * 0.95) / this.n_words;
+                
+        for (let i = 0; i < this.n_words; i++) {
+            const y_start = this.box_height * 0.025 + i * option_height;
+            const y_center = y_start + option_height / 2;
+            
+            // Position clock on the left side of the option area
+            const clock_x = this.box_x_offset + this.box_height * 0.02 + this.clock_radius * 1.5;
+            // Add the output canvas y-offset to position the clock correctly on the face_canvas
+            const clock_y = y_center;
+            
+            let clock = new Clock(this.face_canvas, this.hand_canvas, 
+                                clock_x, clock_y, this.clock_radius, "");
+            
+            // Set clock properties based on selection state
+            clock.highlighted = false;
+            clock.winner = false;
+            clock.angle = 0; // Initial angle, will be updated by clock animation logic
+            
+            this.clocks.push(clock);
+        }
+    }
+
+    /**
+     * Draws the white box in the background of the word grid.
+     */
+    draw_box(){
+        this.output_canvas.ctx.beginPath();
+        this.output_canvas.ctx.fillStyle = "#eeeeee";
+        this.output_canvas.ctx.rect(this.box_x_offset, 0, this.box_width, this.box_height);
+        this.output_canvas.ctx.fill();
+
+        this.output_canvas.ctx.beginPath();
+        this.output_canvas.ctx.fillStyle = "#ffffff";
+        this.output_canvas.ctx.strokeStyle = "#000000";
+        this.output_canvas.ctx.rect(this.box_x_offset + this.box_height * 0.02, this.box_height * 0.025,
+            this.box_width - this.box_height*0.05, this.box_height * 0.95);
+        this.output_canvas.ctx.fill();
+        this.output_canvas.ctx.stroke();
+    }
+
+    /**
+     * Draws the clocks and word options in the grid.
+     */
+    draw_clocks_and_options(){
+        if (this.word_options.length < this.n_words - 1) {
+            return;
+        }
+
+        const ctx = this.output_canvas.ctx;
+        const option_height = (this.box_height * 0.95) / this.n_words;
+        const font_size = option_height * 0.6;
+        
+        ctx.font = font_size.toString() + "px " + getFontFamily();
+        
+        // Clear the clock areas first
+        for (let clock of this.clocks) {
+            this.face_canvas.ctx.clearRect(clock.x_pos - clock.radius * 1.5, 
+                                         clock.y_pos - clock.radius * 1.5,
+                                         clock.radius * 3, clock.radius * 3);
+            this.hand_canvas.ctx.clearRect(clock.x_pos - clock.radius * 1.5, 
+                                         clock.y_pos - clock.radius * 1.5,
+                                         clock.radius * 3, clock.radius * 3);
+        }
+        
+        const words = this.word_options.slice(0, this.n_words-1).concat("UNDO");
+        for (let i = 0; i < this.n_words; i++) {
+            const option = words[i];
+            const y_start = this.box_height * 0.025 + i * option_height;
+            const y_center = y_start + option_height / 2;
+            const clock = this.clocks[i];
+            
+            // Draw clock face and hand
+            clock.draw_face();
+            clock.draw_hand();
+            
+            // Draw option text to the right of the clock
+            const text_x = clock.x_pos + this.clock_radius * 2;
+            
+            ctx.fillStyle = "#000000";
+            
+            ctx.fillText(option, text_x, y_center + font_size / 3);
+        }
+    }
+
+    /**
+     * Updates the angle of a specific clock by index.
+     * @param {number} index - The index of the clock to update.
+     * @param {number} angle - The new angle for the clock hand.
+     */
+    update_clock_angle(index, angle){
+        if (index >= 0 && index < this.clocks.length) {
+            this.clocks[index].angle = angle;
+            this.clocks[index].draw_hand();
+        }
+    }
+
+    /**
+     * Clears the word grid display.
+     */
+    clear(){
+        this.word_options = [];
+        this.clocks = [];
+        
+        // Clear clock canvases in the word grid area
+        this.face_canvas.ctx.clearRect(this.box_x_offset, 0, this.box_width, this.box_height);
+        this.hand_canvas.ctx.clearRect(this.box_x_offset, 0, this.box_width, this.box_height);
+        
+        this.draw_box();
+    }
+}
+
+/**
  * Class to handle the display of the output text box that shows what the user has typed.
  * @param {OutputCanvas} output_canvas - The OutputCanvas instance used to draw the histogram and text box.
  */
@@ -550,11 +713,7 @@ export class Textbox{
      */
     toggle_cursor(){
         this.cursor_on = this.cursor_on == false;
-        if (this.cursor_on) {
-            this.box.innerHTML = this.format_text().concat("|");
-        }else{
-            this.box.innerHTML = this.format_text();
-        }
+        this.box.innerHTML = this.format_text();
     }
 
     /**
@@ -578,11 +737,12 @@ export class Textbox{
         this.box.innerHTML = this.format_text();
     }
 
-    format_text() {
+    format_text(isCursor) {
+        const cursor = this.cursor_on ? "|" : " ";
         if (this.num_selected == 0) {
-            return this.text + '<span style="color: grey;">' + this.grey_text + '</span>';
+            return this.text.trim() + cursor + '<span style="color: grey;">' + this.grey_text + '</span>';
         } else {
-            return this.text + '<span style="color: grey; text-decoration: underline;">' + this.grey_text.slice(0, this.num_selected) + '</span>' +
+            return this.text + '<span style="color: grey; text-decoration: underline;">' + this.grey_text.slice(0, this.num_selected) + '</span>' + cursor +
                 '<span style="color: grey;">' + this.grey_text.slice(this.num_selected) + '</span>';
         }
     }

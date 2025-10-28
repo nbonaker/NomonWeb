@@ -67,7 +67,9 @@ export class LanguageModel{
         this.full_words = [];
         this.full_word_update_complete = false;
 
+        this.full_init = false;
         this.get_transition_matrix();
+        this.update_words("", []);
 
     }
 
@@ -102,35 +104,58 @@ export class LanguageModel{
         this.transition_matrix[index] = formatted_chars;
         if (this.transition_matrix.length == kconfig.key_chars.length) {
             this.transition_matrix_complete = true;
-            this.parent.continue_init();
+            if (this.full_init) {
+                this.parent.on_word_load();
+            } else {
+                this.full_init = true;
+            }
         }
     }
 
-    get_dist_word(prefix, dists, callback) {
-        this.full_word_update_complete = false;
-        console.log("Getting distribution word for prefix:", prefix, "and dists:", dists);
-        const url = "https://api.imagineville.org/rec/distrib";
-        const data = {
-            left: prefix,
-            numBest: 5,
-            numPrefix: 5,
-            distribs: dists,
-            config: "nomon"
-        };
-
-        makeCorsPostRequest(url, data, callback);
-    }
-
-    recieve_word_update(output) {
-        console.log("Recieved word update:", output);
-        this.completions = output.prefix;
-        this.full_words = output.best;
+    recieve_word_update(data) {
+        console.log("Recieved word update:", data);
+        this.completions = data.prefix;
+        this.full_words = data.best;
         this.full_word_update_complete = true;
-        this.parent.on_word_load();
+
+        // Combine prefix and best options with their log probabilities
+        this.all_options = [];
+        
+        // Add prefix options with their logprob
+        if (data.prefix && data.prefix.length > 0) {
+            for (let option of data.prefix) {
+                this.all_options.push({
+                    type: 'prefix',
+                    text: option.text,
+                    logprob: option.logprob || 0
+                });
+            }
+        }
+        
+        // Add best options with their logprob  
+        if (data.best && data.best.length > 0) {
+            for (let option of data.best) {
+                this.all_options.push({
+                    type: 'best',
+                    text: option.text,
+                    logprob: option.logprob || 0
+                });
+            }
+        }
+        
+        // Sort by log probability (highest first) and take top 4
+        this.all_options.sort((a, b) => b.logprob - a.logprob);
+
+        if (this.full_init) {
+            this.parent.on_word_load();
+        } else {
+            this.full_init = true;
+        }
     }
 
     update_words(left, dists){
         console.log("Updating words with left context:", left, "and dists:", dists);
+        this.full_word_update_complete = false;
 
         const url = "https://api.imagineville.org/rec/distrib";
         const data = {

@@ -4,6 +4,7 @@ import * as infoscreen from './info_screens.js';
 import * as kconfig from './kconfig.js';
 import * as config from './config.js';
 import * as bc from './broderclocks.js';
+import * as bc_word from './broderclocks_word.js'
 import * as lm from './lm.js';
 
 import {makeCorsRequest} from "../cors_request.js";
@@ -24,7 +25,10 @@ class Keyboard{
         this.keygrid_canvas = new widgets.KeyboardCanvas("key_grid", 1);
         this.clockface_canvas = new widgets.KeyboardCanvas("clock_face", 2);
         this.clockhand_canvas = new widgets.KeyboardCanvas("clock_hand", 3);
-        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
+        this.output_canvas = new widgets.OutputCanvas("output", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height, 1);
+
+        this.clockface_canvas_word = new widgets.OutputCanvas("clock_face_word", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height, 2);
+        this.clockhand_canvas_word = new widgets.OutputCanvas("clock_hand_word", this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height, 3);
 
         this.run_on_focus = false;
 
@@ -69,6 +73,9 @@ class Keyboard{
 
         this.in_tutorial = false;
         this.in_finished_screen = false;
+        this.in_word_selection = false;
+        this.word_options = [];
+        this.word_clock_start_times = []; // Track when each word clock started
         this.init_ui();
     }
 
@@ -76,19 +83,19 @@ class Keyboard{
      * Continues the construction process after the Promises from the language model have completed.
      */
     continue_init(){
-
-                
         this.typed_versions = [];
 
         this.bc = new bc.BroderClocks(this);
+        this.word_bc = new bc_word.BroderClocks(this);
         this.full_init=true;
         this.bc.init_follow_up();
+        this.word_bc.init_follow_up();
 
-        this.histogram.update(this.bc.clock_inf.kde.dens_li);
+        // this.histogram.update(this.bc.clock_inf.kde.dens_li);
     }
 
     /**
-     * Initializes the UI aspects (KeyGrid, ClockGrid, Clocks, Lables, Histogram, TextBox).
+     * Initializes the UI aspects (KeyGrid, ClockGrid, Clocks, Labels, WordSelector, TextBox).
      */
     init_ui(){
         this.speed_slider = document.getElementById("speed_slider");
@@ -213,7 +220,8 @@ class Keyboard{
             kconfig.alpha_target_layout, kconfig.key_chars);
         this.textbox = new widgets.Textbox(this.output_canvas);
 
-        this.histogram = new widgets.Histogram(this.output_canvas);
+        this.wordgrid = new widgets.WordGrid(this.clockface_canvas_word, this.clockhand_canvas_word, this.output_canvas, kconfig.num_words+1);
+
 
         if (this.in_info_screen){
             this.init_info_screen();
@@ -261,7 +269,7 @@ class Keyboard{
                 this.bc.clock_inf.clock_util.change_period(this.time_rotate);
 
                 // # update the histogram
-                this.histogram.update(this.bc.clock_inf.kde.dens_li);
+                // this.histogram.update(this.bc.clock_inf.kde.dens_li);
             } else {
                 speed_index = this.pre_phrase_rotate_index;
             }
@@ -274,7 +282,7 @@ class Keyboard{
             this.bc.clock_inf.clock_util.change_period(this.time_rotate);
 
             // # update the histogram
-            this.histogram.update(this.bc.clock_inf.kde.dens_li);
+            // this.histogram.update(this.bc.clock_inf.kde.dens_li);
         }
         this.speed_slider_output.innerHTML = speed_index;
         this.speed_slider.value = speed_index;
@@ -292,10 +300,7 @@ class Keyboard{
                 if (this.in_tutorial) {
                     console.log("cur_hour", this.bc.clock_inf.clock_util.cur_hours[this.tutorial_manager.target_clock]);
                     this.tutorial_manager.on_press(time_in);
-
                 }
-
-                // this.textbox.draw_text(this.textbox.text.concat("□"));
                 this.bc.select(time_in);
                 this.lm.update_words(this.typed, this.bc.clock_inf.format_observations());
                 if (this.in_session) {
@@ -310,14 +315,20 @@ class Keyboard{
         if (document.hasFocus()) {
             this.play_audio();
             if (!this.in_info_screen && !this.in_finished_screen) {
-                if (this.bc.clock_inf.observations.length > 0) {
-                    console.log("typed: ", this.typed);
-                    this.update_text(this.typed.concat(this.lm.full_words[0].text).concat(" "));
-                    this.bc.clock_inf.observations = [];
+                var time_in = Date.now() / 1000;
+                var word_index = this.word_bc.select(time_in);
+
+                if (word_index === kconfig.num_words) {
+                    if (this.bc.clock_inf.observations.length == 0 && this.typed_versions.length > 0) {
+                        this.typed = this.typed_versions.pop();
+                        this.textbox.draw_text(this.typed);
+                    }
                 } else {
-                    this.typed = this.typed_versions.pop();
-                    this.textbox.draw_text(this.typed);
+                    console.log("typed: ", this.typed);
+                    this.update_text(this.typed.concat(this.lm.all_options[word_index].text).concat(" "));
                 }
+                this.bc.clock_inf.observations = [];
+                this.lm.update_words(this.typed, []);
             }
         }
     }
@@ -363,9 +374,15 @@ class Keyboard{
      * Triggers the process of redrawing the word clocks and labels after the Language Model updates.
      */
     on_word_load(){
-        if (this.lm.full_word_update_complete) {
-            this.textbox.draw_text(this.typed, this.lm.completions[0].text, this.bc.clock_inf.observations.length);
+        if (!this.full_init) {
+            this.continue_init();
         }
+        
+        if (this.lm.full_word_update_complete) {
+            this.textbox.draw_text(this.typed, this.lm.all_options[0].text, this.bc.clock_inf.observations.length);
+        }
+        this.wordgrid.update(this.lm.all_options);
+
         this.bc.continue_select();
     }
     init_locs(){
@@ -781,6 +798,7 @@ class Keyboard{
         if (this.full_init) {
             var time_in = Date.now()/1000;
             this.bc.clock_inf.clock_util.increment();
+            this.word_bc.clock_inf.clock_util.increment();
         }
     }
 
@@ -813,10 +831,8 @@ class Keyboard{
             }
         }
 
-        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height / 2 + this.keygrid_canvas.topbar_height);
-        this.histogram.calculate_size();
-        this.histogram.draw_box();
-        this.histogram.draw_histogram();
+        this.output_canvas.calculate_size(this.keygrid_canvas.screen_height);
+        this.wordgrid.calculate_size();
         this.textbox.calculate_size();
 
         if (this.in_info_screen){

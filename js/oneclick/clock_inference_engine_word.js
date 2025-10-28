@@ -1,4 +1,4 @@
-import * as clock_util from './clock_util.js';
+import * as clock_util from './clock_util_word.js';
 import * as config from './config.js';
 import * as kconfig from './kconfig.js';
 
@@ -199,15 +199,12 @@ export class ClockInference {
         this.bc = bc;
         this.clock_util = new clock_util.ClockUtil(this.parent, this.bc, this);
         this.clocks_li = [];
-        var i;
-        for (i in this.parent.clock_centers) {
-            this.clocks_li.push(i);
-        }
-
         this.cscores = [];
-        for (i in this.parent.clock_centers) {
+        for (var i = 0; i < 5; i++) {
+            this.clocks_li.push(i);
             this.cscores.push(0);
         }
+
         this.clock_locs = [];
 
         this.clock_history = [[]];
@@ -283,6 +280,24 @@ export class ClockInference {
         return result;
     }
 
+    select_word(time_diff_in) {
+        var clock_locs = [];
+        for (var i in this.cscores) {
+            clock_locs.push(0);
+        }
+        for (var index in this.clocks_li) {
+            var clock = this.clocks_li[index];
+            var time_in = this.clock_util.cur_hours[clock] * this.time_rotate /
+                this.clock_util.num_divs_time + time_diff_in - this.time_rotate * config.frac_period;
+
+            clock_locs[clock] = time_in;
+        }
+        this.clock_locs.push(clock_locs);
+        console.log("locs", clock_locs)
+        return clock_locs.reduce((bestIdx, curr, i, array) =>
+            Math.abs(curr) < Math.abs(array[bestIdx]) ? i : bestIdx, 0);
+    }
+
     /**
      * Note that the density calculation only involves the most recent
      * n hist samples. When a new yin comes in, decide if we need to throw away
@@ -304,28 +319,20 @@ export class ClockInference {
         // this.parent.histogram.update(this.kde.dens_li);
     }
 
-    /**
-     * Update the posterior estimates for the clocks (cscores) every time yin come in.
-     * @param {number} time_diff_in - The relative click time in seconds.
-     */
-    add_click(time_diff_in) {
-        var clock_locs = [];
-        var likelihoods = [];
-        for (var i in this.cscores) {
-            clock_locs.push(0);
-            likelihoods.push(0);
-        }
+    get_closest_clock(time_diff_in) {
+        var min = 0;
+        var minIndex = 0;
         for (var index in this.clocks_li) {
             var clock = this.clocks_li[index];
             var time_in = this.clock_util.cur_hours[clock] * this.time_rotate /
                 this.clock_util.num_divs_time + time_diff_in - this.time_rotate * config.frac_period;
 
-            likelihoods[clock] = this.get_score_inc(time_in);
-            clock_locs[clock] = time_in;
+            if (time_in < min) {
+                min = time_in;
+                minIndex = index;
+            }
         }
-        this.clock_locs.push(clock_locs);
-        this.observations.push(likelihoods);
-        this.update_sorted_inds();
+        return minIndex
     }
 
     format_observations() {

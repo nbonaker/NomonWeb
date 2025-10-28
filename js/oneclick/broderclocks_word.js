@@ -1,4 +1,4 @@
-import * as cie from './clock_inference_engine.js';
+import * as cie from './clock_inference_engine_word.js';
 import * as config from './config.js';
 
 /**
@@ -7,7 +7,7 @@ import * as config from './config.js';
  */
 export class BroderClocks {
 
-    constructor(parent) {
+    constructor(parent) {        
         this.parent = parent;
         this.parent.bc_init = true;
         this.clock_inf = new cie.ClockInference(this.parent, this, this.parent.prev_data);
@@ -34,13 +34,8 @@ export class BroderClocks {
      * @param {float} time_in - The epoch-timestamp in ms that the user clicked their switch.
      */
     select(time_in) {
-
-        this.clock_inf.add_click(time_in - this.latest_time);
-        if (config.is_learning) {
-            this.clock_inf.update_history(time_in - this.latest_time);
-        }
-
-        this.abs_click_times.push(time_in);
+        var clock_index = this.clock_inf.get_closest_clock(time_in - this.latest_time);
+        this.parent.select_word(clock_index);
     }
 
     /**
@@ -54,11 +49,7 @@ export class BroderClocks {
      * @param {Boolean} results.5 - ? need to figure this out
      */
     continue_select() {
-        if (this.clock_inf.observations > 0) {
-            this.init_round(false, true, this.clock_inf.letter_probs());
-        } else {
-            this.init_round(false, false, []);
-        }
+        this.init_round(false, true, this.clock_inf.letter_probs());
     }
 
     /**
@@ -72,6 +63,10 @@ export class BroderClocks {
         this.last_win_time = this.start_time;
         this.num_bits = 0;
         this.num_selects = 0;
+    }
+
+    select(time_in) {
+        return this.clock_inf.select_word(time_in - this.latest_time);
     }
 
     /**
@@ -95,7 +90,7 @@ export class BroderClocks {
      * @param {Array<number>} clock_score_prior - The prior probabilities over the active clocks before the switch event.
      */
     init_round(is_win, is_start, clock_score_prior) {
-        console.log("init_round", is_win, is_start, clock_score_prior);
+        console.log("init_round_word", is_win, is_start, clock_score_prior);
         this.clock_inf.clock_util.init_round(this.clock_inf.clocks_li);
         var clock;
         var clock_ind;
