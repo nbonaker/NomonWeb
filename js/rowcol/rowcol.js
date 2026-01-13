@@ -86,21 +86,21 @@ class Keyboard{
     init_ui(){
         this.speed_slider = document.getElementById("speed_slider");
         this.speed_slider_output = document.getElementById("speed_slider_value");
-        this.speed_slider_output.innerHTML = this.scan_delay_index;
+        this.speed_slider_output.innerText = this.scan_delay_index;
         this.speed_slider.value = this.scan_delay_index;
 
         this.speed_slider.oninput = function() {
-            this.speed_slider_output.innerHTML = this.speed_slider.value;
+            this.speed_slider_output.innerText = this.speed_slider.value;
             this.change_scan_delay(this.speed_slider.value);
         }.bind(this);
 
         this.extra_delay_slider = document.getElementById("extra_delay_slider");
         this.extra_delay_slider_output = document.getElementById("extra_delay_slider_value");
-        this.extra_delay_slider_output.innerHTML = this.extra_delay_index;
+        this.extra_delay_slider_output.innerText = this.extra_delay_index;
         this.extra_delay_slider.value = this.extra_delay_index;
 
         this.extra_delay_slider.oninput = function() {
-            this.extra_delay_slider_output.innerHTML = this.extra_delay_slider.value;
+            this.extra_delay_slider_output.innerText = this.extra_delay_slider.value;
             this.change_extra_delay(this.extra_delay_slider.value);
         }.bind(this);
 
@@ -133,7 +133,7 @@ class Keyboard{
             window.open(keyboard_url, '_self');
         }.bind(this);
 
-        document.getElementById("info_label").innerHTML =`<b>Welcome to the Row Column Scanner! Press ? for help.</b>`;
+        document.getElementById("info_label").innerText =`<b>Welcome to the Row Column Scanner! Press ? for help.</b>`;
 
 
         this.info_button = document.getElementById("help_button");
@@ -218,7 +218,7 @@ class Keyboard{
             this.scan_delay_index = speed_index;
             this.scan_delay = config.scan_delay_li[this.scan_delay_index];
         }
-        this.speed_slider_output.innerHTML = speed_index;
+        this.speed_slider_output.innerText = speed_index;
         this.speed_slider.value = speed_index;
     }
     change_extra_delay(index){
@@ -239,7 +239,7 @@ class Keyboard{
             this.extra_delay_index = speed_index;
             this.extra_delay = config.extra_delay_li[this.extra_delay_index];
         }
-        this.extra_delay_slider_output.innerHTML = speed_index;
+        this.extra_delay_slider_output.innerText = speed_index;
         this.extra_delay_slider.value = speed_index;
 
     }
