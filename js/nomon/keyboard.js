@@ -118,11 +118,11 @@ class Keyboard{
     init_ui(){
         this.speed_slider = document.getElementById("speed_slider");
         this.speed_slider_output = document.getElementById("speed_slider_value");
-        this.speed_slider_output.innerHTML = this.rotate_index;
+        this.speed_slider_output.innerText = this.rotate_index;
         this.speed_slider.value = this.rotate_index;
 
         this.speed_slider.oninput = function() {
-            this.speed_slider_output.innerHTML = this.speed_slider.value;
+            this.speed_slider_output.innerText = this.speed_slider.value;
             this.change_speed(this.speed_slider.value);
         }.bind(this);
 
@@ -179,7 +179,7 @@ class Keyboard{
                 var keyboard_url = "keyboard.html?emoji=".concat((this.emoji_keyboard === false).toString());
                 window.open(keyboard_url, '_self');
             }.bind(this);
-            document.getElementById("info_label").innerHTML =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
+            document.getElementById("info_label").innerText =`<b>Welcome to the Nomon Keyboard! Press ? for help.</b>`;
         }
 
         // this.commboard_button = document.getElementById("commboard_button");
@@ -304,7 +304,7 @@ class Keyboard{
             // # update the histogram
             this.histogram.update(this.bc.clock_inf.kde.dens_li);
         }
-        this.speed_slider_output.innerHTML = speed_index;
+        this.speed_slider_output.innerText = speed_index;
         this.speed_slider.value = speed_index;
     }
 
